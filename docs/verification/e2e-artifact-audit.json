@@ -1,5 +1,5 @@
 {
-  "source": "runtime/integration-phase2-second",
+  "source": "runtime/demo-a72a68811e2d12ab7d2a8a97",
   "checks": [
     "all stages recorded",
     "journal stage 0",
@@ -35,6 +35,6 @@
     "durable selection complete once"
   ],
   "passed": 32,
-  "result_source_sha256": "7ca87b29808323c0dc2efebb2306667cd3ccbdb013fe48e653973f9027e44286",
+  "result_source_sha256": "3a7cd04e4ed9793638ced97199b836f043a9e04ba9abd35c392dc4041fb9b6af",
   "limits": "Artifact recomputation, not independent real-world parties or execution proof. Payment is simulation."
 }

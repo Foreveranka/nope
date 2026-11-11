@@ -10,3 +10,5 @@ Publication is static: landing at `/`, local-client explanation at `/app`, recor
 Never commit .env*, .vercel, runtime, wallet/private keys, dependencies or native build directories. Git excludes them. New local evidence must pass `scripts/archive-integration.py <runtime-run>` before inclusion. Its hash and receipt checks are local consistency checks, not a public execution proof.
 
 To update: run relevant tests; build the static bundle; review the Git diff; commit and push main. Confirm Vercel READY and the expected commit SHA. A local edit without a push does not deploy.
+
+First Git-triggered production deployment verified READY, source=git, commit `3b1c038a3e463805debb86288e17a39b136a8d8f`. Public URL: https://veil-procurement.vercel.app . Evidence: `verification/deployment-first.json`.

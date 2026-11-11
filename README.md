@@ -6,6 +6,15 @@ NEAR üzerinde gizli tekliflerle iş satın alma ve müşteri verisini açık h�
 
 ## Çalıştırma
 
+Önce desteklenen Python ortamında yerel bağımlılıkları kurun (bu makinede Python 3.9 / Apple Silicon doğrulandı):
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+```
+
+Tam `/demo` ayrıca Rust sandbox ve MP-SPDZ derlemelerini gerektirir; kurulum adımları `integration/README.md` içindedir. Python ortamını proje içinde tutmak, bulut eşitlemeli klasörlerden native modül yükleme gecikmesini önler.
+
 ```sh
 cd /Users/mete/near-private-procurement
 ./scripts/run-local.sh

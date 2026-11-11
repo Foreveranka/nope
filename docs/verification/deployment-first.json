@@ -1,0 +1,17 @@
+{
+  "id": "dpl_AqNbko4JQ8s6UXhJ5bAA4nvSpq99",
+  "readyState": "READY",
+  "source": "git",
+  "url": "veil-procurement-5pxgdpdab-omermetehanizal-9130s-projects.vercel.app",
+  "target": "production",
+  "gitSource": {
+    "ref": "main",
+    "repoId": 1454338588,
+    "sha": "3b1c038a3e463805debb86288e17a39b136a8d8f",
+    "type": "github",
+    "prId": null
+  },
+  "repository": "https://github.com/Foreveranka/veil-procurement",
+  "visibility": "private",
+  "public_url": "https://veil-procurement.vercel.app"
+}

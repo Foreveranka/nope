@@ -1,0 +1,14 @@
+{
+  "run": "demo-a72a68811e2d12ab7d2a8a97",
+  "started_via_browser": true,
+  "observed_completed": true,
+  "stages": 12,
+  "passed": 13,
+  "rejected_registry_actions": 4,
+  "elapsed_seconds": 62.0680035,
+  "local_only": true,
+  "real_payment": false,
+  "hosted_app_read_only_observed": true,
+  "hosted_demo_recorded_mode_observed": true,
+  "prior_failed_attempts": 2
+}

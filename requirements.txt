@@ -1,0 +1,2 @@
+# Concrete runtime used by the local client/evaluator. Never installed on Vercel.
+concrete-python==2.11.0

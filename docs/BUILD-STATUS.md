@@ -2,9 +2,9 @@
 
 Yerel tam akış çalıştırıldı: FHE prepare → NEAR sandbox create/bid/close → gerçek üç taraflı SPDZ2k → seçilmiş executor/v2 attempt → fixture hold → bağlı FHE evaluation → client verify → executor report → buyer accept → fixture release.
 
-`verification/e2e-local-result.json` 13 olumlu kontrol ve dört gerçek on-chain reddi içerir. İlk başarılı birleşik koşum 66.473 saniyedir. `verification/e2e-artifact-audit.json` 32 bağımsız artifact/defter/hash kontrolünü kaydeder. Bunlar dağıtık taraf veya execution proof ispatı değildir.
+`verification/e2e-local-result.json` 13 olumlu kontrol ve dört gerçek on-chain reddi içerir. İlk başarılı birleşik koşum 66.473 saniye; proje içindeki Python ortamıyla tarayıcıdan başlatılan son başarılı koşum 62.068 saniyedir. `verification/e2e-artifact-audit.json` 32 bağımsız artifact/defter/hash kontrolünü kaydeder. Bunlar dağıtık taraf veya execution proof ispatı değildir.
 
-Son hedefli testler: SDK 40, servis/demo 18, ödeme 38, web 12 geçti. Engine staged FHE, MPC v2, registry ve operatör manifest testleri kendi dizinlerinde belgelenmiştir. Driver zorunlu temizleme için ek süreç-ağacı regresyonu ayrı raporlanır.
+Son hedefli testler: SDK 40, servis/demo 18, ödeme 38, web 12 geçti. Engine staged FHE, MPC v2, registry ve operatör manifest testleri kendi dizinlerinde belgelenmiştir. Driver süreç-ağacı düzeltmesi: 8 entegrasyon testi içinde 7 geçti, isteğe bağlı gerçek-sandbox testi o toplu koşumda atlandı; ayrıca ajan gerçek sandbox SIGSTOP temizliğini 3.66 saniyede çalıştırdı.
 
 Gerçek para, mainnet/testnet sözleşmesi, bağımsız operatörler, attestation/ZK ve Market canlı mutabakatı hazır değildir. MPC sonucu kontrata buyer yetkisiyle atanır; kontrat MPC hesabını ispatlamaz. Vercel yayını yalnız web ve kayıtlı yerel test kanıtıdır. GitHub/Vercel bağlantısı `DEPLOYMENT.md` içindedir.
 
@@ -59,3 +59,9 @@ Tarayıcı kontrolü için açılan yerel servis inceleme sonunda kapatıldı. Y
 MPC → registry kazanan ataması; önceden kayıt → FHE yürütme sırası; bağımsız MPC operatörleri; Market ödeme/uyuşmazlık akışı; attestation/ZK. İlk sürüm yalnız dört sayısal kaydı işler. `NEXT-INTEGRATION.md` commitment sırasındaki döngüyü ve bir sonraki uygulanacak köprüyü açıklar.
 
 Mahremiyet mekanizmaları ve açık metadata: `PRIVACY.md`. MPC maliyetinde ilk yerel koşum yaklaşık 1,76 GB iletişim raporladı; bu sürümün WAN performansı veya üretim maliyeti doğrulanmadı.
+
+## Son tarayıcı doğrulaması
+
+`demo-a72a68811e2d12ab7d2a8a97` tarayıcı düğmesiyle başlatıldı; 12 aşama, 13/13 kontrol, dört gerçek registry reddi ve 62.1 saniye tamamlanma ekranda görüldü. Önceki iki deneme başarı sayılmadı: Desktop araştırma ortamı native yükleme gecikmesi nedeniyle durduruldu; proje ortamındaki ilk MPC denemesi OS `No buffer space available` ile abort etti. Yeni bağımsız sentetik job başarıyla tamamlandı. Otomatik aynı-işlem retry yapılmadı. Bu tek başarılı tekrar, işletim sistemi kaynak baskısının üretimde çözüldüğünü kanıtlamaz.
+
+Yayında `/`, `/app`, `/demo` ve statik modüller 200; `/api/demo` 404. Hosted `/app` veri girişini kapatıyor, `/demo` salt okunur kayıt gösteriyor. CSP ve nosniff başlıkları doğrulandı.

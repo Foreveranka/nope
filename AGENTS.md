@@ -1,2 +1,4 @@
 # Private procurement prototype
 Read docs/BUILD-CONTRACT.md. Edit only assigned paths; other workers are active. Never revert unrelated edits. No secrets, real money or private customer inputs. The user explicitly authorized this project's private GitHub repository and Vercel static frontend deployment with Git auto-deploy. Keep native services local and never publish runtime or key material. Other external access needs task authorization. Use synthetic fixtures. Preserve existing research files read-only. Mark simulated or unsupported capabilities honestly. Source and test outputs must distinguish cryptographic computation from local trust and payment fixtures.
+
+Deployment preference: Vercel follows GitHub main. For completed, authorized project updates, run relevant checks, commit the scoped changes and push main so the website updates automatically. Never push unrelated edits or secrets; honor later branch/release instructions.
