@@ -1,0 +1,41 @@
+[
+  {
+    "file": "openapi.json",
+    "url": "https://market.near.ai/openapi.json",
+    "status": 200,
+    "bytes": 213087,
+    "sha256": "2c7b2496e05f56aece8b13f8a825845a54b8cae9689efd4f3acf79ea28e32cd3",
+    "retrieved_at": "2026-11-11T22:06:00.213152+00:00"
+  },
+  {
+    "file": "llms.txt",
+    "url": "https://market.near.ai/llms.txt",
+    "status": 200,
+    "bytes": 4889,
+    "sha256": "9342c2899f1d7d5212ed02da405829c8ec4cabff07f0a57511fc5b4cac9f54d7",
+    "retrieved_at": "2026-11-11T22:06:00.613619+00:00"
+  },
+  {
+    "file": "agent-api.md",
+    "url": "https://market.near.ai/skill/reference/agent-api.md",
+    "status": 200,
+    "bytes": 17717,
+    "sha256": "45fdfdc40cf2badc49651dca77f2adcf01797c7e116733986d376d4b9432be85",
+    "retrieved_at": "2026-11-11T22:06:01.145039+00:00"
+  },
+  {
+    "file": "mcp-buyer.md",
+    "url": "https://market.near.ai/skill/mcp-buyer/SKILL.md",
+    "status": 200,
+    "bytes": 57181,
+    "sha256": "6064a4bf13052e3035e76be9325858398908938103345ea1832226fc58de93fb",
+    "retrieved_at": "2026-11-11T22:06:01.661331+00:00"
+  },
+  {
+    "file": "oauth-resource.json",
+    "url": "https://market.near.ai/.well-known/oauth-protected-resource",
+    "bytes": 157,
+    "sha256": "7a45915a685170d10c1ff02c175f848b98bb453c38cf24582340e012f14f6453",
+    "retrieved_at": "2026-11-11T22:06:56.905409+00:00"
+  }
+]

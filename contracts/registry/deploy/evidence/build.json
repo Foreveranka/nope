@@ -1,0 +1,8 @@
+{
+  "wasm_sha256": "431e1bbfcf89c5f305e668c265b66d1cd70246a3546d59b48c578009be71c553",
+  "code_hash": "5WzwjqPvm3nRz6CEkkx73R8dcBtu3YBH6gr6DnoccSEv",
+  "size_bytes": 229547,
+  "fresh_build_byte_identical": true,
+  "command": "RUSTFLAGS='--cfg near' ../scripts/cargo-local.sh build --locked --release --target wasm32-unknown-unknown --target-dir runtime/near-testnet/build",
+  "verified_at": "2026-11-11T22:22:24.699Z"
+}

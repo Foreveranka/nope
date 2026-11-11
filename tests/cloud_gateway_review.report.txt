@@ -1,0 +1,119 @@
+Cloud gateway adversarial test review — 2026-11-12
+
+Owned changes: tests/cloud_gateway_review.test.mjs and this report only.
+No gateway, Blob adapter, API adapter, package scripts or other workers' files
+were edited. No external deployment, provider operation, commit or push performed.
+
+Commands (run from /Users/mete/near-private-procurement):
+  npm test
+  node --test tests/cloud_gateway_review.test.mjs
+
+Latest run: npm test exited 0; 73 tests passed, 0 failed, 0 skipped, 0 TODO.
+All 61 gateway review tests passed within that run, alongside 12 web tests.
+No assertions were weakened and no additional tests were added for this closure.
+Node: v25.6.0. Working baseline is live/uncommitted; main is changing these files.
+Run window: 2026-11-11T22:15:18.123Z to 2026-11-11T22:15:18.547Z
+(2026-11-12 01:15:18 Europe/Istanbul). All five source/test/package hashes below
+were captured before and after npm test and were unchanged during the run.
+
+ISSUE CLOSED AFTER MAIN'S FIX
+
+[P2, CLOSED] Incoming request stream errors escaped the API adapter's boundary.
+Location: api/cloud/[...path].mjs:7; fixed by outer catch at lines 13-20.
+Reproduction: actual exported handler receives a Node Readable yielding partial
+JSON, followed by Error with code ECONNRESET and synthetic private detail.
+Previously: handler rejected with the same unsanitized error before completing
+an HTTP response; createGateway's sanitized catch was never reached.
+Now verified: handler resolves and completes a generic 503 JSON response with
+no-store and nosniff headers; exception detail is absent from the response.
+Test: "actual Node API adapter sanitizes an aborted incoming body instead of
+leaking a rejected handler" now passes unchanged.
+Source inspection also confirms headersSent, writableEnded and destroyed guards
+before the catch writes a response. Those guard branches were inspected, not
+separately exercised. The regression uses a writable response double.
+Hosting behavior and already-disconnected sockets were not exercised; the prior
+finding never established remote exposure of a Vercel exception stack.
+No known reproduced issue remains open within this review's stated scope.
+
+EARLIER FINDINGS NOW FIXED BY MAIN AND VERIFIED BY THIS SUITE
+
+1. Prototype-property file allowlist bypass (core.mjs:38).
+   Previously, adding constructor, toString or __proto__ as a fourth descriptor
+   with size 536870913 passed validation, reached store.sign, and returned 201
+   instead of 400. `in LIMITS` accepted inherited properties; comparing a numeric
+   size against a function/object did not enforce a numeric upper bound.
+   Current Object.hasOwn check rejects all three before any storage access.
+   No actual provider oversized upload or charge was attempted/established.
+
+2. Property-order-dependent duplicate identity (core.mjs:42,69-72).
+   Previously, retrying identical descriptors as {sha256,size,name} instead of
+   {name,size,sha256} returned 409, although all values were unchanged.
+   Current explicit descriptor normalization makes the retry return 201.
+   Changed hashes/sizes and concurrent conflicting requests still return 409.
+
+VERIFIED SCOPE AND LIMITATIONS
+
+The tests import the actual createGateway. MemoryStoreDouble is explicitly a
+test double with atomic create-if-absent, cloned values, seven-day JSON TTL and
+one-day seeded-input TTL. Time and worker HTTP replies are injected. Synthetic
+transport bytes/receipts are not real ciphertext, FHE runs or engine evidence.
+The real Node API handler is also imported for health, aggregate body-size and
+incoming-stream-error checks; authenticated Blob routes are not invoked there.
+
+Passing adversarial checks cover:
+- Tenant namespace separation even when both owners are allowed the same job ID;
+  result, claim, failure and upload capabilities do not cross owners.
+- Forged bearer, token-hash-as-bearer, short token, cookie-only authentication,
+  exact expiry, invalid owner, missing/future issuedAt, inverted/overlong expiry.
+- Listed job IDs as quota, empty quota, maximum 50 slots, cross-instance retries,
+  differing requests/sizes/hashes, conflicting concurrent registration.
+- Sixteen concurrent claims sharing one atomic store dispatch one worker only;
+  completed requests never dispatch again. This assumes the provider's atomic
+  create contract; it does not establish provider concurrency behavior.
+- Five-key worker response binding, receiptBase64 exact-byte SHA and JSON match,
+  receipt output hash, output-byte SHA, request-manifest hash, missing/extra fields.
+- Unknown network outcome, worker rejection/redirect, malformed/oversized response,
+  signing failure and result-write failure retain the claim and forbid replay.
+  Failure-marker write failure still retains claim; cleanup failure falls back
+  to the simulated input TTL. Native exception detail is sanitized by core.
+- Caller-supplied worker/download URLs rejected; fixed configured destination,
+  HTTPS/no credentials/no non-443 port/no query/no fragment, redirect:error.
+  Workers are explicitly user-authorized. No claim of public-address enforcement
+  for configured worker hosts, real DNS pinning, TLS or redirect integration.
+- Upload expiry <=15 minutes, read expiry <=5 minutes, both capped by grant.
+- File limits, traversal/duplicate names, descriptor fields/manifest binding,
+  16KiB aggregate caller bytes, UTF-8 byte accounting, 1.5MB worker-response cap,
+  streaming cancellation, exact origin enforcement and no CORS opt-in.
+- Actual API adapter enforces aggregate bytes even with false Content-Length.
+- Actual API adapter sanitizes incoming-body stream errors and completes 503
+  responses with no-store and nosniff when its response double is writable.
+
+TTL replay request: included a 24-hour grant test that advances past seven-day
+metadata expiry and verifies both registration/evaluation return 401. Included
+an eight-day grant test that would attempt re-registration/evaluation after
+claim expiry if authentication accepted it. Current issuedAt/lifetime validation
+rejects that configuration with 503 before storage. Current source caps lifetime
+at SIX days, below the seven-day JSON TTL; no current TTL-replay bug reproduced.
+
+Private Blob adapter was read: private get, uncached reads, create with overwrite
+disabled, private scoped signing, seven-day JSON TTL and one-day input TTL. Real
+private get200 / unsigned403 / duplicate-put rejection are main's separately
+reported provider checks, not results produced by this review. The memory double
+does not test provider signing, access control, exact upload size or real TTL.
+No cryptographic proof, production security or exhaustive audit is claimed.
+
+Source snapshot for the passing 73/73 npm test run (SHA-256):
+cloud/gateway/core.mjs
+  bc93b54b6f0edd873934a4c3d07704e68c2747f096a0a057e8f6efd7fc34c8da
+cloud/gateway/blob.mjs
+  c0670db56093f52e63913e8ebf0bd742babe1aa94c03b523884a1c3e20552f7f
+api/cloud/[...path].mjs
+  0ce8fe4b310082972cf7bcec891e24501f4ba276878c3cdbcaf738e12475d85f
+tests/cloud_gateway_review.test.mjs
+  0c9124adce2fec6e8d78bb0154e6fd734c460408f3d078141a1f974e56c3dedc
+package.json
+  12b3b447d1be0b1eed34e0e4c315d6990dc2b673f8711d153fd88e508df3c767
+
+npm test now explicitly runs:
+  node --test web/*.test.mjs tests/cloud_gateway_review.test.mjs
+The direct command above remains available to run just the 61 review tests.

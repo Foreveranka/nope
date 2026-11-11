@@ -53,6 +53,19 @@ function checkJob(job) {
   if (!job || typeof job.id !== 'string' || !(job.status in LABELS)) throw new Error('İstemciden beklenen işlem biçimi alınamadı.');
   return job;
 }
+function evaluationReady() {
+  return capabilityReady(state.capabilities) && ($('evaluation-mode').value !== 'remote' ||
+    ['configured', 'available', 'test-only'].includes(state.capabilities?.evaluationModes?.remote?.status));
+}
+function renderEvaluationMode() {
+  const remote = state.capabilities?.evaluationModes?.remote;
+  const enabled = ['configured', 'available', 'test-only'].includes(remote?.status);
+  $('evaluation-mode').querySelector('option[value="remote"]').disabled = !enabled;
+  if (!enabled) $('evaluation-mode').value = 'local';
+  $('evaluation-note').textContent = enabled
+    ? `Bulut modu: ${remote.status === 'available' ? 'bu oturumda yerel doğrulaması tamamlanmış işlem var' : remote.status === 'test-only' ? 'yalnızca test yapılandırması' : 'yapılandırıldı; başarılı uzaktan işlem henüz doğrulanmadı'}. Açık veri ve gizli anahtar yerelde kalır. Bu seçenek ödeme veya MPC ihalesi açmaz.`
+    : 'Yerel değerlendirme varsayılandır. Bulut seçeneği için yerel istemcide davet erişimi gerekir.';
+}
 function readInput() {
   return state.mode === 'csv' ? parseCSV($('csv-input').value) : validateRecords(rowInputs.map(row => ({ id: row.id.value, value: row.value.value })));
 }
@@ -71,7 +84,7 @@ function validate() {
     for (const record of checked.records) { if (ids.has(record.id)) repeated++; ids.add(record.id); }
     $('validation').textContent = `4 kayıt hazır.${repeated ? ` ${repeated} sonraki kayıt yinelenen kimlik olarak işaretlenecek.` : ' Tüm alanlar geçerli.'}`;
   } else $('validation').textContent = checked.errors.map(error => error.message).join(' ');
-  $('submit-job').disabled = !checked.valid || state.busy || !capabilityReady(state.capabilities);
+  $('submit-job').disabled = !checked.valid || state.busy || !evaluationReady();
   return checked;
 }
 function loadExample() {
@@ -127,6 +140,7 @@ function setConnection(text, connected) {
   $('connection').className = `status-pill ${connected ? 'connected' : 'disconnected'}`;
 }
 function renderCapabilities() {
+  renderEvaluationMode();
   const data = state.capabilities;
   $('capabilities').replaceChildren();
   $('capability-version').textContent = data ? `Sürüm: ${data.version ?? 'bildirilmedi'} · Profil: ${data.profile?.id ?? 'bildirilmedi'}` : '';
@@ -139,6 +153,12 @@ function renderCapabilities() {
     const top = el('div', undefined, 'capability-top');
     top.append(el('strong', capability.label ?? capability.id ?? 'Yetenek'), el('span', capability.status ?? 'bilinmiyor', 'quiet-badge'));
     item.append(top, el('p', capability.detail ?? 'Ayrıntı bildirilmedi.'));
+    $('capabilities').append(item);
+  }
+  const remote = data.evaluationModes?.remote;
+  if (remote) {
+    const item = el('article', undefined, 'capability');
+    item.append(el('strong', 'Bulutta şifreli değerlendirme'), el('span', remote.status, 'quiet-badge'), el('p', remote.detail));
     $('capabilities').append(item);
   }
 }
@@ -185,7 +205,8 @@ function renderStages() {
     if (isActive || failed) li.setAttribute('aria-current', 'step');
     li.append(el('span', isDone ? '✓' : failed ? '!' : String(index + 1).padStart(2, '0'), 'stage-dot'));
     const copy = el('div', undefined, 'stage-copy');
-    copy.append(el('h3', label), el('p', description)); li.append(copy); $('stages').append(li);
+    const stageDescription = job?.evaluation === 'remote' && key === 'EVALUATING' ? 'Bulut değerlendiricisi yalnızca şifreli girdiyi işler.' : description;
+    copy.append(el('h3', label), el('p', stageDescription)); li.append(copy); $('stages').append(li);
   }
 }
 function renderResult() {
@@ -238,7 +259,7 @@ function renderSelected() {
   const job = state.selected;
   $('job-status').textContent = job ? LABELS[job.status] : 'Hazır';
   $('job-status').className = `quiet-badge${job?.status === 'FAILED' ? ' failure' : job?.status === 'COMPLETED' ? ' success' : ''}`;
-  $('job-summary').textContent = job ? `${job.title || 'Adsız işlem'} · ${job.id}` : 'Bir işlem başlattığınızda gerçek aşamalar burada görünür.';
+  $('job-summary').textContent = job ? `${job.title || 'Adsız işlem'} · ${job.id} · ${job.evaluation === 'remote' ? 'Bulutta şifreli değerlendirme / yerelde doğrulama' : 'Yerel değerlendirme'}` : 'Bir işlem başlattığınızda gerçek aşamalar burada görünür.';
   $('job-audit').disabled = !job;
   $('job-error').hidden = job?.status !== 'FAILED';
   $('job-error').textContent = job?.status === 'FAILED' ? (job.error || 'İstemci hata ayrıntısı bildirmedi.') : '';
@@ -332,12 +353,12 @@ async function submit(event) {
     else rowInputs[checked.errors[0]?.row]?.[checked.errors[0]?.field]?.focus();
     return;
   }
-  if (state.busy || !capabilityReady(state.capabilities)) return;
+  if (state.busy || !evaluationReady()) return;
   const title = $('job-title').value.trim() || DEFAULT_TITLE;
   const records = checked.records.map(record => ({ ...record }));
   state.busy = true; validate(); message('İşlem yerel istemciye gönderiliyor…');
   try {
-    const response = await request('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': state.capabilities.csrfToken }, body: JSON.stringify({ title, records }) });
+    const response = await request('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': state.capabilities.csrfToken }, body: JSON.stringify({ title, records, evaluation: $('evaluation-mode').value }) });
     const job = checkJob(response.job);
     selectionVersion++;
     state.inputs.set(job.id, records); state.selected = job; upsertJob(job);
@@ -354,6 +375,7 @@ function openAudit() {
 setupRows(); loadExample(); renderSelected(); renderAudit();
 $('job-form').addEventListener('submit', submit);
 $('csv-input').addEventListener('input', validate);
+$('evaluation-mode').addEventListener('change', validate);
 $('reset-example').addEventListener('click', () => { loadExample(); message('Sentetik örnek yeniden yüklendi.'); });
 for (const mode of ['rows', 'csv']) {
   $(`${mode}-tab`).addEventListener('click', () => switchMode(mode));

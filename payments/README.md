@@ -1,7 +1,18 @@
 # NEAR Agent Market payment boundary
 
+The real official-schema integration is now in `market.py`, `market_mcp.py`,
+`market_writes.py`, `http.py` and `openapi.py`. It implements scoped authenticated
+reads, durable preparation, nonfinancial draft recovery and gated financial wire
+calls. **No live financial mutation was performed or authorized by this run.**
+See [LIVE-SETUP.md](LIVE-SETUP.md) for separated-role configuration and
+[LIVE-GAPS.md](LIVE-GAPS.md) for exact unresolved platform guarantees and public
+read results. Production settlement/atomic acceptance is not claimed complete.
+
+The documentation below describes the original, unchanged fixture integration.
+It does not describe the new transport as a simulation.
+
 **Implemented local prototype, not a production payment integration.** Python 3.9+
-standard library only. Only `LocalFixtureRail` executes mutations. Its funds,
+standard library only. In this original fixture API, only `LocalFixtureRail` executes mutations. Its funds,
 assignments, evidence IDs and ledger are **local simulation**, not NEAR escrow,
 Market holds, bank balances, settlement proofs or actual money.
 

@@ -1,0 +1,132 @@
+{
+  "_provenance": {
+    "kind": "authored_sanitized_shape_fixtures",
+    "source": "https://market.near.ai/openapi.json",
+    "schema_sha256": "2c7b2496e05f56aece8b13f8a825845a54b8cae9689efd4f3acf79ea28e32cd3",
+    "note": "Official schema; authored non-secret data. Not captured authenticated transactions, not settlement evidence."
+  },
+  "get_me": {
+    "account": {
+      "account_id": "00000000-0000-4000-8000-000000000005",
+      "display_name": "Synthetic buyer",
+      "slug": "synthetic-buyer",
+      "kyc_status": "unverified",
+      "is_verified": false,
+      "created_at": "2026-11-11T12:00:00Z"
+    },
+    "tos_accepted": false,
+    "skill_verification_enforcement": "required"
+  },
+  "get_job": {
+    "jobId": "00000000-0000-4000-8000-000000000001",
+    "creatorAccountId": "00000000-0000-4000-8000-000000000005",
+    "title": "Synthetic procurement fixture",
+    "description": "No private inputs. Authored from official OpenAPI, not an actual paid job.",
+    "tags": [],
+    "budgetToken": "USDC",
+    "requiresVerifiable": false,
+    "jobKind": "standard",
+    "status": "open",
+    "maxSlots": 1,
+    "currentMaxSlots": 1,
+    "isPrivate": true,
+    "acceptanceWindowDays": 3,
+    "minBuilderVerification": "none",
+    "isTestRun": false,
+    "createdAt": "2026-11-11T12:00:00Z",
+    "updatedAt": "2026-11-11T12:00:00Z",
+    "budgetAmount": "80.000000000000"
+  },
+  "list_bids_on_job": {
+    "bids": [
+      {
+        "bidId": "00000000-0000-4000-8000-000000000002",
+        "jobId": "00000000-0000-4000-8000-000000000001",
+        "bidderAgentId": "00000000-0000-4000-8000-000000000004",
+        "amount": "80.000000000000",
+        "proposal": "synthetic-public-safe",
+        "verifiableOffered": false,
+        "status": "pending",
+        "createdAt": "2026-11-11T12:00:00Z",
+        "updatedAt": "2026-11-11T12:00:00Z",
+        "slaSeconds": 1,
+        "bidder": {
+          "agentId": "00000000-0000-4000-8000-000000000004",
+          "handle": "synthetic-public-safe",
+          "name": "synthetic-public-safe",
+          "deliveredJobs": 1,
+          "listingStatus": "draft",
+          "builderVerification": {
+            "level": "none"
+          }
+        },
+        "proposalReuseCount": 1,
+        "messageCount": 1,
+        "unreadCount": 1
+      }
+    ],
+    "total": 1,
+    "minScoredJobs": 1
+  },
+  "list_my_agent_assignments": {
+    "assignments": [
+      {
+        "assignment": {
+          "assignmentId": "00000000-0000-4000-8000-000000000003",
+          "jobId": "00000000-0000-4000-8000-000000000001",
+          "workerAgentId": "00000000-0000-4000-8000-000000000004",
+          "status": "submitted",
+          "escrowAmount": "80.000000000000",
+          "escrowToken": "USDC",
+          "slaSeconds": 1,
+          "slaDeadlineAt": "2026-11-11T12:00:00Z",
+          "acceptanceWindowDays": 3,
+          "createdAt": "2026-11-11T12:00:00Z",
+          "updatedAt": "2026-11-11T12:00:00Z",
+          "bidId": "00000000-0000-4000-8000-000000000002",
+          "deliverableHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "submittedAt": "2026-11-11T12:00:00Z"
+        },
+        "job": {
+          "jobId": "00000000-0000-4000-8000-000000000001",
+          "title": "synthetic-public-safe",
+          "description": "synthetic-public-safe",
+          "tags": [],
+          "jobKind": "standard",
+          "status": "in_progress",
+          "attachments": []
+        },
+        "autoAcceptAt": "2026-11-14T12:00:00Z"
+      }
+    ]
+  },
+  "list_ledger": {
+    "entries": [
+      {
+        "ledgerEntryId": "sanitized-ledger-1",
+        "kind": "hire",
+        "amount": "80.000000",
+        "currency": "USDC",
+        "wallet": "crypto",
+        "status": "confirmed",
+        "fromAccountId": "00000000-0000-4000-8000-000000000005",
+        "toAccountId": "00000000-0000-4000-8000-000000000006",
+        "idempotencyKey": "opaque-platform-key-1",
+        "createdAt": "2026-11-11T12:00:00Z",
+        "jobId": "00000000-0000-4000-8000-000000000001",
+        "referenceKind": "assignment",
+        "referenceId": "00000000-0000-4000-8000-000000000003"
+      }
+    ]
+  },
+  "list_deliverable_versions": {
+    "versions": [
+      {
+        "version": 1,
+        "files": [],
+        "submittedAt": "2026-11-11T12:00:00Z",
+        "deliverableHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  }
+}

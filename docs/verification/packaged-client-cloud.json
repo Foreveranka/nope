@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "packagedClient": true,
+  "archiveSha256": "7acd638c48764f9d9f05ee75abfb6622c65505768979d361b687a167c192652b",
+  "transport": "local HTTP companion to hosted encrypted gateway",
+  "jobStatus": "COMPLETED",
+  "metrics": {
+    "queue_seconds": 0.0001058750000009212,
+    "real_fhe": true,
+    "profile_id": "clean-4-records-v1",
+    "concrete_python": "2.11.0",
+    "verification_method": "client_plaintext_reference",
+    "verification_is_cryptographic_proof": false,
+    "keygen_seconds": 0.6695898339999999,
+    "encrypt_seconds": 0.0054783750000009235,
+    "evaluation_keys_serialize_seconds": 0.24829562499999902,
+    "input_bytes": 787192,
+    "evaluation_key_bytes": 221406120,
+    "worker_seconds": 37.256246584,
+    "evaluate_seconds": 6.397907352999994,
+    "server_load_seconds": 2.9428144180000118,
+    "decrypt_seconds": 0.002217791999996166,
+    "evaluation_keys_retained": false,
+    "output_bytes": 442904,
+    "total_seconds": 40.129011584
+  },
+  "artifactHashes": {
+    "serverSha256": "898b318b83ccdfaa3fde53265fcee1ac2e14c6b32b739e80a75d508eb8f154d5",
+    "clientSpecsSha256": "87b1dd33c9db661f215962b975df389c3f4f7b2fb6123fb7721ac985766475f3",
+    "inputSha256": "3de896b9e1a638513f375850b066cca342b937db90fa4255449cee9819df7b41",
+    "evaluationKeysSha256": "1e3e7d99985eebf47eaf57e7bd2f7f52bda0f57e4b1a0054c577051f0d2af667",
+    "requestManifestSha256": "65e57a5696e7bfe8c9bf57dd827a1799a2b22a349da81bd19cbbe8d5c4ad00f3",
+    "outputSha256": "0650fef5f377fc2b0651d7cd59cce998deb0ee761e6aaba93c3053ed9e4d0a3c",
+    "receiptSha256": "1afe18cf5f7b5cfa36ec6bb95dd20823fb1f0216716d119caa58b01fa6d406c0"
+  },
+  "plaintextSentToCloud": false,
+  "syntheticOnly": true,
+  "dependencyEnvironment": "existing project Concrete environment reused; not a clean-machine install"
+}

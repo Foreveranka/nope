@@ -1,0 +1,22 @@
+
+> test
+> node --test test/*.test.mjs
+
+✔ exact testnet endpoint policy rejects mainnet, alternate origins, redirects and credentials (0.797583ms)
+✔ RPC verifies chain ID and disables redirects (0.45125ms)
+✔ only UNKNOWN_ACCOUNT is treated as absent, not rate limits or arbitrary errors (0.179625ms)
+✔ fixed network domain and reviewed local WASM are pinned (0.805167ms)
+✔ deployment plans handle absent, empty, initialized and hostile state (0.610792ms)
+✔ inspection refuses unknown code before querying its state (0.51025ms)
+✔ action guard rejects funds, other wallets, other methods, code and wrong initialization (0.37175ms)
+✔ finality and failed receipt guards fail closed (0.135792ms)
+✔ unknown broadcast is journaled before sending and rerun only checks the same tx hash (10.780416ms)
+✔ synthetic smoke uses one honest identity, string timestamps, nonzero distinct hashes (0.893666ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 159.923541

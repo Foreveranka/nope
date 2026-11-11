@@ -47,16 +47,54 @@ def write_new(path, data):
         stream.write(data)
 
 
-def approved_artifacts(directory=None):
+def artifact_pins(artifact_set="macos-v1"):
+    if artifact_set == "macos-v1":
+        return ARTIFACT_PINS
+    if artifact_set == "portable-v1":
+        from engine.portable.pins import ARTIFACT_PINS as portable_pins
+        return portable_pins
+    raise ValueError("Unknown approved artifact set")
+
+
+def manifest_artifact_set(manifest):
+    for kind in ("macos-v1", "portable-v1"):
+        pins = artifact_pins(kind)
+        if (manifest["serverSha256"] == pins["server.zip"] and
+                manifest["clientSpecsSha256"] == pins["client-specs.json"]):
+            return kind
+    raise ValueError("Request circuit is not allowlisted")
+
+
+def approved_artifacts(directory=None, *, artifact_set="macos-v1"):
+    pins = artifact_pins(artifact_set)
+    default = ENGINE_DIR / "artifacts"
+    if artifact_set == "portable-v1":
+        from engine.portable.pins import DIRECTORY
+        default = default / DIRECTORY
     root = Path(directory) if directory is not None else Path(
-        os.environ.get("VEIL_FHE_ARTIFACT_DIR", str(ENGINE_DIR / "artifacts")))
+        os.environ.get("VEIL_FHE_ARTIFACT_DIR", str(default)))
     blobs = {}
-    for name, pin in ARTIFACT_PINS.items():
+    for name, pin in pins.items():
         blob = read_regular(root / name, 2 * 1024 * 1024)
         if sha256(blob) != pin:
             raise ValueError("Unapproved FHE artifact: " + name)
         blobs[name] = blob
     return blobs
+
+
+def verify_artifact_bytes(artifacts, *, artifact_set="portable-v1"):
+    """Snapshot downloaded public artifacts; deployment cannot choose new pins."""
+    from collections.abc import Mapping
+    pins = artifact_pins(artifact_set)
+    if not isinstance(artifacts, Mapping) or set(artifacts) != set(pins):
+        raise ValueError("Expected exactly the two approved public artifacts")
+    result = {}
+    for name, pin in pins.items():
+        blob = artifacts[name]
+        if type(blob) is not bytes or len(blob) > 2 * 1024 * 1024 or sha256(blob) != pin:
+            raise ValueError("Unapproved FHE artifact: " + name)
+        result[name] = blob
+    return result
 
 
 def require_runtime():
@@ -84,9 +122,7 @@ def validate_manifest(manifest):
     for key in expected - {"protocolVersion", "profileId", "attemptId"}:
         if not isinstance(manifest[key], str) or not re.fullmatch("[0-9a-f]{64}", manifest[key]):
             raise ValueError("Invalid artifact digest")
-    if (manifest["serverSha256"] != ARTIFACT_PINS["server.zip"] or
-            manifest["clientSpecsSha256"] != ARTIFACT_PINS["client-specs.json"]):
-        raise ValueError("Request circuit is not allowlisted")
+    manifest_artifact_set(manifest)
 
 
 def validate_external_binding(binding):

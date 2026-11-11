@@ -1,0 +1,9 @@
+{
+  "network": "testnet",
+  "account_id": "veil-reg-e138f5c88250f821.testnet",
+  "endpoint": "https://helper.nearprotocol.com/account",
+  "http_status": 200,
+  "status": "account-confirmed-on-testnet",
+  "retry": false,
+  "confirmation_deployment_transaction": "2Jf5HeHAphLfYHWGvR4Tvd3wBs5ZFirbbdHqAWFSdf2L"
+}

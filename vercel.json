@@ -3,7 +3,9 @@
   "framework": null,
   "buildCommand": "node scripts/build-web.mjs",
   "outputDirectory": "dist",
-  "installCommand": "",
+  "installCommand": "npm ci",
+  "functions": {"api/gateway.mjs": {"maxDuration": 300}},
+  "rewrites": [{"source":"/api/cloud/:route*","destination":"/api/gateway?route=:route*"}],
   "cleanUrls": true,
   "headers": [
     {"source": "/(.*)", "headers": [

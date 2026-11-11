@@ -122,6 +122,8 @@ This override does not move plaintext/client key operations to that interpreter:
 the service itself must have `concrete-python==2.11.0` and NumPy installed.
 The archived compiled binary is macOS/platform specific; another platform needs
 an independently built and reviewed artifact and a deliberate pin update.
+The separately reviewed [portable clean4 build](portable/README.md) now supplies
+that opt-in path. Existing macOS pins/defaults and `run_job` remain unchanged.
 
 `VEIL_FHE_ARTIFACT_DIR` optionally selects a directory containing the same two
 approved files. `engine/artifacts` is the default, so runtime does not depend on

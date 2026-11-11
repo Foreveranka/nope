@@ -16,6 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 from .demo import DemoRuns, DemoBusy
+from .remote import RemoteClient
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -149,9 +150,11 @@ def _validated_result(output):
 class JobState:
     """Process-local state. No input, title, result, exception, or SK is written to disk."""
 
-    def __init__(self, runtime_dir, pipeline=None):
+    def __init__(self, runtime_dir, pipeline=None, remote_client=None):
         self.runtime_dir = Path(runtime_dir).resolve()
         self.pipeline = pipeline
+        self.remote_client = remote_client
+        self.remote_job_verified = False
         self.csrf_token = secrets.token_urlsafe(32)
         self.lock = threading.RLock()
         self.jobs = {}
@@ -169,6 +172,15 @@ class JobState:
             "version": "0.1.0",
             "profile": {"id": "clean-4-records-v1", "recordCount": 4},
             "csrfToken": self.csrf_token,
+            "evaluationModes": {
+                "default": "local", "local": {"status": status},
+                "remote": {"status": ("test-only" if self.pipeline is not None else
+                                      "available" if self.remote_job_verified else "configured")
+                           if self.remote_client is not None else "disabled",
+                           "detail": "Optional remote encrypted evaluation; plaintext, secret keys and final "
+                                     "decryption stay in this local companion. Configuration is not a successful "
+                                     "remote FHE test. No payments or MPC bidding are enabled."},
+            },
             "capabilities": [
                 {"id": "fhe", "label": "Local FHE companion", "status": status,
                  "detail": "Concrete Python via engine.pipeline.run_job, not browser-native FHE. "
@@ -195,8 +207,12 @@ class JobState:
                 raise RequestError(404, "Job not found.")
             return copy.deepcopy(self.jobs[job_id])
 
-    def submit(self, title, records):
+    def submit(self, title, records, evaluation="local"):
         with self.lock:
+            if evaluation not in ("local", "remote"):
+                raise RequestError(400, "Unknown evaluation mode.")
+            if evaluation == "remote" and self.remote_client is None:
+                raise RequestError(503, "Remote encrypted evaluation is not configured in the local companion.")
             if self.closed:
                 raise RequestError(503, "Local worker is shutting down.")
             if self.active >= MAX_ACTIVE:
@@ -205,12 +221,12 @@ class JobState:
                 raise RequestError(429, "Session job limit (64) reached; restart the companion to clear local history.")
             job_id = uuid.uuid4().hex
             now = _now()
-            job = {"id": job_id, "title": title, "status": "QUEUED", "createdAt": now,
+            job = {"id": job_id, "title": title, "evaluation": evaluation, "status": "QUEUED", "createdAt": now,
                    "updatedAt": now, "events": [{"stage": "QUEUED", "at": now, "message": STAGES["QUEUED"]}]}
             self.jobs[job_id] = job
             self.active += 1
             try:
-                self.executor.submit(self._run, job_id, copy.deepcopy(records))
+                self.executor.submit(self._run, job_id, copy.deepcopy(records), evaluation)
             except RuntimeError:
                 self.active -= 1
                 del self.jobs[job_id]
@@ -229,13 +245,26 @@ class JobState:
         job = self.jobs[job_id]
         job["status"] = stage
         job["updatedAt"] = _now()
-        job["events"].append({"stage": stage, "at": job["updatedAt"], "message": STAGES[stage]})
+        message = STAGES[stage]
+        if job.get("evaluation") == "remote":
+            message = {
+                "EVALUATING": "Remote evaluator is computing on encrypted records only.",
+                "COMPLETED": "Remote encrypted evaluation completed; local client verification succeeded.",
+                "FAILED": "Remote encrypted evaluation failed or its outcome is unknown; no automatic resubmission.",
+            }.get(stage, message)
+        job["events"].append({"stage": stage, "at": job["updatedAt"], "message": message})
 
-    def _run(self, job_id, records):
+    def _run(self, job_id, records, evaluation="local"):
         try:
             # Import in the sole worker thread; HTTP startup never imports Concrete.
             pipeline = self.pipeline
-            if pipeline is None:
+            if evaluation == "remote":
+                engine = importlib.import_module("engine.pipeline")
+                def pipeline(records, job_dir, on_stage=None):
+                    with engine.prepare_remote_job(records, job_dir, on_stage=on_stage) as prepared:
+                        prepared.evaluate_remote(self.remote_client.evaluate)
+                        return prepared.finalize()
+            elif pipeline is None:
                 pipeline = importlib.import_module("engine.pipeline").run_job
             job_dir = self.runtime_dir / job_id
             self.runtime_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -250,11 +279,17 @@ class JobState:
                     self.jobs[job_id].update(validated)
                     self._event(job_id, "COMPLETED")
                     if self.pipeline is None:
-                        self.real_job_verified = True
+                        if evaluation == "remote":
+                            self.remote_job_verified = True
+                        else:
+                            self.real_job_verified = True
         except Exception:
             # Never store/log str(exc), traceback, input records, or key material.
             with self.lock:
-                self.jobs[job_id]["error"] = "Local FHE job failed; check the local engine configuration and retry."
+                self.jobs[job_id]["error"] = (
+                    "Remote encrypted evaluation failed or its outcome is unknown; no automatic resubmission."
+                    if evaluation == "remote" else
+                    "Local FHE job failed; check the local engine configuration and retry.")
                 self._event(job_id, "FAILED")
         finally:
             records.clear()
@@ -274,7 +309,7 @@ class CompanionServer(ThreadingHTTPServer):
     def __init__(self, address, state):
         self.state = state
         super().__init__(address, CompanionHandler)
-        self.demo = DemoRuns(state.runtime_dir, enabled=state.pipeline is None)
+        self.demo = DemoRuns(state.runtime_dir, enabled=state.pipeline is None and state.remote_client is None)
         self.expected_host = "127.0.0.1:{}".format(self.server_address[1])
         self.origin = "http://" + self.expected_host
         self.web_dir = ROOT / "web"
@@ -426,8 +461,14 @@ class CompanionHandler(BaseHTTPRequestHandler):
                 except DemoBusy as exc:
                     raise RequestError(409, str(exc))
             elif self.command == "POST" and path == "/api/jobs":
-                title, records = _validate_payload(self._body())
-                self._json(201, {"job": self.server.state.submit(title, records)})
+                payload = self._body()
+                evaluation = "local"
+                if isinstance(payload, dict) and "evaluation" in payload:
+                    evaluation = payload.pop("evaluation")
+                    if not isinstance(evaluation, str) or evaluation not in ("local", "remote"):
+                        raise RequestError(400, "Unknown evaluation mode.")
+                title, records = _validate_payload(payload)
+                self._json(201, {"job": self.server.state.submit(title, records, evaluation)})
             elif self.command == "POST":
                 raise RequestError(404, "Not found.")
             else:
@@ -452,7 +493,7 @@ class CompanionHandler(BaseHTTPRequestHandler):
     do_CONNECT = _dispatch
 
 
-def create_server(host="127.0.0.1", port=8765, runtime_dir=None, pipeline=None):
+def create_server(host="127.0.0.1", port=8765, runtime_dir=None, pipeline=None, remote_client=None):
     """Return a bound server with .state and .origin; port=0 selects a test port.
 
     pipeline, when supplied, is a trusted test callable matching run_job. Production
@@ -464,7 +505,10 @@ def create_server(host="127.0.0.1", port=8765, runtime_dir=None, pipeline=None):
         raise ValueError("Port must be an integer from 0 to 65535.")
     if pipeline is not None and not callable(pipeline):
         raise TypeError("pipeline must be callable")
-    state = JobState(ROOT / "runtime" if runtime_dir is None else runtime_dir, pipeline)
+    runtime_dir = ROOT / "runtime" if runtime_dir is None else runtime_dir
+    if remote_client is None:
+        remote_client = RemoteClient.from_env(runtime_dir)
+    state = JobState(runtime_dir, pipeline, remote_client)
     try:
         return CompanionServer((host, port), state)
     except Exception:

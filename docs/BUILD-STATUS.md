@@ -1,3 +1,19 @@
+# Güncel bulut/testnet durumu — 12 Kasım 2026
+
+Davetli **şifreli hesaplama pilotu** canlı uçtan uca sınandı. Sentetik dört kayıt müşteri bilgisayarında şifrelendi; 221.406.120 bayt değerlendirme anahtarı ve şifreli girdi özel Blob alanına doğrudan yüklendi; Vercel Linux container gerçek Concrete hesabını yaptı. Şifreli cevap/receipt hash kontrolleri ve yerel çözme/referans eşleşmesi geçti. Toplam 37,714 saniye, native hesap 6,300 saniye, devre yükleme 3,092 saniye. Kanıt: `verification/cloud-fhe-live.json`. İndirilecek ZIP ayrıca açılıp içindeki gerçek yerel HTTP servisiyle bulut işi çalıştırıldı: ikinci koşum 40,129 saniyede geçti (`verification/packaged-client-cloud.json`), arşiv CRC ve 27 dosya hash kontrolü geçti. Bunlar yük/kapasite testi veya bağımsız execution proof değildir.
+
+Ana site ve davetli API `https://veil-procurement.vercel.app`, ayrı container `https://veil-evaluator.vercel.app`. Canlı kaynak akışı yerel Python istemci gerektirir; tarayıcıda FHE değildir. Genel CSV dönüşümü değil, dört id/value kaydıdır. İlk iki canlı denemenin route/MIME hataları düzeltildi ve başarı diye sayılmadı. Müşteri davetleri tek kullanımlık iş kotasıyla sınırlıdır; anahtar yalnız bellekte tutulur.
+
+NEAR testnet registry `veil-reg-e138f5c88250f821.testnet` deploy/init işlemi FINAL; ana ajan finalized RPC kod hash eşleşmesini doğruladı. Bu hesap testnet kontrat/owner hesabıdır, ödül cüzdanı veya gerçek para escrow'u değildir. İşlem ve ek test kanıtları `contracts/registry/deploy/evidence/` içinde.
+
+Hedefli doğrulamalar: gateway/web 75 test, müşteri servis 37 test, engine 47 test (gerçek portable ve eski FHE dahil), HTTP worker 15 test; ödeme adaptörü 75 test ana ajan tarafından da geçti. Sonraki testnet test sayısı kendi kanıtlarında tutulur. Gateway'in 63 testinde ağ çoğunlukla test çiftidir; ayrı canlı özel Blob kimlik/yazma/çakışma testleri ile canlı FHE koşumu gerçekten çalıştırıldı.
+
+**Tamamlanmayan ticari kapılar:** NEAR Market hesabının kimlik doğrulamalı canlı araç şemaları ve ödeme mutabakatı; gerçek bağımsız MPC operatörleri; genel iş profilleri; attestation/ZK yürütme ispatı. Market transport/award/accept kodu var, ancak eksik yetenekler güvenli şekilde kapalıdır. Dokümante edilen otomatik kabul ve atomik sürüm/hash koşulu eksikleri `payments/LIVE-GAPS.md` içinde. Müşteriye eksiksiz ticari tedarik platformu hazırmış gibi sunulamaz. Mevcut `/demo` gerçek **yerel** geçmiş akıştır; ödeme kısmı hâlâ fixture'dır.
+
+Aşağıdaki kayıtlar tarihsel yerel geliştirme sonuçlarıdır; “testnet yok / Vercel hesap çalıştırmıyor” ifadeleri yukarıdaki güncel kayıtla geçersizleşmiştir.
+
+---
+
 # Güncel birleşik entegrasyon — 11 Kasım 2026
 
 Yerel tam akış çalıştırıldı: FHE prepare → NEAR sandbox create/bid/close → gerçek üç taraflı SPDZ2k → seçilmiş executor/v2 attempt → fixture hold → bağlı FHE evaluation → client verify → executor report → buyer accept → fixture release.

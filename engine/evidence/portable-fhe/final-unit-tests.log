@@ -1,0 +1,52 @@
+test_artifact_hash_cannot_be_overridden_by_disk_manifest (test_pipeline.ArtifactTests) ... ok
+test_artifact_symlink_rejected (test_pipeline.ArtifactTests) ... ok
+test_job_directory_does_not_overwrite_or_follow_symlinks (test_pipeline.ArtifactTests) ... ok
+test_pinned_archive_and_embedded_spec (test_pipeline.ArtifactTests) ... ok
+test_bad_manifest_types_or_extra_fields (test_pipeline.BindingTests) ... ok
+test_invalid_metrics_rejected (test_pipeline.BindingTests) ... ok
+test_output_and_manifest_tampering (test_pipeline.BindingTests) ... ok
+test_swapped_request_attempt_keys_circuit_or_input_rejected (test_pipeline.BindingTests) ... ok
+test_valid_receipt (test_pipeline.BindingTests) ... ok
+test_worker_rejects_evaluation_key_substitution (test_pipeline.BindingTests) ... ok
+test_worker_rejects_input_substitution_before_loading_runtime (test_pipeline.BindingTests) ... ok
+test_evaluation_key_removed_on_success_and_failure (test_pipeline.ProcessAndRetentionTests) ... ok
+test_existing_evalkey_not_removed_or_overwritten (test_pipeline.ProcessAndRetentionTests) ... ok
+test_subprocess_uses_current_interpreter_and_minimal_environment (test_pipeline.ProcessAndRetentionTests) ... ok
+test_worker_timeout_becomes_sanitized_error_and_cleans_temp (test_pipeline.ProcessAndRetentionTests) ... ok
+test_fresh_keys_real_subprocess_and_client_reference (test_pipeline.RealFheSmoke) ... skipped 'enable genuine FHE smoke explicitly'
+test_exact_archived_bit_layout (test_pipeline.RecordTests) ... ok
+test_invalid_inputs_fail_before_runtime_or_disk (test_pipeline.RecordTests) ... ok
+test_malformed_decrypted_shape_and_bits (test_pipeline.RecordTests) ... ok
+test_output_layout (test_pipeline.RecordTests) ... ok
+test_reference_flags_all_later_occurrences_and_boundaries (test_pipeline.RecordTests) ... ok
+test_snapshot_and_input_unchanged (test_pipeline.RecordTests) ... ok
+test_stage_precedes_runtime_import (test_pipeline.RecordTests) ... ok
+test_downloads_cannot_choose_artifact_pins_or_carry_extras (test_portable.PortableArtifactTests) ... ok
+test_plain_circuit_matches_reference_all_values_and_duplicate_layouts (test_portable.PortableArtifactTests) ... ok
+test_portable_is_deterministic_zip_without_object_deserialization (test_portable.PortableArtifactTests) ... ok
+test_source_and_build_manifest_are_pinned (test_portable.PortableArtifactTests) ... ok
+test_real_portable_load_run_v1_and_bound_v2 (test_portable.RealPortableFhe) ... skipped 'enable genuine FHE smoke explicitly'
+test_bad_remote_responses_fail_closed_before_decrypt_and_delete_evalkeys (test_portable.RemoteLifecycleTests) ... ok
+test_remote_v2_only_sends_public_encrypted_snapshot_and_keeps_original_receipt (test_portable.RemoteLifecycleTests) ... ok
+test_remote_wrong_states_and_macos_fail_before_transport (test_portable.RemoteLifecycleTests) ... ok
+test_exact_external_schema_u64_and_digest_validation (test_staged.ExternalContextTests) ... ok
+test_v2_requires_binding_hash_and_v1_cannot_smuggle_it (test_staged.ExternalContextTests) ... ok
+test_worker_rejects_each_external_context_substitution_before_runtime (test_staged.ExternalContextTests) ... ok
+test_real_prepare_bind_evaluate_finalize (test_staged.RealStagedFhe) ... skipped 'enable genuine FHE smoke explicitly'
+test_abandon_evaluated_session_and_exception_release_keys_and_lock (test_staged.StagedLifecycleTests) ... ok
+test_consistent_output_and_receipt_substitution_after_evaluate_rejected (test_staged.StagedLifecycleTests) ... ok
+test_correct_states_and_finalize_shape (test_staged.StagedLifecycleTests) ... ok
+test_deleted_evaluation_key_does_not_mask_failure_or_leak_session (test_staged.StagedLifecycleTests) ... ok
+test_evaluator_failure_or_callback_error_closes_session (test_staged.StagedLifecycleTests) ... ok
+test_every_prepared_file_revalidated_before_evaluation (test_staged.StagedLifecycleTests) ... ok
+test_exit_and_explicit_close_without_evaluation (test_staged.StagedLifecycleTests) ... ok
+test_files_revalidated_before_finalize_and_no_decrypt_on_tamper (test_staged.StagedLifecycleTests) ... ok
+test_prepare_exposes_immutable_bindings_without_evaluation (test_staged.StagedLifecycleTests) ... ok
+test_prepare_failure_cleans_keys_and_allows_next_session (test_staged.StagedLifecycleTests) ... ok
+test_reappearing_evaluation_key_rejected_at_finalize (test_staged.StagedLifecycleTests) ... ok
+test_reference_failure_never_returns_success (test_staged.StagedLifecycleTests) ... ok
+
+----------------------------------------------------------------------
+Ran 47 tests in 0.155s
+
+OK (skipped=3)

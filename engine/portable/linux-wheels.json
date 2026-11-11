@@ -1,0 +1,107 @@
+[
+  {
+    "filename": "markupsafe-3.0.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+    "package": "MarkupSafe",
+    "sha256": "6da83a088f8ef93b2d483a8232a4dbf4d69d3d8496b568a03c56becac43e1808",
+    "url": "https://files.pythonhosted.org/packages/81/a5/a513b76c139a3915b43404324e55c0b7979ae4f0d39eb6f075b0282e90a8/markupsafe-3.0.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+    "version": "3.0.4"
+  },
+  {
+    "filename": "concrete_python-2.11.0-cp311-cp311-manylinux_2_28_x86_64.whl",
+    "package": "concrete-python",
+    "sha256": "9afe72a59b4130bff18288857547f64c0f76b31666cd05c7f25634f81f915867",
+    "url": "https://files.pythonhosted.org/packages/56/c5/40478ce0dd33ddd8f5e09d60411192b17955e28e78f7b78ad8b12dc26d11/concrete_python-2.11.0-cp311-cp311-manylinux_2_28_x86_64.whl",
+    "version": "2.11.0"
+  },
+  {
+    "filename": "filelock-3.19.1-py3-none-any.whl",
+    "package": "filelock",
+    "sha256": "d38e30481def20772f5baf097c122c3babc4fcdb7e14e57049eb9d88c6dc017d",
+    "url": "https://files.pythonhosted.org/packages/42/14/42b2651a2f46b022ccd948bca9f2d5af0fd8929c4eec235b8d6d844fbe67/filelock-3.19.1-py3-none-any.whl",
+    "version": "3.19.1"
+  },
+  {
+    "filename": "fsspec-2025.10.0-py3-none-any.whl",
+    "package": "fsspec",
+    "sha256": "7c7712353ae7d875407f97715f0e1ffcc21e33d5b24556cb1e090ae9409ec61d",
+    "url": "https://files.pythonhosted.org/packages/eb/02/a6b21098b1d5d6249b7c5ab69dde30108a71e4e819d4a9778f1de1d5b70d/fsspec-2025.10.0-py3-none-any.whl",
+    "version": "2025.10.0"
+  },
+  {
+    "filename": "importlib_resources-6.5.2-py3-none-any.whl",
+    "package": "importlib-resources",
+    "sha256": "789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec",
+    "url": "https://files.pythonhosted.org/packages/a4/ed/1f1afb2e9e7f38a545d628f864d562a5ae64fe6f7a10e28ffb9b185b4e89/importlib_resources-6.5.2-py3-none-any.whl",
+    "version": "6.5.2"
+  },
+  {
+    "filename": "jinja2-3.1.6-py3-none-any.whl",
+    "package": "jinja2",
+    "sha256": "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67",
+    "url": "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl",
+    "version": "3.1.6"
+  },
+  {
+    "filename": "jsonpickle-4.1.4-py3-none-any.whl",
+    "package": "jsonpickle",
+    "sha256": "c46024ba4acd8adb9a8b8485d074e141cbfacafe334c2aa982e5b32efabc2f0e",
+    "url": "https://files.pythonhosted.org/packages/c9/25/7fc775e2c25d5484a1333bb2d3d59adf024438dee1ff416675293fb6ea75/jsonpickle-4.1.4-py3-none-any.whl",
+    "version": "4.1.4"
+  },
+  {
+    "filename": "mpmath-1.3.0-py3-none-any.whl",
+    "package": "mpmath",
+    "sha256": "a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c",
+    "url": "https://files.pythonhosted.org/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl",
+    "version": "1.3.0"
+  },
+  {
+    "filename": "networkx-3.2.1-py3-none-any.whl",
+    "package": "networkx",
+    "sha256": "f18c69adc97877c42332c170849c96cefa91881c99a7cb3e95b7c659ebdc1ec2",
+    "url": "https://files.pythonhosted.org/packages/d5/f0/8fbc882ca80cf077f1b246c0e3c3465f7f415439bdea6b899f6b19f61f70/networkx-3.2.1-py3-none-any.whl",
+    "version": "3.2.1"
+  },
+  {
+    "filename": "numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "package": "numpy",
+    "sha256": "666dbfb6ec68962c033a450943ded891bed2d54e6755e35e5835d63f4f6931d5",
+    "url": "https://files.pythonhosted.org/packages/3a/d0/edc009c27b406c4f9cbc79274d6e46d634d139075492ad055e3d68445925/numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "version": "1.26.4"
+  },
+  {
+    "filename": "scipy-1.13.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "package": "scipy",
+    "sha256": "a78b4b3345f1b6f68a763c6e25c0c9a23a9fd0f39f5f3d200efe8feda560a5fa",
+    "url": "https://files.pythonhosted.org/packages/36/07/035d22ff9795129c5a847c64cb43c1fa9188826b59344fee28a3ab02e283/scipy-1.13.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "version": "1.13.1"
+  },
+  {
+    "filename": "sympy-1.14.0-py3-none-any.whl",
+    "package": "sympy",
+    "sha256": "e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5",
+    "url": "https://files.pythonhosted.org/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl",
+    "version": "1.14.0"
+  },
+  {
+    "filename": "torch-2.8.0+cpu-cp311-cp311-manylinux_2_28_x86_64.whl",
+    "package": "torch",
+    "sha256": "cb06175284673a581dd91fb1965662ae4ecaba6e5c357aa0ea7bb8b84b6b7eeb",
+    "url": "https://download.pytorch.org/whl/cpu/torch-2.8.0%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl",
+    "version": "2.8.0+cpu"
+  },
+  {
+    "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+    "package": "typing-extensions",
+    "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+    "url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl",
+    "version": "4.16.0"
+  },
+  {
+    "filename": "z3_solver-4.13.0.0-py2.py3-none-manylinux2014_x86_64.whl",
+    "package": "z3-solver",
+    "sha256": "8c42de82b6e3ff7ee61287d03c7af8a99f9f6554cdd1204c6b9bca96ff1cb7fb",
+    "url": "https://files.pythonhosted.org/packages/c6/79/0255fe0efee7ea9db8987ced14c70028a0007d4d4aaaed8965310bbd7bb1/z3_solver-4.13.0.0-py2.py3-none-manylinux2014_x86_64.whl",
+    "version": "4.13.0.0"
+  }
+]

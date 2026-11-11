@@ -1,0 +1,9 @@
+{
+  "sha256": "431e1bbfcf89c5f305e668c265b66d1cd70246a3546d59b48c578009be71c553",
+  "size_bytes": 229547,
+  "source_sha256": {
+    "src/lib.rs": "0bf9a65576ce98d369edec9da5f3110a55101a5c70f06da33db0cf83685b8341",
+    "Cargo.toml": "bb58af7add3b9848e9c677d78533f665659ac1698d74cd772ce1ea68a054cf39",
+    "Cargo.lock": "9302bf3dd591bd9655e80ac885fa2af0f7c1f517977afee178c738871783bee4"
+  }
+}

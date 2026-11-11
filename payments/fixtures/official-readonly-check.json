@@ -1,0 +1,25 @@
+{
+  "kind": "actual_anonymous_official_GET_only",
+  "checked_at": "2026-11-11T22:11:13.931712+00:00",
+  "operations": [
+    {
+      "operation": "healthz",
+      "schema_validated": true,
+      "response_sha256": "cc4b29dcd4d7607044fd5d44b4c055e01ad384f3de7f28225e9b5901a823ada5",
+      "response": {
+        "status": "ok",
+        "version": "0.1.0"
+      }
+    },
+    {
+      "operation": "get_platform_config",
+      "schema_validated": true,
+      "response_sha256": "ac51bd1a96df92ce652da48686a053231bffbb32a8119363a6923727f5def5c3"
+    },
+    {
+      "operation": "browse_agents",
+      "schema_validated": true,
+      "response_sha256": "5cd38dc67fcac043bd0c462f9a403889a00db50ed18a0f0eb5f5061221636ffe"
+    }
+  ]
+}

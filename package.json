@@ -1,0 +1,27 @@
+{
+  "name": "near-private-procurement",
+  "version": "0.2.0",
+  "description": "NEAR üzerinde gizli tekliflerle iş satın alma ve müşteri verisini açık hâliyle yürütücüye vermeden hesaplatma projesinin uygulaması.",
+  "scripts": {
+    "test": "node --test web/*.test.mjs tests/cloud_gateway_review.test.mjs",
+    "build": "node scripts/build-web.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Foreveranka/veil-procurement.git"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Foreveranka/veil-procurement/issues"
+  },
+  "homepage": "https://github.com/Foreveranka/veil-procurement#readme",
+  "dependencies": {
+    "@vercel/blob": "2.9.0"
+  },
+  "private": true,
+  "overrides": {
+    "zod": "4.6.7"
+  }
+}

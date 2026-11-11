@@ -1,7 +1,8 @@
-// Allowlisted static publication only. Never package runtime, keys or Python.
+// Allowlisted web/client publication. Never package runtime or private keys.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const target = path.join(root, 'dist');
 const files = ['index.html', 'app.html', 'demo.html', 'styles.css', 'app.js', 'input.mjs', 'demo.js', 'deployment.mjs'];
@@ -22,4 +23,5 @@ result.rejected_registry_actions = evidence.rejected_registry_actions.map(({comm
 const run = { id: 'verified-local-run', status: 'completed', events: evidence.public_events || [], result };
 await fs.writeFile(path.join(target, 'demo-evidence.json'), JSON.stringify({ run }, null, 2));
 await fs.writeFile(path.join(target, 'deployment.json'), JSON.stringify({ mode: 'hosted-evidence', summaryUrl: '/demo-evidence.json' }));
-console.log(`Built ${files.length} static assets and sanitized recorded LOCAL test evidence. No runtime API or live payments.`);
+execFileSync('python3', [path.join(root,'scripts/package-client.py'), path.join(target,'veil-client.zip')], {stdio:'inherit'});
+console.log(`Built ${files.length} static assets, invitation-only companion package, and recorded LOCAL evidence. Cloud API is packaged separately; payments remain disabled.`);

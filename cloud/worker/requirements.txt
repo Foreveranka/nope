@@ -1,0 +1,17 @@
+# CPython 3.11, Linux x86_64 (manylinux_2_28 wheel exists; no Linux arm64 wheel).
+concrete-python==2.11.0
+numpy==1.26.4
+# Installed first from https://download.pytorch.org/whl/cpu by Dockerfile.
+torch==2.8.0+cpu
+importlib-resources==6.5.2
+jsonpickle==4.1.1
+networkx==3.4.2
+scipy==1.15.3
+z3-solver==4.13.0
+filelock==3.18.0
+typing-extensions==4.14.1
+sympy==1.14.0
+jinja2==3.1.6
+fsspec==2025.7.0
+mpmath==1.3.0
+MarkupSafe==3.0.2

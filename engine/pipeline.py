@@ -15,7 +15,8 @@ from types import MappingProxyType
 from .protocol import (ARTIFACT_PINS, ENGINE_DIR, PROFILE_ID,
                        approved_artifacts, canonical_json, read_regular,
                        require_runtime, sha256, validate_external_binding,
-                       verify_external_binding, verify_receipt, write_new)
+                       verify_external_binding, verify_receipt, write_new, artifact_pins,
+                       verify_artifact_bytes)
 
 _JOB_LOCK = threading.Lock()
 
@@ -140,7 +141,8 @@ class PreparedJob:
     local attempt ID never change. No secret-key save/serialization is performed.
     """
 
-    def __init__(self, records, job_dir, on_stage=None, *, _require_binding=True):
+    def __init__(self, records, job_dir, on_stage=None, *, _require_binding=True,
+                 artifact_set="macos-v1", _artifact_blobs=None):
         self._records = validate_records(records)
         if on_stage is not None and not callable(on_stage):
             raise ValueError("on_stage must be callable")
@@ -151,6 +153,8 @@ class PreparedJob:
         self._fhe = None
         self._on_stage = on_stage
         self._require_binding = _require_binding
+        self._artifact_set = artifact_set
+        pins = artifact_pins(artifact_set)
         self._resources = contextlib.ExitStack()
         self._binding_bytes = None
         self._root = None
@@ -163,7 +167,8 @@ class PreparedJob:
                              "verification_method": "client_plaintext_reference",
                              "verification_is_cryptographic_proof": False}
             self._stage("ENCRYPTING", "Generating fresh in-memory client keys and encrypting four records")
-            artifacts = approved_artifacts()
+            artifacts = (approved_artifacts(artifact_set=artifact_set) if _artifact_blobs is None
+                         else verify_artifact_bytes(_artifact_blobs, artifact_set=artifact_set))
             require_runtime()
             from concrete import fhe
             import numpy as np
@@ -181,8 +186,8 @@ class PreparedJob:
             evaluation_keys = self._client.evaluation_keys.serialize()
             self._metrics["evaluation_keys_serialize_seconds"] = time.perf_counter() - now
             self._manifest = {"protocolVersion": 1, "profileId": PROFILE_ID, "attemptId": uuid.uuid4().hex,
-                              "serverSha256": ARTIFACT_PINS["server.zip"],
-                              "clientSpecsSha256": ARTIFACT_PINS["client-specs.json"],
+                              "serverSha256": pins["server.zip"],
+                              "clientSpecsSha256": pins["client-specs.json"],
                               "inputSha256": sha256(request), "evaluationKeysSha256": sha256(evaluation_keys)}
             for name, blob in artifacts.items():
                 write_new(self._root / name, blob)
@@ -300,7 +305,7 @@ class PreparedJob:
                 raise
 
     def _check_prepared_files(self, *, require_manifest=True, require_keys=True):
-        approved_artifacts(self._root)
+        approved_artifacts(self._root, artifact_set=self._artifact_set)
         request = read_regular(self._root / "request.bin", 2 * 1024 * 1024)
         if sha256(request) != self._manifest["inputSha256"]:
             raise ValueError("Prepared encrypted input hash mismatch")
@@ -325,6 +330,23 @@ class PreparedJob:
         Returns receipt, receiptSha256, outputSha256, requestManifestSha256,
         output_bytes. receipt is recursively immutable; no plaintext is returned.
         """
+        return self._evaluate_with(None)
+
+    def evaluate_remote(self, evaluator):
+        """Invoke caller-owned transport with public/encrypted bytes only.
+
+        Explicit portable opt-in. evaluator receives an immutable mapping
+        of five (v1) or six (bound v2) filenames to bytes; returns exactly response.bin and receipt.json
+        as original bytes. No network, plaintext, client or SK API is exposed.
+        Host/transport authentication and deadlines are the caller's responsibility.
+        """
+        with self._guard:
+            self._expect("BOUND" if self._require_binding else "PREPARED")
+            if self._artifact_set != "portable-v1" or not callable(evaluator):
+                raise ValueError("Remote evaluation requires portable-v1 and a callable transport")
+            return self._evaluate_with(evaluator)
+
+    def _evaluate_with(self, evaluator):
         with self._guard:
             self._expect("BOUND" if self._require_binding else "PREPARED")
             self._state = "EVALUATING"
@@ -333,7 +355,10 @@ class PreparedJob:
                 self._stage("EVALUATING", "Separate evaluator is computing on encrypted records")
                 now = time.perf_counter()
                 try:
-                    _evaluate_subprocess(self._root)
+                    if evaluator is None:
+                        _evaluate_subprocess(self._root)
+                    else:
+                        self._remote_evaluate(evaluator)
                 finally:
                     self._key_resource.close()
                 self._metrics["worker_seconds"] = time.perf_counter() - now
@@ -347,6 +372,35 @@ class PreparedJob:
             except BaseException:
                 self._fail()
                 raise
+
+    def _remote_evaluate(self, evaluator):
+        limits = {"server.zip": 2 * 1024 * 1024, "client-specs.json": 2 * 1024 * 1024,
+                  "request.bin": 2 * 1024 * 1024, "evaluation.keys": 512 * 1024 * 1024,
+                  "request.json": 8192}
+        if self._binding_bytes is not None:
+            limits["binding.json"] = 8192
+        payload = _immutable({name: read_regular(self._root / name, maximum)
+                              for name, maximum in limits.items()})
+        # Recheck this precise snapshot; never send a path/unchecked reread to transport.
+        approved = {n: payload[n] for n in ("server.zip", "client-specs.json")}
+        from engine.portable.runtime import inspect_bundle
+        inspect_bundle(approved)
+        if (payload["request.json"] != self._manifest_bytes or
+                payload.get("binding.json") != self._binding_bytes or
+                sha256(payload["request.bin"]) != self._manifest["inputSha256"] or
+                sha256(payload["evaluation.keys"]) != self._manifest["evaluationKeysSha256"]):
+            raise ValueError("Remote payload changed before transport")
+        response = evaluator(payload)
+        from collections.abc import Mapping
+        if not isinstance(response, Mapping) or set(response) != {"response.bin", "receipt.json"}:
+            raise ValueError("Remote evaluator must return exact ciphertext and receipt bytes")
+        output, receipt_bytes = response["response.bin"], response["receipt.json"]
+        if (type(output) is not bytes or not 0 < len(output) <= 2 * 1024 * 1024 or
+                type(receipt_bytes) is not bytes or not 0 < len(receipt_bytes) <= 16384):
+            raise ValueError("Invalid remote response type/size")
+        verify_receipt(self._manifest, self._manifest_bytes, json.loads(receipt_bytes), output)
+        write_new(self._root / "response.bin", output)
+        write_new(self._root / "receipt.json", receipt_bytes)
 
     def _read_response(self):
         output = read_regular(self._root / "response.bin", 2 * 1024 * 1024)
@@ -385,14 +439,14 @@ class PreparedJob:
                 raise
 
 
-def prepare_job(records, job_dir, on_stage=None):
+def prepare_job(records, job_dir, on_stage=None, *, artifact_set="macos-v1"):
     """Generate fresh in-memory client SK, encrypt, expose immutable public hashes.
 
     Use with prepare_job(...) as prepared, then bind_external(...), evaluate(),
     finalize(). A live session owns the serialized worker slot until finalization
     or close; it must not be persisted/reloaded. No evaluator has run on return.
     """
-    return PreparedJob(records, job_dir, on_stage)
+    return PreparedJob(records, job_dir, on_stage, artifact_set=artifact_set)
 
 
 def run_job(records, job_dir, on_stage=None):
@@ -400,3 +454,15 @@ def run_job(records, job_dir, on_stage=None):
     with PreparedJob(records, job_dir, on_stage, _require_binding=False) as prepared:
         prepared.evaluate()
         return prepared.finalize()
+
+
+def prepare_remote_job(records, job_dir, on_stage=None, *, artifacts=None):
+    """Explicit portable v1 preparation for callers without registry context.
+
+    Optional artifacts is exactly the two downloaded public bytes; source pins are
+    checked before native parsing/keygen. Omit to use bundled approved artifacts.
+    No fabricated registry binding. Call evaluate_remote(transport), then finalize.
+    Use prepare_job(..., artifact_set='portable-v1') for staged bound v2 instead.
+    """
+    return PreparedJob(records, job_dir, on_stage, _require_binding=False,
+                       artifact_set="portable-v1", _artifact_blobs=artifacts)

@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "syntheticOnly": true,
+  "gateway": "https://veil-procurement.vercel.app",
+  "stages": [
+    {
+      "stage": "ENCRYPTING",
+      "elapsedSeconds": 0.0
+    },
+    {
+      "stage": "EVALUATING",
+      "elapsedSeconds": 2.638
+    },
+    {
+      "stage": "VERIFYING",
+      "elapsedSeconds": 37.705
+    }
+  ],
+  "metrics": {
+    "queue_seconds": 6.537499999999946e-05,
+    "real_fhe": true,
+    "profile_id": "clean-4-records-v1",
+    "concrete_python": "2.11.0",
+    "verification_method": "client_plaintext_reference",
+    "verification_is_cryptographic_proof": false,
+    "keygen_seconds": 0.682136208,
+    "encrypt_seconds": 0.00525837500000037,
+    "evaluation_keys_serialize_seconds": 0.20031991599999976,
+    "input_bytes": 787192,
+    "evaluation_key_bytes": 221406120,
+    "worker_seconds": 35.06603625,
+    "evaluate_seconds": 6.299960585000008,
+    "server_load_seconds": 3.0918314540000438,
+    "decrypt_seconds": 0.005288458000002549,
+    "evaluation_keys_retained": false,
+    "output_bytes": 442904,
+    "total_seconds": 37.714118708
+  },
+  "artifactHashes": {
+    "serverSha256": "898b318b83ccdfaa3fde53265fcee1ac2e14c6b32b739e80a75d508eb8f154d5",
+    "clientSpecsSha256": "87b1dd33c9db661f215962b975df389c3f4f7b2fb6123fb7721ac985766475f3",
+    "inputSha256": "eb3519c40da762e978c1bc6b9c9e60074ee47822d4109c23ee506f4666a80564",
+    "evaluationKeysSha256": "db85051c1c1b6c6c78407f8dbb4d85da9f89f3d6391963a5908d6fd4e513b056",
+    "requestManifestSha256": "ec2eae581ec3c4466a4ed554d14a25afbbc8a11d75d7e09cc5cf5d4d37582534",
+    "outputSha256": "b8e4ab40a686633d6a5942ee0ce5ce3200b3416a2cc967a2bf707fffdff7c5b5",
+    "receiptSha256": "72a97b17300b3a6e361f4fcccb58e053fa812c1e8d48bcb79a5b9c12a541c679"
+  },
+  "localReferenceMatched": true,
+  "realPayments": false,
+  "independentMpcOperators": false,
+  "executionProof": false,
+  "workerDeployment": "dpl_E9jZ2ut2SrjT5YoM2HdGrMYjcD5V",
+  "gatewayDeployment": "dpl_Dpkntq13wndNcasyhfdq8fk2td1k",
+  "verifiedAt": "2026-11-11T22:24:44.219115+00:00",
+  "failedPreviousRuns": [
+    "Nested native function route not matched; explicit rewrite added.",
+    "Blob inferred JSON MIME; filename-specific allowed content type fixed."
+  ]
+}

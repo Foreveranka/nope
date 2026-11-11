@@ -1,4 +1,6 @@
 # Build contract v0.1
+**12 Nov 2026 scope update:** the user authorized live preparation, Vercel encrypted evaluation, customer companion access and free NEAR testnet deployment. The original local-only and no-testnet clauses below are historical; current boundaries are in AGENTS.md and CLOUD-OPERATIONS.md. No real-money/mainnet operations or private-key/plaintext publication are authorized.
+
 Working name: Veil Procurement. Local functional prototype, no production-security claims.
 Root: /Users/mete/near-private-procurement
 Research: /Users/mete/Desktop/NEAR-Hackathon-2026-Arastirma/Gizli-Is-Pazari-Fizibilite

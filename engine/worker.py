@@ -10,20 +10,21 @@ import time
 from pathlib import Path
 
 # The parent invokes this file with -I (isolated import/environment handling).
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from protocol import (approved_artifacts, canonical_json, read_regular,
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from engine.protocol import (approved_artifacts, canonical_json, read_regular,
                       require_runtime, sha256, validate_manifest,
-                      verify_external_binding, write_new)
+                      verify_external_binding, write_new, manifest_artifact_set)
 
 
-def evaluate(job_dir):
+def evaluate(job_dir, *, server=None):
     root = Path(job_dir)
     manifest_bytes = read_regular(root / "request.json", 8192)
     manifest = json.loads(manifest_bytes)
     validate_manifest(manifest)
     if manifest["protocolVersion"] == 2:
         verify_external_binding(manifest, read_regular(root / "binding.json", 8192))
-    artifacts = approved_artifacts(root)
+    kind = manifest_artifact_set(manifest)
+    artifacts = approved_artifacts(root, artifact_set=kind)
     request = read_regular(root / "request.bin", 2 * 1024 * 1024)
     if sha256(request) != manifest["inputSha256"]:
         raise ValueError("Encrypted input hash mismatch")
@@ -38,7 +39,16 @@ def evaluate(job_dir):
         server_path = Path(temporary) / "server.zip"
         write_new(server_path, artifacts["server.zip"])
         started = time.perf_counter()
-        server = fhe.Server.load(server_path)
+        if server is not None:
+            if (kind != "portable-v1" or
+                    getattr(server, "_veil_portable_sha256", None) != manifest["serverSha256"] or
+                    server.client_specs.serialize() != artifacts["client-specs.json"]):
+                raise ValueError("Unapproved warm server")
+        elif kind == "portable-v1":
+            from engine.portable.runtime import load_server
+            server = load_server(artifacts)
+        else:
+            server = fhe.Server.load(server_path)
         load_seconds = time.perf_counter() - started
         if server.is_simulated:
             raise ValueError("Simulated evaluation is forbidden")

@@ -1,0 +1,6 @@
+{
+  "network": "testnet",
+  "account_id": "veil-reg-e138f5c88250f821.testnet",
+  "public_key": "ed25519:EAuYFJXHyJy2w2miPvyJeMtYpJBBBf9NWvqxFQW44sZk",
+  "private_key_file": "/Users/mete/near-private-procurement/contracts/registry/deploy/runtime/near-testnet/identity.json"
+}

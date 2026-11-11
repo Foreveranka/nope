@@ -2,7 +2,13 @@
 
 NEAR üzerinde gizli tekliflerle iş satın alma ve müşteri verisini açık hâliyle yürütücüye vermeden hesaplatma projesinin uygulaması.
 
-İlk yerel uygulama dört sayısal kaydı gerçek Concrete FHE ile işler. Kayıt kimliklerinin tekrarlarını işaretler, eksik değer kodunu sıfıra çevirir ve 100 üstü değerleri sınırlar. Python istemci açık veriyi ve secret key'i kendi belleğinde tutar; ayrı evaluator şifreli isteği işler. Bu çalışma **sentetik veri prototipidir**.
+Uygulama dört sayısal kaydı gerçek Concrete FHE ile işler. Kayıt kimliklerinin tekrarlarını işaretler, eksik değer kodunu sıfıra çevirir ve 100 üstü değerleri sınırlar. Python istemci açık veriyi ve secret key'i kendi belleğinde tutar; ayrı evaluator şifreli isteği işler. Yerel akışa ek olarak davetle erişilen Vercel hesaplama yolu vardır. Bu sürüm genel amaçlı veri temizleme veya tamamlanmış ticari ödeme ürünü değildir.
+
+## Davetli bulut istemcisi
+
+[Canlı site](https://veil-procurement.vercel.app) tanıtım sayfasından `/app` bölümüne, oradan istemci indirmesine yönlendirir. İndirilen pakette `sh install-client.sh`, ardından `.venv/bin/python scripts/client-launch.py` çalıştırılır. Davet kodu terminalde gizli olarak girilir; yerel uygulamada bulut hesabı seçilir. Açık kayıtlar tarayıcıdan yalnız `127.0.0.1` istemcisine gider; Vercel'e şifreli girdiler, değerlendirme anahtarları ve hash manifestleri yüklenir. Şifre çözme anahtarı bilgisayardan çıkmaz. Sonuç alınmadan istemci kapatılırsa bellekteki anahtar kaybolur.
+
+Bu yol sabit dört-kayıt devresiyle sınırlıdır. Canlı ödeme veya bağımsız MPC operatörü içermez. Kurulum, davetler, tek kullanımlık iş kotası ve bilinmeyen sonuçların ele alınması: `docs/CLOUD-OPERATIONS.md`. Gerçek testlerin güncel sonucu: `docs/BUILD-STATUS.md`.
 
 ## Çalıştırma
 
@@ -58,4 +64,4 @@ Hangi verinin kimden ve hangi kriptografik mekanizmayla gizlendiği `docs/PRIVAC
 
 Yerel serviste `/demo`, sabit sentetik girdilerle gerçek FHE hazırlama → NEAR sandbox kaydı → üç taraflı MPC → seçilen yürütücü → FHE değerlendirme → istemci doğrulama → kontratta kabul akışını başlatır. Ödeme adımları SQLite fixture simülasyonudur; gerçek para kullanılmaz. Terminal karşılığı: `./scripts/run-integration.sh`.
 
-GitHub deposu `Foreveranka/veil-procurement`, Vercel projesi `veil-procurement` ile bağlıdır. `main` dalına push production dağıtımını tetikler. `node scripts/build-web.mjs` yalnız allowlist web dosyalarını ve temizlenmiş **önceden çalıştırılmış yerel test sonucunu** yayımlar. Vercel üzerinde FHE, MPC veya NEAR node çalışmaz; `/app` bunu açıklar, `/demo` kayıtlı kanıtı gösterir. Yerel API internete açılmaz. Ayrıntı: `docs/DEPLOYMENT.md`.
+GitHub deposu `Foreveranka/veil-procurement`, Vercel projesi `veil-procurement` ile bağlıdır. `main` dalına push ana sitenin production dağıtımını tetikler. Build yalnız allowlist web dosyalarını, müşteri istemci paketini ve temizlenmiş **önceden çalıştırılmış yerel test sonucunu** yayımlar. Davet denetimli API ayrı serverless fonksiyonudur; `veil-evaluator` projesindeki Linux container şifreli hesabı yürütür. Container ayrı allowlist paketinden dağıtılır; ana sitenin Git push'u onu kendiliğinden güncellemez. Vercel'de MPC operatörleri veya NEAR node çalıştırılmaz; `/demo` kayıtlı yerel kanıttır. Yerel açık-veri API'si internete açılmaz. Ayrıntı: `docs/DEPLOYMENT.md`.
