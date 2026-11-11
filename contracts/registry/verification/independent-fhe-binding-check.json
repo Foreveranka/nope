@@ -1,0 +1,12 @@
+{
+  "encoder": "Python stdlib independent Borsh encoder",
+  "checks": {
+    "job_binding": true,
+    "full_bidset": true,
+    "attempt_binding": true,
+    "receipt": true,
+    "final_wasm": true,
+    "accepted": true,
+    "explicit_claim_only": true
+  }
+}

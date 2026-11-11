@@ -1,0 +1,9 @@
+{
+  "remainingRuntimeKeyFiles": [],
+  "remainingPartyDataDirectories": [],
+  "remainingNativeProcesses": [],
+  "earlierFailedWrongCommitmentFixtureKeysRemoved": true,
+  "preTransportFinalSourceCases": 11,
+  "postTransportCases": 2,
+  "dependenciesBytes": 1209180160
+}

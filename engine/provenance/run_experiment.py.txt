@@ -1,0 +1,157 @@
+"""Real FHE feasibility spike; synthetic inputs, no production deployment."""
+import hashlib
+import importlib.metadata
+import json
+import platform
+import subprocess
+import sys
+import time
+from pathlib import Path
+import numpy as np
+from concrete import fhe
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT / 'outputs'
+OUT.mkdir(exist_ok=True)
+
+@fhe.compiler({'x': 'encrypted'})
+def auction(x):
+    a,b,c,budget = [x[i*7:(i+1)*7] for i in range(4)]
+    a_le_b=1 ^ less_bits(b,a)
+    a_le_c=1 ^ less_bits(c,a)
+    b_lt_a=less_bits(b,a)
+    b_le_c=1 ^ less_bits(c,b)
+    c_lt_a=less_bits(c,a)
+    c_lt_b=less_bits(c,b)
+    minimum=[a[k] ^ ((a[k]^b[k]) & b_lt_a) for k in range(7)]
+    choose_c=less_bits(c,minimum)
+    minimum=[minimum[k] ^ ((minimum[k]^c[k]) & choose_c) for k in range(7)]
+    allowed=1 ^ less_bits(budget,minimum)
+    return fhe.array([a_le_b & a_le_c & allowed,
+                      b_lt_a & b_le_c & allowed,
+                      c_lt_a & c_lt_b & allowed] + [v & allowed for v in minimum])
+
+def less_bits(a,b):
+    # Fixed unsigned comparator, inputs least-significant bit first.
+    lt=0; equal=1
+    for k in range(len(a)-1,-1,-1):
+        lt = lt | (equal & (1 ^ a[k]) & b[k])
+        equal = equal & (1 ^ (a[k] ^ b[k]))
+    return lt
+
+@fhe.compiler({'x': 'encrypted'})
+def clean(x):
+    # Four IDs (0..255), four numeric values (255=missing).
+    # Keep first occurrence; compute duplicate flags and clamped numeric fields.
+    fields=[x[i*8:(i+1)*8] for i in range(8)]
+    flags = []
+    for i in range(4):
+        duplicate = x[0] & 0
+        for j in range(i):
+            same=1
+            for k in range(8):same=same & (1 ^ (fields[i][k]^fields[j][k]))
+            duplicate = duplicate | same
+        flags.append(duplicate)
+    values=[]
+    cap=[(100 >> k)&1 for k in range(8)]
+    for value in fields[4:]:
+        missing=1
+        for k in range(8):missing=missing & value[k]
+        above=less_bits(cap,value)
+        values += [(value[k] ^ ((value[k]^cap[k]) & above)) & (1^missing) for k in range(8)]
+    return fhe.array(flags + values)
+
+def encode_bits(values,bits):
+    return np.array([(int(v)>>k)&1 for v in values for k in range(bits)],dtype=np.int64)
+
+def decode_output(name,arr):
+    a=np.asarray(arr).tolist()
+    if name.startswith('auction'):
+        return [a[0]+2*a[1]+3*a[2],sum(v<<k for k,v in enumerate(a[3:]))]
+    return a[:4]+[sum(a[4+i*8+k]<<k for k in range(8)) for i in range(4)]
+
+def auction_ref(x):
+    idx = int(np.argmin(x[:3]))
+    return [idx+1, int(x[idx])] if x[idx] <= x[3] else [0, 0]
+
+def clean_ref(x):
+    return [int(x[i] in x[:i]) for i in range(4)] + [0 if v == 255 else min(int(v),100) for v in x[4:]]
+
+rng = np.random.default_rng(42)  # Input fixtures only. Cryptographic keys use library OS entropy.
+experiments = [
+    ('auction-3-bids', auction, 4, 127, auction_ref,
+     [[50,40,60,45],[20,20,30,20],[50,40,60,39],[127,127,127,127],
+      [0,1,2,0],[100,90,80,100],[127,0,127,0]]),
+    ('clean-4-records', clean, 8, 255, clean_ref,
+     [[10,20,10,30,255,42,150,100],[0,0,0,0,0,255,101,99],
+      [255,1,2,255,254,100,1,255],[1,2,3,4,10,20,30,40]])
+]
+report = {'concrete_python': importlib.metadata.version('concrete-python'),
+          'python': sys.version, 'platform': platform.platform(),
+          'real_fhe': True, 'security_bits_requested': 128,
+          'global_p_error_requested': 1e-8,
+          'limits': ['Single client key: NOT a private multi-owner auction.',
+                     'Separate processes under same user: NOT host isolation.',
+                     'No proof of correct evaluation, NEAR transaction or distributed key generation.',
+                     'Synthetic fixtures only; no FHE general CSV/LLM support claimed.'],
+          'experiments': []}
+
+for name, fn, width, maximum, ref, examples in experiments:
+    folder = OUT / name
+    folder.mkdir(exist_ok=True)
+    fixtures = [np.array(v, dtype=np.int64) for v in examples]
+    bits=7 if maximum==127 else 8
+    inputset = [np.zeros(width,dtype=np.int64), np.full(width,maximum,dtype=np.int64)]
+    inputset += fixtures + [rng.integers(0, maximum+1, size=width) for _ in range(128)]
+    inputset=[encode_bits(x,bits) for x in inputset]
+    print(f'Compiling {name}', flush=True)
+    start=time.perf_counter()
+    circuit = fn.compile(inputset, global_p_error=1e-8,
+                         comparison_strategy_preference='chunked',
+                         bitwise_strategy_preference='chunked',
+                         min_max_strategy_preference='chunked')
+    compile_s=time.perf_counter()-start
+    circuit.server.save(folder / 'server.zip')
+    (folder / 'client-specs.json').write_bytes(circuit.server.client_specs.serialize())
+    (folder / 'graph.txt').write_text(circuit.graph.format())
+    client=fhe.Client(circuit.server.client_specs)
+    print(f'Compiled {name} in {compile_s:.3f}s; generating keys', flush=True)
+    start=time.perf_counter()
+    client.keys.generate()
+    keygen_s=time.perf_counter()-start
+    (folder / 'evaluation.keys').write_bytes(client.evaluation_keys.serialize())
+    encrypt_s=[]
+    for i, fixture in enumerate(fixtures):
+        start=time.perf_counter()
+        payload=client.encrypt(encode_bits(fixture,bits)).serialize()
+        encrypt_s.append(time.perf_counter()-start)
+        (folder / f'request-{i:02}.bin').write_bytes(payload)
+    print(f'Running encrypted {name}: {len(fixtures)} cases; keys {keygen_s:.2f}s', flush=True)
+    completed=subprocess.run([sys.executable,str(ROOT/'evaluator.py'),str(folder)],
+                             capture_output=True,text=True,timeout=300)
+    (folder/'evaluator.stdout').write_text(completed.stdout)
+    (folder/'evaluator.stderr').write_text(completed.stderr)
+    completed.check_returncode()
+    checks=[]
+    for i,fixture in enumerate(fixtures):
+        start=time.perf_counter()
+        actual=decode_output(name,client.decrypt(fhe.Value.deserialize((folder/f'response-{i:02}.bin').read_bytes())))
+        decrypt_s=time.perf_counter()-start
+        expected=ref(fixture)
+        checks.append({'input':fixture.tolist(),'expected':expected,'actual':actual,
+                       'pass':actual==expected,'encrypt_seconds':encrypt_s[i], 'decrypt_seconds':decrypt_s})
+    item={'name':name,'compile_seconds':compile_s,'keygen_seconds':keygen_s,
+          'global_p_error_reported':circuit.global_p_error,
+          'evaluation_key_bytes':(folder/'evaluation.keys').stat().st_size,
+          'server_artifact_bytes':(folder/'server.zip').stat().st_size,
+          'request_bytes':(folder/'request-00.bin').stat().st_size,
+          'checks':checks,'server_metrics':json.loads((folder/'evaluator-metrics.json').read_text())}
+    report['experiments'].append(item)
+    (OUT/'RESULTS.json').write_text(json.dumps(report,indent=2))
+    print(json.dumps(item),flush=True)
+    assert all(c['pass'] for c in checks)
+
+hashes={str(p.relative_to(OUT)):hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in OUT.rglob('*') if p.is_file() and p.name!='SHA256.json'}
+(OUT/'SHA256.json').write_text(json.dumps(hashes,indent=2))
+print('ALL REAL FHE CHECKS PASSED',flush=True)

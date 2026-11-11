@@ -1,0 +1,20 @@
+{
+  "artifact": "target/wasm32-unknown-unknown/release/veil_registry.wasm",
+  "size_bytes": 229547,
+  "sha256": "431e1bbfcf89c5f305e668c265b66d1cd70246a3546d59b48c578009be71c553",
+  "near_sdk": "5.30.1",
+  "rustc": "1.98.0 (88d9e12ae 2026-08-18)",
+  "minimum_sdk_rust": "1.95",
+  "target": "wasm32-unknown-unknown",
+  "cfg": "near",
+  "cargo_build_jobs": 1,
+  "external_deployment": false,
+  "receipt_is_attestation": false,
+  "python_fixture_recomputed": true,
+  "prior_legacy_artifact_sha256": "1eecc921d159419afdf34a956feb3dccbefbbe7b80e5aad6e9a8f4160ddaf7f9",
+  "supported_attempt_binding_versions": [
+    1,
+    2
+  ],
+  "storage_migration_implemented": false
+}

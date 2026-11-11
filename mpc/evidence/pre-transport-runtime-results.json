@@ -1,0 +1,591 @@
+{
+  "generatedAtUnix": 1794418835.4218812,
+  "results": [
+    {
+      "case": "cheapest",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          1,
+          2,
+          80,
+          80
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            80
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 9.857006499999999,
+      "runtimeSeconds": 8.455222208999999,
+      "manifestHash": "ab120d6b3a7ca06c734c22d25d33d0919d5e45b4b8f16ecff84529c0201f5976",
+      "program": "sealed_ab120d6b3a7ca06c-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-9a2f0c47a43e_manifest.json-15400",
+      "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/cheapest-9a2f0c47a43e",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "tie",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          1,
+          1,
+          80,
+          80
+        ],
+        "providers": [
+          [
+            1,
+            80
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 10.361804583000001,
+      "runtimeSeconds": 6.850846791999999,
+      "manifestHash": "d37ef2c83a19a98f080ee4604d03dfe20c6cda35e99ef3f25400114a3346d377",
+      "program": "sealed_d37ef2c83a19a98f-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_tie-c9da2cb136af_manifest.json-15400",
+      "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/tie-c9da2cb136af",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "no-award",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 9.927438666999997,
+      "runtimeSeconds": 5.930851834000002,
+      "manifestHash": "5f86c35cd27f20ae731e7df0aa34df9378f8a8d969cf89f54077dec3a5e9754d",
+      "program": "sealed_5f86c35cd27f20ae-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_no-award-cd021951b0e9_manifest.json-15400",
+      "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/no-award-cd021951b0e9",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "wrong-commitment",
+      "status": "VERIFIED_MPC_ABORT",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/wrong-commitment-a61d070170de",
+      "reason": "invalid sealed input",
+      "allThreePartiesRejected": true,
+      "fixtureKeysRemoved": true,
+      "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0",
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "exact-budget",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          1,
+          2,
+          80,
+          88
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            80
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 10.367118416,
+      "runtimeSeconds": 5.941022332999999,
+      "manifestHash": "6dfcd47b8f0a8dc9709fd43917e7979776e7e9c4e946da3c39b36d6941359d5d",
+      "program": "sealed_6dfcd47b8f0a8dc9-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_exact-budget-c099d897feef_manifest.json-15400",
+      "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/exact-budget-c099d897feef",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "cheapest",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          1,
+          2,
+          80,
+          80
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            80
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 9.892953125,
+      "runtimeSeconds": 5.997816750000002,
+      "manifestHash": "c0ebd8071c6c50d8801fb6fe29ca6d234d851a0185c1b07c31e1491e7cdcdbee",
+      "program": "sealed_c0ebd8071c6c50d8-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-180e715c7425_manifest.json-15400",
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/cheapest-180e715c7425",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "tie",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          1,
+          1,
+          80,
+          80
+        ],
+        "providers": [
+          [
+            1,
+            80
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 9.797514666000001,
+      "runtimeSeconds": 5.996302165999996,
+      "manifestHash": "e16267064cd10381a3a8dc6d1f97e9aacf0fca4f61105932b0344f5d49129ad3",
+      "program": "sealed_e16267064cd10381-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_tie-b1944f73f4ae_manifest.json-15400",
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/tie-b1944f73f4ae",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "no-award",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 10.045308874999996,
+      "runtimeSeconds": 5.843557541999999,
+      "manifestHash": "a6df80b2e28abfef9380940136e9c1644290ac0006ab0230ab30bd676ee6eb18",
+      "program": "sealed_a6df80b2e28abfef-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_no-award-6320831130ad_manifest.json-15400",
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/no-award-6320831130ad",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "exact-budget",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          1,
+          2,
+          80,
+          88
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            80
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 10.293009875000003,
+      "runtimeSeconds": 6.449733333000005,
+      "manifestHash": "981d885870343c4bd43b342d5eb08fb2b709baf27edefa1edfec1db9a45d9579",
+      "program": "sealed_981d885870343c4b-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_exact-budget-86c80e380d86_manifest.json-15400",
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/exact-budget-86c80e380d86",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "unqualified",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          1,
+          2,
+          80,
+          80
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            80
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 9.917113583999992,
+      "runtimeSeconds": 6.254785582999986,
+      "manifestHash": "bd6944dd1a68e4048207ded13b8d0d970ef1653d4809cbc6c4dc7f50e2c87596",
+      "program": "sealed_bd6944dd1a68e404-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_unqualified-51a42e79d018_manifest.json-15400",
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/unqualified-51a42e79d018",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "all-unqualified",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 9.860522500000002,
+      "runtimeSeconds": 5.944418416999994,
+      "manifestHash": "29ab60604103c6293fe37e17b408abc00a99d568c9031e269fba08ea1352cb24",
+      "program": "sealed_29ab60604103c629-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_all-unqualified-461e41d0579a_manifest.json-15400",
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/all-unqualified-461e41d0579a",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "max",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          1,
+          1,
+          1000000000000,
+          1000000000000
+        ],
+        "providers": [
+          [
+            1,
+            1000000000000
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 10.863287125,
+      "runtimeSeconds": 6.255777542000004,
+      "manifestHash": "85bb5b5ec6fa6603f66b0915529f1da68d612966d26070602f6a7e3ad0dc04ec",
+      "program": "sealed_85bb5b5ec6fa6603-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_max-dd6e9fd9bb0e_manifest.json-15400",
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/max-dd6e9fd9bb0e",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "zero-budget",
+      "status": "VERIFIED_LOCAL_MPC",
+      "output": {
+        "buyer": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "compileSeconds": 10.827689167000003,
+      "runtimeSeconds": 5.987218875000025,
+      "manifestHash": "026cbea82e399bd5d16b00faf76adbb3782943fe31e469bc4b8ad6c59c62f642",
+      "program": "sealed_026cbea82e399bd5-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_zero-budget-007a7094d4fd_manifest.json-15400",
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/zero-budget-007a7094d4fd",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "independentOperators": false,
+      "nearBindingVerified": false,
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "wrong-commitment",
+      "status": "VERIFIED_MPC_ABORT",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/wrong-commitment-d355ebb06659",
+      "reason": "invalid sealed input",
+      "allThreePartiesRejected": true,
+      "fixtureKeysRemoved": true,
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "negative-ring-input",
+      "status": "VERIFIED_MPC_ABORT",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/negative-ring-input-9d921a93a260",
+      "reason": "invalid sealed input",
+      "allThreePartiesRejected": true,
+      "fixtureKeysRemoved": true,
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    },
+    {
+      "case": "overflow-ring-input",
+      "status": "VERIFIED_MPC_ABORT",
+      "session": "/Users/mete/near-private-procurement/mpc/runtime/overflow-ring-input-c26d04d63f66",
+      "reason": "invalid sealed input",
+      "allThreePartiesRejected": true,
+      "fixtureKeysRemoved": true,
+      "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+      "transportGeneration": "pre-peer-leaf-pin",
+      "runtimeIdentity": {
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "sharedLibrarySha256": "6e40635708853808b3648bc9a8af143b58492d3b5599a7beeabfc984ca5ddb7b",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "transportPatchSha256": "52530dc8b85af97dc358cbc78b8d0b16d5e58031ad2c280e1f3f11243c933f79"
+      }
+    }
+  ],
+  "syntheticLocalProcessesOnly": true,
+  "nearBindingVerified": false
+}

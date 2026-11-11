@@ -1,0 +1,44 @@
+test_artifact_hash_cannot_be_overridden_by_disk_manifest (test_pipeline.ArtifactTests) ... ok
+test_artifact_symlink_rejected (test_pipeline.ArtifactTests) ... ok
+test_job_directory_does_not_overwrite_or_follow_symlinks (test_pipeline.ArtifactTests) ... ok
+test_pinned_archive_and_embedded_spec (test_pipeline.ArtifactTests) ... ok
+test_bad_manifest_types_or_extra_fields (test_pipeline.BindingTests) ... ok
+test_invalid_metrics_rejected (test_pipeline.BindingTests) ... ok
+test_output_and_manifest_tampering (test_pipeline.BindingTests) ... ok
+test_swapped_request_attempt_keys_circuit_or_input_rejected (test_pipeline.BindingTests) ... ok
+test_valid_receipt (test_pipeline.BindingTests) ... ok
+test_worker_rejects_evaluation_key_substitution (test_pipeline.BindingTests) ... ok
+test_worker_rejects_input_substitution_before_loading_runtime (test_pipeline.BindingTests) ... ok
+test_evaluation_key_removed_on_success_and_failure (test_pipeline.ProcessAndRetentionTests) ... ok
+test_existing_evalkey_not_removed_or_overwritten (test_pipeline.ProcessAndRetentionTests) ... ok
+test_subprocess_uses_current_interpreter_and_minimal_environment (test_pipeline.ProcessAndRetentionTests) ... ok
+test_worker_timeout_becomes_sanitized_error_and_cleans_temp (test_pipeline.ProcessAndRetentionTests) ... ok
+test_fresh_keys_real_subprocess_and_client_reference (test_pipeline.RealFheSmoke) ... REAL_FHE_SMOKE {"verified": true, "metrics": {"queue_seconds": 0.00010591599999987267, "real_fhe": true, "profile_id": "clean-4-records-v1", "concrete_python": "2.11.0", "verification_method": "client_plaintext_reference", "verification_is_cryptographic_proof": false, "keygen_seconds": 0.9323514589999999, "encrypt_seconds": 0.009518291000000012, "evaluation_keys_serialize_seconds": 0.12504075000000014, "input_bytes": 787192, "evaluation_key_bytes": 221406120, "worker_seconds": 6.47193275, "evaluate_seconds": 4.579747333, "server_load_seconds": 0.004261457999999996, "decrypt_seconds": 0.0018544580000003918, "evaluation_keys_retained": false, "output_bytes": 442904, "total_seconds": 8.145716709}}
+ok
+test_exact_archived_bit_layout (test_pipeline.RecordTests) ... ok
+test_invalid_inputs_fail_before_runtime_or_disk (test_pipeline.RecordTests) ... ok
+test_malformed_decrypted_shape_and_bits (test_pipeline.RecordTests) ... ok
+test_output_layout (test_pipeline.RecordTests) ... ok
+test_reference_flags_all_later_occurrences_and_boundaries (test_pipeline.RecordTests) ... ok
+test_snapshot_and_input_unchanged (test_pipeline.RecordTests) ... ok
+test_stage_precedes_runtime_import (test_pipeline.RecordTests) ... ok
+test_exact_external_schema_u64_and_digest_validation (test_staged.ExternalContextTests) ... ok
+test_v2_requires_binding_hash_and_v1_cannot_smuggle_it (test_staged.ExternalContextTests) ... ok
+test_worker_rejects_each_external_context_substitution_before_runtime (test_staged.ExternalContextTests) ... ok
+test_real_prepare_bind_evaluate_finalize (test_staged.RealStagedFhe) ... REAL_STAGED_FHE_SMOKE {"schema": "veil-staged-fhe-evidence-v1", "synthetic_registry_context": true, "execution_proof": false, "verified": true, "metrics": {"queue_seconds": 7.329199999972502e-05, "real_fhe": true, "profile_id": "clean-4-records-v1", "concrete_python": "2.11.0", "verification_method": "client_plaintext_reference", "verification_is_cryptographic_proof": false, "keygen_seconds": 0.7335474579999985, "encrypt_seconds": 0.00607954200000016, "evaluation_keys_serialize_seconds": 0.19437183299999994, "input_bytes": 787192, "evaluation_key_bytes": 221406120, "worker_seconds": 7.238757000000001, "evaluate_seconds": 4.9626565419999995, "server_load_seconds": 0.004246791999999999, "decrypt_seconds": 0.005278291999999851, "evaluation_keys_retained": false, "output_bytes": 442904, "total_seconds": 9.316308416}, "artifactHashes": {"serverSha256": "73ef85b53a58273d543cdbfd21a5ef97408db22ef11fc303ee215a0be0ba7d7e", "clientSpecsSha256": "87b1dd33c9db661f215962b975df389c3f4f7b2fb6123fb7721ac985766475f3", "inputSha256": "1d3710ff14f83c431dd83f2154161223f77181ffafc2f8768182b06b5085d879", "evaluationKeysSha256": "89a84791a2b54400a9a623ebca371ac1108b4aa96a2bc2b8c8780bfbefffddf0", "requestManifestSha256": "669b96950bb960c2e0065476b045c75a99f0c8252a9f50732de58734d0f504a0", "externalBindingSha256": "75a9b910424b94ba2e14420b6114fc9a3e1c39f0c41e38254be6c84473f774c3", "outputSha256": "a2c3b87717102117104a0ae842c3154bbe9919df24940098623dd0f80e94e6b6", "receiptSha256": "cee20a331b3d2e0674fb5b0a0117abbe9cb667c684e3e444942304db1b980b7b"}, "stages": ["ENCRYPTING", "EVALUATING", "VERIFYING"], "secret_key_serialization_apis_blocked": true, "client_references_released": true, "evaluation_keys_deleted": true}
+ok
+test_abandon_evaluated_session_and_exception_release_keys_and_lock (test_staged.StagedLifecycleTests) ... ok
+test_consistent_output_and_receipt_substitution_after_evaluate_rejected (test_staged.StagedLifecycleTests) ... ok
+test_correct_states_and_finalize_shape (test_staged.StagedLifecycleTests) ... ok
+test_evaluator_failure_or_callback_error_closes_session (test_staged.StagedLifecycleTests) ... ok
+test_every_prepared_file_revalidated_before_evaluation (test_staged.StagedLifecycleTests) ... ok
+test_exit_and_explicit_close_without_evaluation (test_staged.StagedLifecycleTests) ... ok
+test_files_revalidated_before_finalize_and_no_decrypt_on_tamper (test_staged.StagedLifecycleTests) ... ok
+test_prepare_exposes_immutable_bindings_without_evaluation (test_staged.StagedLifecycleTests) ... ok
+test_prepare_failure_cleans_keys_and_allows_next_session (test_staged.StagedLifecycleTests) ... ok
+test_reference_failure_never_returns_success (test_staged.StagedLifecycleTests) ... ok
+
+----------------------------------------------------------------------
+Ran 37 tests in 20.275s
+
+OK

@@ -1,0 +1,29 @@
+test_certificate_setup_failure_erases_generation_and_moved_keys (test_cleanup.CleanupRegressionTests) ... ok
+test_transient_signal_permission_error_still_reaps_and_erases (test_cleanup.CleanupRegressionTests) ... ok
+test_unreaped_child_is_error_but_keys_are_still_erased (test_cleanup.CleanupRegressionTests) ... ok
+test_amount_codec_rejects_coercion_overflow_negative (test_codec.CodecTests) ... ok
+test_commitment_codec_independent_hashlib (test_codec.CodecTests) ... ok
+test_context_and_private_value_are_bound (test_codec.CodecTests) ... ok
+test_descriptor_is_strict (test_codec.CodecTests) ... ok
+test_reference_edges (test_codec.CodecTests) ... ok
+test_active_output_authentication_rejects_corrupt_share (test_codec.WireTests) ... ok
+test_fragmented_length_and_payload (test_codec.WireTests) ... ok
+test_large_or_passive_frame_rejected (test_codec.WireTests) ... ok
+test_truncation_fails_instead_of_hanging (test_codec.WireTests) ... ok
+test_client_version_and_expected_public_digest_checked_before_network (test_v2.V2CodecTests) ... ok
+test_commitment_strict_range_and_salt_slot_binding (test_v2.V2CodecTests) ... ok
+test_every_intent_field_binds_precommit (test_v2.V2CodecTests) ... ok
+test_independent_binary_intent_vector (test_v2.V2CodecTests) ... ok
+test_independent_commitment_and_v1_separation (test_v2.V2CodecTests) ... ok
+test_independent_registry_borsh_encoder (test_v2.V2CodecTests) ... ok
+test_manifest_mutations_fail_and_public_digest_covers_full_closed_snapshot (test_v2.V2CodecTests) ... ok
+test_prepare_is_immutable_and_does_not_embed_circular_bindings (test_v2.V2CodecTests) ... ok
+test_public_json_rejects_duplicate_keys_and_nonfinite_numbers (test_v2.V2CodecTests) ... ok
+test_registry_config_mutations_fail_even_rehashed (test_v2.V2CodecTests) ... ok
+test_registry_missing_reordered_extra_fake_root_and_early_attempt_fail (test_v2.V2CodecTests) ... ok
+test_strict_intent_rejects_unknowns_types_order_and_deadlines (test_v2.V2CodecTests) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.030s
+
+OK

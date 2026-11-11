@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-11",
+  "browser": "Chrome via CUA",
+  "base": "http://127.0.0.1:8765",
+  "jobId": "2c10fafd77b34b30a036b8152838b37e",
+  "checks": {
+    "landingToApp": true,
+    "realFheFromButtonCompleted": true,
+    "result255To0": true,
+    "result128To100": true,
+    "laterDuplicateFlagged": true,
+    "invalid256DisablesSubmit": true,
+    "csvTabTransfersInputs": true,
+    "mobile390NoHorizontalPageOverflow": true,
+    "auditDrawerShowsRealMetrics": true,
+    "capabilityAvailableAfterFixAndReload": true,
+    "viewportReset": true
+  },
+  "elapsedSecondsReportedByEngine": 12.511,
+  "limits": [
+    "Capability fix was checked after reload and opening drawer; no extra fresh-job transition was rerun after that UI-only fix.",
+    "Browser extension warnings were observed; application result flow succeeded.",
+    "No independent cryptographic/production security audit."
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "scope": "synthetic real HTTP -> Concrete ciphertext evaluation -> client verification",
+  "checks": [
+    {
+      "name": "landing served",
+      "pass": true
+    },
+    {
+      "name": "CSP set",
+      "pass": true
+    },
+    {
+      "name": "application served",
+      "pass": true
+    },
+    {
+      "name": "capabilities + CSRF",
+      "pass": true
+    },
+    {
+      "name": "sensitive data not cached",
+      "pass": true
+    },
+    {
+      "name": "mutation without CSRF rejected",
+      "pass": true
+    },
+    {
+      "name": "foreign origin rejected",
+      "pass": true
+    },
+    {
+      "name": "DNS rebinding host rejected",
+      "pass": true
+    },
+    {
+      "name": "boolean integer confusion rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong record count rejected",
+      "pass": true
+    },
+    {
+      "name": "private path denied: /../AGENTS.md",
+      "pass": true
+    },
+    {
+      "name": "private path denied: /.git/config",
+      "pass": true
+    },
+    {
+      "name": "private path denied: /runtime/",
+      "pass": true
+    },
+    {
+      "name": "private path denied: /service/server.py",
+      "pass": true
+    },
+    {
+      "name": "real job accepted",
+      "pass": true
+    },
+    {
+      "name": "real FHE completed",
+      "pass": true
+    },
+    {
+      "name": "client output exactly matches independent reference",
+      "pass": true
+    },
+    {
+      "name": "reference verification flag true",
+      "pass": true
+    },
+    {
+      "name": "real lifecycle stage events",
+      "pass": true
+    },
+    {
+      "name": "encrypted artifact binding recorded",
+      "pass": true
+    }
+  ],
+  "production_security_audit": false,
+  "jobId": "b16369e64f9b4b10946417b51be1ee79",
+  "metrics": {
+    "queue_seconds": 5.937500000641194e-05,
+    "real_fhe": true,
+    "profile_id": "clean-4-records-v1",
+    "concrete_python": "2.11.0",
+    "verification_method": "client_plaintext_reference",
+    "verification_is_cryptographic_proof": false,
+    "keygen_seconds": 0.7315297079999965,
+    "encrypt_seconds": 0.011058540999997035,
+    "evaluation_keys_serialize_seconds": 0.3757124170000026,
+    "input_bytes": 787192,
+    "evaluation_key_bytes": 221406120,
+    "worker_seconds": 7.143368041000002,
+    "evaluate_seconds": 4.925197958,
+    "server_load_seconds": 0.003952417000000041,
+    "decrypt_seconds": 0.0018798750000001974,
+    "evaluation_keys_retained": false,
+    "output_bytes": 442904,
+    "total_seconds": 10.201176583999995
+  },
+  "artifactHashes": {
+    "serverSha256": "73ef85b53a58273d543cdbfd21a5ef97408db22ef11fc303ee215a0be0ba7d7e",
+    "clientSpecsSha256": "87b1dd33c9db661f215962b975df389c3f4f7b2fb6123fb7721ac985766475f3",
+    "evaluationKeysSha256": "ed3651272fc26315b30ee935c0ad40390f09bdcf60779788668f10051690abd9",
+    "inputSha256": "0b0a422da6516ea4423151645b920c792d16f151a105850d8816a22200b9c916",
+    "outputSha256": "29cd96da9622ee5a75c28ea4c14bbb001c208a735e2760a9c2f757f62c45fd05",
+    "requestManifestSha256": "0995fe28e955f1d91afba5096dcaef422212e8c7f5d58832efae4685d09fc3f7",
+    "receiptSha256": "38ff9c561916a889f7a831fdafa2f4f6a95e7eebddd2726a8db3f387be344575"
+  },
+  "completed": true,
+  "elapsedSeconds": 10.77
+}

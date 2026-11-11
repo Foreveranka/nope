@@ -1,0 +1,10 @@
+   Compiling veil-registry-sandbox-tests v0.1.0 (/Users/mete/near-private-procurement/contracts/registry/sandbox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.59s
+     Running tests/registry.rs (target/debug/deps/registry-dfd3c875948ebdf6)
+
+running 1 test
+test posthoc_public_fhe_hashes_bind_to_accepted_receipt ... post-hoc public FHE hash binding accepted in local Wasm VM; not attestation or pre-committed secure workflow
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 24.20s
+

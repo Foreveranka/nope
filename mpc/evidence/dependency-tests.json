@@ -1,0 +1,15 @@
+{
+  "libsodium": {
+    "version": "1.0.20",
+    "tests": 80,
+    "passed": 80,
+    "failed": 0,
+    "evidence": ".local/src/libsodium-1.0.20/test/default/test-suite.log"
+  },
+  "codecAndWireUnitTests": {
+    "tests": 12,
+    "passed": 12,
+    "mpcExecution": false,
+    "includesCleanupRegressions": 3
+  }
+}

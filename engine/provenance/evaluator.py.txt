@@ -1,0 +1,27 @@
+"""Evaluator receives only compiled circuit, evaluation keys and ciphertexts.
+
+Separate process, NOT an OS isolation or malicious security proof.
+No secret-key generation/deserialization or decrypt call in this program.
+"""
+import json
+import sys
+import time
+from pathlib import Path
+from concrete import fhe
+
+root = Path(sys.argv[1])
+server = fhe.Server.load(root / 'server.zip')
+keys = fhe.EvaluationKeys.deserialize((root / 'evaluation.keys').read_bytes())
+requests = sorted(root.glob('request-*.bin'))
+metrics = []
+for request in requests:
+    value = fhe.Value.deserialize(request.read_bytes())
+    start = time.perf_counter()
+    result = server.run(value, evaluation_keys=keys)
+    elapsed = time.perf_counter() - start
+    output = root / request.name.replace('request-', 'response-')
+    output.write_bytes(result.serialize())
+    metrics.append({'request': request.name, 'run_seconds': elapsed,
+                    'response_bytes': output.stat().st_size})
+(root / 'evaluator-metrics.json').write_text(json.dumps(metrics, indent=2))
+print(json.dumps(metrics), flush=True)

@@ -1,0 +1,13 @@
+{
+  "scope": "Parent recomputation of existing actual local Wasm sandbox evidence, no rerun or external transaction",
+  "checks": {
+    "job_digest": true,
+    "bidset_digest": true,
+    "attempt_digest": true,
+    "receipt_digest": true,
+    "wasm_digest": true,
+    "source_evidence_digest": true
+  },
+  "precommitted_workflow": false,
+  "proof_or_attestation": false
+}

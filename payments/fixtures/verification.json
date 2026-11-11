@@ -1,0 +1,46 @@
+{
+  "actualCrypto": [
+    "SHA-256",
+    "HMAC-SHA256 with public synthetic fixture key"
+  ],
+  "actualLocalProcessTests": [
+    "os._exit after rail release commit",
+    "four concurrent processes same release operation"
+  ],
+  "elapsedSeconds": 2.05,
+  "errors": 0,
+  "failures": 0,
+  "kind": "payment_boundary_local_test_evidence",
+  "livePayments": false,
+  "mode": "local_fixture_simulation",
+  "notTestedHere": [
+    "live MCP/account operations",
+    "real-money settlement",
+    "NEAR sandbox",
+    "FHE correctness",
+    "production security/privacy"
+  ],
+  "observedAt": "2026-11-11T18:20:24.139728+00:00",
+  "passed": true,
+  "python": "3.9.6 (default, May 22 2026, 11:13:45) \n[Clang 21.0.0 (clang-2100.1.1.101)]",
+  "skipped": 0,
+  "sourceSha256": {
+    "__init__.py": "8f657f3a1cd3a0b611a51236a8123cdee4c40ba8157215074e9d6bc328855988",
+    "adapter.py": "d07f6fd685b25e2de430b5bed8a9aa23d3f69ceceb54cf58c0c86e5b0cc4d851",
+    "demo.py": "387a7030071ebe0d892991dba709a76da84de6fdb30c0b08f884eab33d9346a0",
+    "fixture.py": "1dcbdb704ba6f4e790c180b81818b1b0e4a536ea7c0e0e7a3a20a94ec6a7e282",
+    "interface.py": "4272b8c427956cac7186dc08bfef539a658ecc13b7ed069df7ebf0cf484d0387",
+    "mcp.py": "145985ba4cc67c1a4021aa5f42443d0fa95b352e267ebe4e560c4615306566f1",
+    "model.py": "738d4391ca874e688e6d886991307da325dcf1fc3e9777db45666e9d710bfa43",
+    "schema.py": "1fda7c0801d2534a6e8cf276ba60c73a17d36cd55d792d4f620d05e4bedd1c79",
+    "storage.py": "39bd28ebf016b2b9060a984f2cafe7801bf33df0b719ee98c459e7b71aa13c0e",
+    "synthetic.py": "49a60f4f4af6a958c3aaa1e26cf451a117b86ec315c6203a2fb6017d7a89af80",
+    "tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/support.py": "50acf9bc42069ba0095151288eeab0fa75132e238790feb0b7e6e0668fcf649a",
+    "tests/test_mcp.py": "e5281407cb5f92f41e8622fa8f0380f7e0b4a11b3910c5acdf13fd933da1c06f",
+    "tests/test_payments.py": "2b2df33538262b01ae305a405dbc09144e29d7fb81b4f85e6148b1fbcca8b084",
+    "verify.py": "ef09fc88c1f22d74d643f82f37ea8e37e2197551d91418ead50a5822a790c03d"
+  },
+  "testLog": "test_alternatives_bounds_and_non_json_values (payments.tests.test_mcp.MCPTests) ... ok\ntest_anonymous_transport_and_missing_negotiation_blocked (payments.tests.test_mcp.MCPTests) ... ok\ntest_discovery_pagination_pins_and_validated_read (payments.tests.test_mcp.MCPTests) ... ok\ntest_duplicate_tool_repeating_cursor_and_missing_output_schema_blocked (payments.tests.test_mcp.MCPTests) ... ok\ntest_input_must_match_exact_discovered_schema (payments.tests.test_mcp.MCPTests) ... ok\ntest_local_ref_constraints_types_and_formats (payments.tests.test_mcp.MCPTests) ... ok\ntest_no_implicit_trust_on_first_discovery (payments.tests.test_mcp.MCPTests) ... ok\ntest_no_mutation_via_read_path_or_live_rail (payments.tests.test_mcp.MCPTests) ... ok\ntest_output_error_unknown_enum_missing_output_and_link_not_success (payments.tests.test_mcp.MCPTests) ... ok\ntest_schema_drift_and_identity_drift_disable_tools (payments.tests.test_mcp.MCPTests) ... ok\ntest_unknown_schema_keywords_block_instead_of_partial_validation (payments.tests.test_mcp.MCPTests) ... ok\ntest_acceptance_requires_exact_verified_bytes_and_policy (payments.tests.test_payments.PaymentTests) ... ok\ntest_actual_child_process_exit_after_release_before_outbox_commit (payments.tests.test_payments.PaymentTests) ... ok\ntest_actual_processes_share_durable_release_lock (payments.tests.test_payments.PaymentTests) ... ok\ntest_atomic_revision_check_closes_simulated_read_write_race (payments.tests.test_payments.PaymentTests) ... ok\ntest_concurrent_different_release_ids_cannot_double_spend (payments.tests.test_payments.PaymentTests) ... ok\ntest_concurrent_same_release_only_one_movement (payments.tests.test_payments.PaymentTests) ... ok\ntest_confirmed_refund_lost_response_and_terminal_no_release (payments.tests.test_payments.PaymentTests) ... ok\ntest_disputed_and_remote_stale_result_never_release (payments.tests.test_payments.PaymentTests) ... ok\ntest_exact_micro_integer_parser (payments.tests.test_payments.PaymentTests) ... ok\ntest_exact_workflow_and_release_idempotence_after_restart (payments.tests.test_payments.PaymentTests) ... ok\ntest_invalid_versions_and_missing_delivery_rejected (payments.tests.test_payments.PaymentTests) ... ok\ntest_late_timeout_preserves_concurrently_reconciled_operation_outcome (payments.tests.test_payments.PaymentTests) ... ok\ntest_lost_response_each_mutation_reconciles_without_redispatch (payments.tests.test_payments.PaymentTests) ... ok\ntest_no_live_dispatch_even_with_transport (payments.tests.test_payments.PaymentTests) ... ok\ntest_no_plaintext_or_receipt_bytes_persisted (payments.tests.test_payments.PaymentTests) ... ok\ntest_out_of_order_reconciliation_keeps_latest_dispute (payments.tests.test_payments.PaymentTests) ... ok\ntest_process_crash_leaves_recoverable_sent_operation (payments.tests.test_payments.PaymentTests) ... ok\ntest_real_hmac_detects_forgery_even_if_receipt_hash_matches (payments.tests.test_payments.PaymentTests) ... ok\ntest_refresh_adopts_dispute_but_never_unblocks_unknown (payments.tests.test_payments.PaymentTests) ... ok\ntest_refresh_does_not_infer_absent_operation_failed (payments.tests.test_payments.PaymentTests) ... ok\ntest_refresh_rejects_reordered_and_contradictory_observations (payments.tests.test_payments.PaymentTests) ... ok\ntest_remote_dispute_blocks_verified_acceptance (payments.tests.test_payments.PaymentTests) ... ok\ntest_remote_resubmission_blocks_old_verification (payments.tests.test_payments.PaymentTests) ... ok\ntest_stale_version_cannot_accept_or_release (payments.tests.test_payments.PaymentTests) ... ok\ntest_timeout_without_effect_is_not_refund_or_retry_authority (payments.tests.test_payments.PaymentTests) ... ok\ntest_wrong_binding_fields_and_idempotency_payload_conflict (payments.tests.test_payments.PaymentTests) ... ok\ntest_wrong_response_is_unknown_and_never_confirms_payment (payments.tests.test_payments.PaymentTests) ... ok\n\n----------------------------------------------------------------------\nRan 38 tests in 2.050s\n\nOK\n",
+  "testsRun": 38
+}

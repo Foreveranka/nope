@@ -1,0 +1,39 @@
+   Compiling veil-registry v0.1.0 (/Users/mete/near-private-procurement/contracts/registry)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.59s
+     Running unittests src/lib.rs (target/debug/deps/veil_registry-64c8bafc44e6b367)
+
+running 18 tests
+test tests::deadlines_are_strictly_monotonic_bounded_and_hashes_required ... ok
+test tests::bidder_cannot_replace_copy_or_misroute_commitment ... ok
+test tests::full_root_independently_recomputes_and_detects_omission_order_and_substitution ... ok
+test tests::every_mutation_explicitly_rejects_money_without_changing_state ... ok
+test tests::job_binding_independently_encodes_every_configuration_field ... ok
+test tests::buyer_and_stranger_cannot_freeze_early_or_change_closed_bids ... ok
+test tests::buyer_decision_is_explicit_exact_and_terminal_but_on_time_reports_can_be_decided_late ... ok
+test tests::begin_attempt_requires_buyer_closed_state_full_root_and_nonempty_set ... ok
+test tests::predecessor_authorization_does_not_borrow_signer_authority ... ok
+test tests::roster_is_canonical_unique_and_bounded ... ok
+test tests::expiry_boundary_blocks_late_callback_and_preserves_prior_history ... ok
+test tests::python_generated_golden_fixture_matches_all_four_onchain_hashes ... ok
+test tests::self_initialization_only_and_nonzero_domain ... ok
+test tests::receipt_rejects_hostile_caller_and_every_wrong_context_field ... ok
+test tests::storage_flush_and_json_roundtrip_preserve_binding ... ok
+test tests::open_closed_and_rejected_can_expire_while_reported_is_preserved ... ok
+test tests::receipt_replay_across_same_attempt_new_attempt_and_job_is_rejected ... ok
+test tests::attempts_are_bounded_and_receipt_history_is_append_only ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.90s
+
+     Running tests/wasm.rs (target/debug/deps/wasm-ba0abb4b198de1d3)
+
+running 1 test
+test compiled_wasm_validates_exports_registry_methods_and_has_no_payment_actions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+   Doc-tests veil_registry
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

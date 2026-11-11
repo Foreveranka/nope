@@ -1,0 +1,20 @@
+{
+  "scope": "Parent independently compares recorded actual MPC outputs to explicit expected synthetic results and inspects all three party logs; not a second runtime execution",
+  "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+  "checks": {
+    "cheapest": true,
+    "tie": true,
+    "no-award": true,
+    "exact-budget": true,
+    "unqualified": true,
+    "all-unqualified": true,
+    "max": true,
+    "zero-budget": true,
+    "wrong-commitment": true,
+    "negative-ring-input": true,
+    "overflow-ring-input": true
+  },
+  "client_identity_tls_gate": "Pending exact peer certificate pin fix; arithmetic results predate transport fix",
+  "independentOperators": false,
+  "nearBindingVerified": false
+}

@@ -1,0 +1,22 @@
+Running actual SPDZ2k: cheapest
+{"case": "cheapest", "status": "VERIFIED_LOCAL_MPC", "output": {"buyer": [1, 2, 80, 80], "providers": [[0, 0], [1, 80], [0, 0]]}, "compileSeconds": 9.857006499999999, "runtimeSeconds": 8.455222208999999, "manifestHash": "ab120d6b3a7ca06c734c22d25d33d0919d5e45b4b8f16ecff84529c0201f5976", "program": "sealed_ab120d6b3a7ca06c-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-9a2f0c47a43e_manifest.json-15400", "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0", "session": "/Users/mete/near-private-procurement/mpc/runtime/cheapest-9a2f0c47a43e", "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf", "independentOperators": false, "nearBindingVerified": false}
+Running actual SPDZ2k: tie
+{"case": "tie", "status": "VERIFIED_LOCAL_MPC", "output": {"buyer": [1, 1, 80, 80], "providers": [[1, 80], [0, 0], [0, 0]]}, "compileSeconds": 10.361804583000001, "runtimeSeconds": 6.850846791999999, "manifestHash": "d37ef2c83a19a98f080ee4604d03dfe20c6cda35e99ef3f25400114a3346d377", "program": "sealed_d37ef2c83a19a98f-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_tie-c9da2cb136af_manifest.json-15400", "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0", "session": "/Users/mete/near-private-procurement/mpc/runtime/tie-c9da2cb136af", "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf", "independentOperators": false, "nearBindingVerified": false}
+Running actual SPDZ2k: no-award
+{"case": "no-award", "status": "VERIFIED_LOCAL_MPC", "output": {"buyer": [0, 0, 0, 0], "providers": [[0, 0], [0, 0], [0, 0]]}, "compileSeconds": 9.927438666999997, "runtimeSeconds": 5.930851834000002, "manifestHash": "5f86c35cd27f20ae731e7df0aa34df9378f8a8d969cf89f54077dec3a5e9754d", "program": "sealed_5f86c35cd27f20ae-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_no-award-cd021951b0e9_manifest.json-15400", "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0", "session": "/Users/mete/near-private-procurement/mpc/runtime/no-award-cd021951b0e9", "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf", "independentOperators": false, "nearBindingVerified": false}
+Running actual SPDZ2k: wrong-commitment
+Traceback (most recent call last):
+  File "/Users/mete/near-private-procurement/mpc/run_local.py", line 178, in run_case
+    raise RuntimeError("private output rejected or computation aborted")
+RuntimeError: private output rejected or computation aborted
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/mete/near-private-procurement/mpc/verify_runtime.py", line 45, in <module>
+    main()
+  File "/Users/mete/near-private-procurement/mpc/verify_runtime.py", line 22, in main
+    result = run_case(case, args.timeout)
+  File "/Users/mete/near-private-procurement/mpc/run_local.py", line 199, in run_case
+    os.killpg(p.pid, signal.SIGTERM)
+PermissionError: [Errno 1] Operation not permitted

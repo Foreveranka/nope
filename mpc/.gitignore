@@ -1,0 +1,10 @@
+/vendor/
+/.local/
+/runtime/
+__pycache__/
+*.pyc
+*.key
+*.pem
+/evidence/*-build.log
+/evidence/*-install.log
+/evidence/bootstrap-run.log

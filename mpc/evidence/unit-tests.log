@@ -1,0 +1,17 @@
+test_certificate_setup_failure_erases_generation_and_moved_keys (test_cleanup.CleanupRegressionTests) ... ok
+test_transient_signal_permission_error_still_reaps_and_erases (test_cleanup.CleanupRegressionTests) ... ok
+test_unreaped_child_is_error_but_keys_are_still_erased (test_cleanup.CleanupRegressionTests) ... ok
+test_amount_codec_rejects_coercion_overflow_negative (test_codec.CodecTests) ... ok
+test_commitment_codec_independent_hashlib (test_codec.CodecTests) ... ok
+test_context_and_private_value_are_bound (test_codec.CodecTests) ... ok
+test_descriptor_is_strict (test_codec.CodecTests) ... ok
+test_reference_edges (test_codec.CodecTests) ... ok
+test_active_output_authentication_rejects_corrupt_share (test_codec.WireTests) ... ok
+test_fragmented_length_and_payload (test_codec.WireTests) ... ok
+test_large_or_passive_frame_rejected (test_codec.WireTests) ... ok
+test_truncation_fails_instead_of_hanging (test_codec.WireTests) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.005s
+
+OK

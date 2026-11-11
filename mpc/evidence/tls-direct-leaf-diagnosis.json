@@ -1,0 +1,10 @@
+{
+  "opensslClientOutput": "ACCEPTED",
+  "opensslClientExitCode": 1,
+  "nativeServerExitCode": 0,
+  "loadedServerDERHash": "3432c34a4d0052df65c900f0188a5e809343cbb8fa64fff8119e46c05a7982e7",
+  "clientTrustedServerDERHash": "3432c34a4d0052df65c900f0188a5e809343cbb8fa64fff8119e46c05a7982e7",
+  "exactServerCertMatch": true,
+  "pythonSSL": "LibreSSL 2.8.3",
+  "session": "/Users/mete/near-private-procurement/mpc/runtime/tls-native-cli-diagnosis"
+}

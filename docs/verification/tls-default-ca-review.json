@@ -1,0 +1,7 @@
+{
+  "scope": "Local synthetic OpenSSL default-CA/hostname verification reproduction; not an actual MP-SPDZ connection",
+  "default_fixture_CA_true": true,
+  "forged_C1_signed_by_C0_verified": true,
+  "verify_output": "fake.pem: OK",
+  "all_private_fixture_files_removed": true
+}

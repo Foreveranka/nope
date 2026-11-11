@@ -1,0 +1,101 @@
+# Compiled with -R 64 -X. Arguments: manifest JSON path, client port base.
+# Compilation specializes ONLY PUBLIC manifest data, never prices, budget, salts.
+import hashlib
+import json
+from Compiler.types import sint, regint
+from Compiler.GC.types import sbit, sbitvec
+from Compiler.circuit import sha256
+from Compiler.instructions import check, closeclientconnection
+from Compiler.library import (listen_for_clients, accept_client_connection,
+                              runtime_error_if, print_ln)
+
+assert program.active, 'active external I/O is mandatory'
+assert not program.options.insecure, 'insecure compilation is forbidden'
+assert int(program.options.ring) == 64
+program.set_bit_length(42)  # after full 64-bit decomposition/range validation
+
+with open(program.args[1]) as f:
+    manifest = json.load(f)
+# Import the exact strict public codec from the owned source tree.
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(program.infile).resolve().parents[2]))
+from mpc.v2 import validate_manifest, manifest_digest, COMMITMENT_DOMAIN
+validate_manifest(manifest)
+descriptor = manifest['intent']
+context = bytes.fromhex(manifest['precommitContext'])
+manifest_hash = bytes.fromhex(manifest_digest(manifest))
+port = int(program.args[2])
+MAX = 10**12
+FEE = descriptor['fixedFee']
+assert 0 <= FEE <= MAX
+assert len(descriptor['qualified']) == 3 and len(manifest['commitments']) == 4
+
+listen_for_clients(port)
+sockets = []
+for client_id in range(4):
+    channel = accept_client_connection(port)
+    runtime_error_if(channel != client_id, 'unexpected client slot')
+    sockets.append(channel)
+    # Context is public and compared to constants by EACH operator.
+    hello = regint.read_from_socket(channel, 9)
+    expected = [client_id] + [int.from_bytes(manifest_hash[i:i+4], 'big')
+                              for i in range(0, 32, 4)]
+    for got, want in zip(hello, expected):
+        runtime_error_if(got != want, 'manifest context mismatch')
+
+amounts = []
+validities = []
+for client_id in range(4):
+    # Fixed input count: amount uint64 + four uint64 salt limbs (big endian).
+    private = sint.receive_from_client(5, sockets[client_id])
+    decomposed = [x.bit_decompose(64) for x in private]
+    low = sint.bit_compose(decomposed[0][:40])
+    in_range = (sum(decomposed[0][40:]) == 0) * (low <= MAX)
+    if client_id != 0:  # public, fixed circuit structure
+        in_range *= (low > 0)
+    amounts.append(low)
+    # SHA-256 over the SAME private amount used above, including all 64 bits.
+    prefix = COMMITMENT_DOMAIN + context + bytes([client_id])
+    message_bits = [sbit((b >> j) & 1) for b in prefix for j in range(7, -1, -1)]
+    # arithmetic bits -> authenticated binary bits via daBits (-X).
+    for bits in decomposed:
+        message_bits += [sbit(x) for x in reversed(bits)]
+    hashed = sha256(sbitvec.from_vec(message_bits)).v  # little endian digest
+    expected = int(manifest['commitments'][client_id], 16)
+    match = 1
+    for i, bit in enumerate(hashed):
+        match = match & (1 ^ (bit ^ ((expected >> i) & 1)))
+    validities.append(in_range * sint(match))
+
+all_valid = validities[0] * validities[1] * validities[2] * validities[3]
+# Only one public validity bit; malformed accepted inputs abort the whole auction.
+public_valid = all_valid.reveal()
+check()
+runtime_error_if(public_valid != 1, 'invalid sealed input')
+
+budget = amounts[0]
+found, best_price, winner = sint(0), sint(0), sint(0)
+for slot in range(3):
+    price = amounts[slot + 1]
+    eligible = int(descriptor['qualified'][slot]) * (price + FEE <= budget)
+    take = sint(eligible * (1 - found + found * (price < best_price)))
+    best_price = take.if_else(price, best_price)
+    winner = take.if_else(slot + 1, winner)
+    found = found + eligible - found * eligible
+
+# Flush calculation/MAC/broadcast checks before recipient-specific output.
+check()
+sint.reveal_to_clients([sockets[0]], [found, winner, best_price,
+                                     found * (best_price + FEE)])
+for slot in range(3):
+    win = found * (winner == slot + 1)
+    sint.reveal_to_clients([sockets[slot + 1]], [win, win * best_price])
+# Private-output helper creates more multiplications. Check them, THEN send an
+# authenticated completion marker. The honest wrapper requires marker + all exits.
+check()
+for channel in sockets:
+    regint.write_to_socket(channel, [regint(1)])
+print_ln('SEALED_AUCTION_CHECKS_COMPLETE')
+for channel in sockets:
+    closeclientconnection(channel)

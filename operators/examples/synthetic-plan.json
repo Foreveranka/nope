@@ -1,0 +1,64 @@
+{
+  "schema": "veil-operator-plan-v1",
+  "execution": {
+    "descriptor": {
+      "profile": "sealed-cheapest-3-spdz2k-v1",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "job": "062fb724c022baef7d46fa11ce04fa53a1d70caacacaa7cdc76747203095fc74",
+      "attempt": "d1ba6d647edb63ce9ac4769385a5e7990e5685926833f29ffa51a0b265698b16",
+      "qualified": [
+        true,
+        true,
+        true
+      ],
+      "fixedFee": 0
+    },
+    "commitments": [
+      "92ab9b1c7ffc53f18ac56a91dfb071297e0a4d7929fd063c4629c6074b2cf694",
+      "9560a6c0966cb25664e4437770f0d6cbb6502180f237da7e95129c2c6595f304",
+      "f6a633e44ffb883471bc649470c079e85d72be0ce263f181406c6dd389a58d69",
+      "b8687d35f7f165fed58ded88403bdf266b41bd18c5093019b15be93912f5939b"
+    ]
+  },
+  "execution_sha256": "bf6dbd50b9aea27ba9fc13a0319e4ad4225226fa3968866e35ba3d0343c3fe96",
+  "build": {
+    "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+    "source_sha256": "e57c314353c078ab4c9d3aae719d68f9c4bde592e8150382d06b9f6ef92b666c",
+    "transport_patch_sha256": "0a46dd83f10072eff037f6c0926733069eac71bb9d8b5ddfc427827c6d7b6595",
+    "build_recipe_sha256": "3f8ba2dba1ace1d463dc6e22469c56758ca2946e7a0a4fd63fe2c4d8ec52b1ac",
+    "binary_sha256": "ee446c25f23f264763b339c7bef9917fc7a181db38631497797dd33b363af12e",
+    "bytecode_sha256": "848af74cdd213dcd5c42590e0830a44559e019918d17ab3a5096f09de71f7600",
+    "schedule_sha256": "b9b5df1abbc3756c30b7791e54ce46be5c270646edd0563687c662962b340e6b"
+  },
+  "trust_anchor_sha256": "0365a215cd77d270ff3a1f620bdf6461cc969859ce42328bce39bdcef758d741",
+  "operators": [
+    {
+      "party": 0,
+      "identity": "synthetic-operator-0",
+      "administrative_domain": "synthetic-admin-0",
+      "host": "p0.operator-0.example",
+      "peer_port": 15000,
+      "client_port": 16000,
+      "certificate_sha256": "65d8f6f7ab10207e0d209fef26544e93474d73b867db6a12075ed52024ff8232"
+    },
+    {
+      "party": 1,
+      "identity": "synthetic-operator-1",
+      "administrative_domain": "synthetic-admin-1",
+      "host": "p1.operator-1.example",
+      "peer_port": 15000,
+      "client_port": 16000,
+      "certificate_sha256": "ab5850edeb7294dd7ec1b7bdf75fd3fdb023bbd3fc328cc68094210d8f5a6546"
+    },
+    {
+      "party": 2,
+      "identity": "synthetic-operator-2",
+      "administrative_domain": "synthetic-admin-2",
+      "host": "p2.operator-2.example",
+      "peer_port": 15000,
+      "client_port": 16000,
+      "certificate_sha256": "cd0024dfa1e01facb811305b756f9732c414ad40506ddb43d55284517569e242"
+    }
+  ],
+  "execution_mode": "v1-compatibility"
+}

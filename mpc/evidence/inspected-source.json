@@ -1,0 +1,19 @@
+{
+  "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+  "note": "TLS/listener files include the tracked local transport patch; inspected code is not a security audit.",
+  "files": {
+    "Compiler/types.py": "a8ab7098dbbadcbaf39a20d21be36475e5f688da4bf3adfb158c7482b664c12e",
+    "Compiler/circuit.py": "b1a6ca00513253ec5a7a82df6943a71272f5f0983dc07882324b9d73dab7db0b",
+    "Compiler/GC/types.py": "b1c8b6e241158552cf220ece30315de962a81d8e9e6e9a95c57f99fc95d92771",
+    "Compiler/instructions.py": "3a9383327460798fe1874d030a1c24fed9e1155570e69f4607735636d19fadde",
+    "ExternalIO/client.py": "11380e098db0927a8eb3ab90d7cb68ef803ede34b7316ac8683fddddc5e32696",
+    "ExternalIO/domains.py": "26249e3cbea3dc3b7e0f4ed13f2924183f8f698f6b3239545dafc99f2a760816",
+    "Processor/Processor.hpp": "b7bebabe817b1de441fb478eb7b3bedc8785dd8641225449eaed118d11c9f354",
+    "Processor/ExternalClients.cpp": "581bad7bd5b71f6512b03d84ce357449e643f6bdcdfb7ffd92f32513d41b3bdf",
+    "Networking/ssl_sockets.h": "213098c94ce496d5964497a250774350a55e4e1bd5e69cb996abdb950ca09435",
+    "Networking/ServerSocket.cpp": "f477a2ba2687b3ae77769bffc2a49d2ef4f206a992e798302d337e0981145eff",
+    "OT/OTExtension.cpp": "5bc6b957a5d5b8e0abb9d2c88d8d4a0cb9d15ac8a33ff61f84168a2b0c40e14a",
+    "Machines/spdz2k-party.cpp": "cc6ffe3a172baea60d2c68eb4328f970589277f2c1514df0c160d7018aa59eee",
+    "Programs/Circuits/sha256.txt": "bd0a91bb7e97bb60c1468fe8caecc546af3f832bd4152d9c8c4e7527412dd11d"
+  }
+}

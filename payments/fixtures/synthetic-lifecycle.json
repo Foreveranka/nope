@@ -1,0 +1,62 @@
+{
+  "actual_crypto": [
+    "SHA-256",
+    "HMAC-SHA256 synthetic receipt"
+  ],
+  "artifact_is_actual_ciphertext": false,
+  "binding": {
+    "assignment_id": "synthetic-assignment-1",
+    "attempt_id": "attempt-1",
+    "bid_id": "synthetic-bid-1",
+    "context_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "job_id": "synthetic-job-1",
+    "price": {
+      "currency": "USDC",
+      "micros": 80000000,
+      "scale": 6
+    },
+    "selection_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "terms_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "worker_id": "synthetic-worker-1"
+  },
+  "delivery": {
+    "artifact_sha256": "1ee9b122648609c05c3ffcc367dd47cb99c6e7f03ab6ea7041704e0ceda64dc6",
+    "receipt_sha256": "dbc56724db1bad626ca3a5270135905a37d38db8765b801e10a73f8867f9d309",
+    "version": 1
+  },
+  "events": [
+    {
+      "action": "award",
+      "revision": 1,
+      "state": "awarded"
+    },
+    {
+      "action": "hold",
+      "revision": 2,
+      "state": "held"
+    },
+    {
+      "action": "submit",
+      "revision": 3,
+      "state": "submitted"
+    },
+    {
+      "action": "accept",
+      "revision": 4,
+      "state": "accepted"
+    },
+    {
+      "action": "release",
+      "revision": 5,
+      "state": "released"
+    }
+  ],
+  "live_payments": false,
+  "local_validity_forces_remote_payment": false,
+  "mode": "local_fixture_simulation",
+  "near_sandbox_run_by_this_demo": false,
+  "real_money": false,
+  "release_movements": 1,
+  "same_operation_retry_equal": true,
+  "settlement_proof": false
+}

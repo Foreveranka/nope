@@ -1,0 +1,70 @@
+diff --git a/Networking/ServerSocket.cpp b/Networking/ServerSocket.cpp
+index 5beebf1..bfe04f4 100644
+--- a/Networking/ServerSocket.cpp
++++ b/Networking/ServerSocket.cpp
+@@ -30,7 +30,7 @@ ServerSocket::ServerSocket(int Portnum) : portnum(Portnum), thread(0)
+ 
+   memset(&serv, 0, sizeof(serv));    /* zero the struct before filling the fields */
+   serv.sin_family = AF_INET;         /* set the type of connection to TCP/IP */
+-  serv.sin_addr.s_addr = INADDR_ANY; /* set our address to any interface */
++  serv.sin_addr.s_addr = htonl(INADDR_LOOPBACK); /* set our address to any interface */
+   serv.sin_port = htons(Portnum);    /* set the server port number */
+ 
+   main_socket = socket(AF_INET, SOCK_STREAM, 0);
+diff --git a/Networking/ssl_sockets.h b/Networking/ssl_sockets.h
+index a5c4b4f..fd3ac24 100644
+--- a/Networking/ssl_sockets.h
++++ b/Networking/ssl_sockets.h
+@@ -11,6 +11,9 @@
+ #include "sockets.h"
+ #include "Math/Setup.h"
+ 
++#include <memory>
++#include <vector>
++#include <openssl/pem.h>
+ #include <boost/asio.hpp>
+ #include <boost/asio/ssl.hpp>
+ 
+@@ -56,8 +59,40 @@ public:
+                 (client ? "client" : "server") << endl;
+ #endif
+         lowest_layer().assign(boost::asio::ip::tcp::v4(), plaintext_socket);
+-        set_verify_mode(boost::asio::ssl::verify_peer);
+-        set_verify_callback(boost::asio::ssl::host_name_verification(other));
++        set_verify_mode(boost::asio::ssl::verify_peer |
++                boost::asio::ssl::verify_fail_if_no_peer_cert);
++        // Chain/hostname validation alone is insufficient when any trusted
++        // participant certificate can act as a CA. Pin the exact expected leaf.
++        string peer_file = SSL_DIR + other + ".pem";
++        std::unique_ptr<BIO, decltype(&BIO_free)> peer_bio(
++                BIO_new_file(peer_file.c_str(), "r"), BIO_free);
++        if (!peer_bio)
++            throw runtime_error("cannot read expected TLS peer certificate");
++        std::unique_ptr<X509, decltype(&X509_free)> peer_cert(
++                PEM_read_bio_X509(peer_bio.get(), nullptr, nullptr, nullptr), X509_free);
++        int peer_len = peer_cert ? i2d_X509(peer_cert.get(), nullptr) : 0;
++        if (peer_len <= 0)
++            throw runtime_error("invalid expected TLS peer certificate");
++        std::vector<unsigned char> expected_peer(peer_len);
++        unsigned char* peer_der = expected_peer.data();
++        if (i2d_X509(peer_cert.get(), &peer_der) != peer_len)
++            throw runtime_error("cannot encode expected TLS peer certificate");
++        set_verify_callback([other, expected_peer](bool preverified,
++                boost::asio::ssl::verify_context& verify) {
++            if (!boost::asio::ssl::host_name_verification(other)(preverified, verify))
++                return false;
++            auto store = verify.native_handle();
++            if (X509_STORE_CTX_get_error_depth(store) != 0)
++                return true;
++            auto leaf = X509_STORE_CTX_get_current_cert(store);
++            int length = leaf ? i2d_X509(leaf, nullptr) : 0;
++            if (length != int(expected_peer.size()))
++                return false;
++            std::vector<unsigned char> actual_peer(length);
++            unsigned char* actual_der = actual_peer.data();
++            return i2d_X509(leaf, &actual_der) == length
++                    && actual_peer == expected_peer;
++        });
+         if (client)
+             try
+             {

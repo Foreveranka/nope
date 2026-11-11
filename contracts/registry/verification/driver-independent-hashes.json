@@ -1,0 +1,7 @@
+{
+  "job": true,
+  "bidset": true,
+  "attempt_v2": true,
+  "receipts": true,
+  "malformed_selection_pairs_rejected": true
+}

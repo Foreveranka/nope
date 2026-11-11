@@ -1,0 +1,23 @@
+{
+  "scope": "Parent code review and independent recorded-evidence/hash/log checks, not a second TLS/MPC run",
+  "checks": {
+    "binarySha256": true,
+    "sharedLibrarySha256": true,
+    "configSha256": true,
+    "transportPatchSha256": true,
+    "header_hash": true,
+    "test_binary_hash": true,
+    "TLS correct-cert": true,
+    "TLS wrong-slot": true,
+    "TLS absent-cert": true,
+    "TLS untrusted-same-name": true,
+    "TLS forged-C1-signed-by-trusted-CA-C0": true,
+    "forged_leaf_chain_and_name_valid": true,
+    "MPC postpatch cheapest": true,
+    "MPC postpatch wrong-commitment": true,
+    "initial_failed_run_keys_removed": true
+  },
+  "codeReview": "Exact DER peer leaf comparison retains normal chain/hostname verification; fixture CA private key is erased before launching participants",
+  "productionPKI": false,
+  "independentOperators": false
+}

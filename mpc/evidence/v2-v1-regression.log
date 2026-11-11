@@ -1,0 +1,44 @@
+{
+  "case": "cheapest",
+  "status": "VERIFIED_LOCAL_MPC",
+  "output": {
+    "buyer": [
+      1,
+      2,
+      80,
+      80
+    ],
+    "providers": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        80
+      ],
+      [
+        0,
+        0
+      ]
+    ]
+  },
+  "compileSeconds": 11.774635208000001,
+  "runtimeSeconds": 7.944169041999999,
+  "manifestHash": "bd74a4355f19c820f2d13c03854ed49dfdf1f35a2f5479b49385eb07d0365963",
+  "codecVersion": 1,
+  "program": "sealed_v1_bd74a4355f19c820-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-ddf492a62450_manifest.json-15400",
+  "circuitSourceHash": "b5c0ea99ab200cee2c6653d683786b4a6f810880126ae165db425b46746089f0",
+  "session": "/Users/mete/near-private-procurement/mpc/runtime/cheapest-ddf492a62450",
+  "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+  "independentOperators": false,
+  "runtimeIdentity": {
+    "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+    "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+    "sharedLibrarySha256": "dc6cb490c62dfc8f28bf75d7a87d58af124508917ba3192a431945d1566e1cbd",
+    "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+    "transportPatchSha256": "b78b781aba98dc632c4af1618e8631cc9684b701bc7c0d7b762e909b3d508f6c"
+  },
+  "transportGeneration": "peer-leaf-pin-v1",
+  "nearBindingVerified": false
+}

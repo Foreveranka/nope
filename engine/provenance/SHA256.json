@@ -1,0 +1,12 @@
+{
+  "run_experiment.py.txt": {
+    "source": "/Users/mete/Desktop/NEAR-Hackathon-2026-Arastirma/Gizli-Is-Pazari-Fizibilite/Sifresini-Acmadan-Hesaplama/Deney/run_experiment.py",
+    "sha256": "139fb0727c7e6bd1eb19633fba377d3fe9bcd5a768282d0e040b044b99cd662c",
+    "purpose": "Read-only research source archive; not imported or executed by current engine"
+  },
+  "evaluator.py.txt": {
+    "source": "/Users/mete/Desktop/NEAR-Hackathon-2026-Arastirma/Gizli-Is-Pazari-Fizibilite/Sifresini-Acmadan-Hesaplama/Deney/evaluator.py",
+    "sha256": "595535525469e462385c91128aae1cc115eab047ad14f3932f551fd70be0b98b",
+    "purpose": "Read-only research source archive; not imported or executed by current engine"
+  }
+}

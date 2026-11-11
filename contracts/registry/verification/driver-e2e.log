@@ -1,0 +1,1 @@
+{"passed": true, "scope": "actual Python JSONL -> Rust -> sandbox Wasm", "requests": 75, "independent_v2_hash": true, "selection_immutable": true, "config_and_job_hash_preserved": true, "unauthorized_selection_rejected": true, "replay_and_result_routing_rejected": true, "eof_exit": 0, "sandbox_child_exit_verified": true, "fhe_or_mpc_computation_in_this_test": false}

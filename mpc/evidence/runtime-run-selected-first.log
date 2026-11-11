@@ -1,0 +1,17 @@
+Running actual SPDZ2k: wrong-commitment
+{"case": "wrong-commitment", "status": "VERIFIED_MPC_ABORT", "session": "/Users/mete/near-private-procurement/mpc/runtime/wrong-commitment-a61d070170de", "reason": "invalid sealed input", "allThreePartiesRejected": true, "fixtureKeysRemoved": true, "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0"}
+Running actual SPDZ2k: exact-budget
+{"case": "exact-budget", "status": "VERIFIED_LOCAL_MPC", "output": {"buyer": [1, 2, 80, 88], "providers": [[0, 0], [1, 80], [0, 0]]}, "compileSeconds": 10.367118416, "runtimeSeconds": 5.941022332999999, "manifestHash": "6dfcd47b8f0a8dc9709fd43917e7979776e7e9c4e946da3c39b36d6941359d5d", "program": "sealed_6dfcd47b8f0a8dc9-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_exact-budget-c099d897feef_manifest.json-15400", "circuitSourceHash": "2f053433ba7c09d8721b41154410ce43f7d034115941393eb602272e7e090ff0", "session": "/Users/mete/near-private-procurement/mpc/runtime/exact-budget-c099d897feef", "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf", "independentOperators": false, "nearBindingVerified": false}
+Running actual SPDZ2k: unqualified
+Traceback (most recent call last):
+  File "/Users/mete/near-private-procurement/mpc/verify_runtime.py", line 52, in <module>
+    main()
+  File "/Users/mete/near-private-procurement/mpc/verify_runtime.py", line 24, in main
+    result = run_case(case, args.timeout)
+  File "/Users/mete/near-private-procurement/mpc/run_local.py", line 167, in run_case
+    run_logged([sys.executable, "compile.py", "-R", "64", "-X", "-o", name,
+  File "/Users/mete/near-private-procurement/mpc/run_local.py", line 47, in run_logged
+    subprocess.run([str(x) for x in command], cwd=cwd, stdout=out,
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py", line 528, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/Library/Developer/CommandLineTools/usr/bin/python3', 'compile.py', '-R', '64', '-X', '-o', 'sealed_a927d293f9bee895', '/Users/mete/near-private-procurement/mpc/programs/sealed_procurement.mpc', '/Users/mete/near-private-procurement/mpc/runtime/unqualified-20d429199c9b/manifest.json', '15400']' returned non-zero exit status 1.

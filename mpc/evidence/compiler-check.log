@@ -1,0 +1,23 @@
+Default bit length for compilation: 63
+Default security parameter for compilation: 40
+Compiling file /Users/mete/near-private-procurement/mpc/programs/sealed_procurement.mpc
+Changed bit length for comparisons etc. to 42
+Compiled 100000 lines at Wed Nov 11 20:49:36 2026
+WARNING: Order of memory instructions not preserved, errors possible
+Writing to Programs/Bytecode/sealed_93d13e7d266dabbf-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-6dcb9ee0f9bc_manifest.json-15400-BitDecRing(64)(5)_64_64-1.bc
+Writing to Programs/Bytecode/sealed_93d13e7d266dabbf-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-6dcb9ee0f9bc_manifest.json-15400-EQZ(1)_42-3.bc
+Writing to Programs/Bytecode/sealed_93d13e7d266dabbf-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-6dcb9ee0f9bc_manifest.json-15400-LTZ(1)_43-5.bc
+Writing to Programs/Bytecode/sealed_93d13e7d266dabbf-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-6dcb9ee0f9bc_manifest.json-15400-LTZ(2)_43-7.bc
+Writing to Programs/Bytecode/sealed_93d13e7d266dabbf-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-6dcb9ee0f9bc_manifest.json-15400-LTZ(4)_43-8.bc
+Writing to Programs/Schedules/sealed_93d13e7d266dabbf-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-6dcb9ee0f9bc_manifest.json-15400.sch
+Writing to Programs/Bytecode/sealed_93d13e7d266dabbf-sealed_procurement-_Users_mete_near-private-procurement_mpc_runtime_cheapest-6dcb9ee0f9bc_manifest.json-15400-0.bc
+Hash: f823776c6f869317c416b9ed5a411ee052f63f1cfc9ac923e25ddee739b20d76
+Program requires at most:
+        1346 integer triples
+        4717 integer dabits
+        1331 integer opens
+      186659 bit triples
+        2192 bit opens
+        1326 integer simple multiplications
+          20 integer randoms
+       14111 virtual machine rounds
