@@ -1,53 +1,50 @@
 <!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#123e32">
-  <meta name="description" content="Veil Procurement: dört sentetik kayıtta yerel istemci ve şifreli hesaplama akışını inceleyin. Yerel araştırma prototipi.">
-  <title>Veil — Verinin sınırını koruyun.</title>
-  <link rel="stylesheet" href="/styles.css">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0c10">
+  <meta name="description" content="Veil ile verinizi yerelde şifreleyin, bulutta şifreli hesaplatın ve sonucu kendi bilgisayarınızda açın. Davetli hesaplama pilotu.">
+  <title>Veil — Veriniz açılmadan, işiniz ilerler.</title>
+  <link rel="stylesheet" href="/styles.css"><script type="module" src="/landing.js"></script>
 </head>
 <body class="landing">
   <a class="skip-link" href="#main">İçeriğe geç</a>
   <header class="site-header page-width">
-    <a class="brand" href="/" aria-label="Veil ana sayfa"><span class="brand-mark" aria-hidden="true">v.</span><span>veil<span class="brand-sub">PROCUREMENT</span></span></a>
-    <nav aria-label="Ana menü"><a href="#how">Nasıl çalışır?</a><a href="#results">Ne elde ederim?</a><a class="demo-link" href="/demo">Tedarik demosu ↗</a><a class="button button-small button-dark" href="/app">Çalışma alanına gir <span aria-hidden="true">↗</span></a></nav>
+    <a class="brand" href="/" aria-label="Veil ana sayfa"><span class="brand-mark" aria-hidden="true">v</span><span>veil<span class="brand-sub">PROCUREMENT</span></span></a>
+    <nav aria-label="Ana menü"><a href="#how">Nasıl çalışır</a><a href="#privacy">Gizlilik</a><a href="/demo">Demoyu incele</a></nav>
+    <a class="button button-small button-light" href="/app">Uygulamayı aç <span aria-hidden="true">↗</span></a>
   </header>
   <main id="main">
-    <section class="hero page-width">
-      <div class="hero-copy">
-        <p class="eyebrow"><span class="small-dot" aria-hidden="true"></span> TEDARİKTE MAHREMİYET / YEREL DEMO</p>
-        <h1>Veri sizde.<br>Hesap <em>şifreli.</em></h1>
-        <p class="hero-description">Veil’in hedefi, tedarik kararlarında hassas veriyi korumak. Gizli teklif seçimi, şifreli veri işleme ve iş kabulünü tek bir yerel akışta birleştiren prototipi inceleyin.</p>
-        <div class="hero-actions"><a class="button button-dark" href="/demo">Tedarik demosunu incele <span aria-hidden="true">↗</span></a><a class="text-link" href="#how">Akışı keşfet <span aria-hidden="true">↓</span></a></div>
-        <p class="microcopy">Web yayını kayıtlı yerel testi gösterir. Yeni hesaplama yerel istemci gerektirir. Yalnızca sentetik veri; gerçek ödeme yapılmaz.</p>
+    <section class="landing-hero page-width">
+      <a class="release-badge" href="#scope"><span class="small-dot" aria-hidden="true"></span> Veil 0.2 <span class="badge-divider"></span> Davetli bulut pilotu <span aria-hidden="true">→</span></a>
+      <h1>Veriniz açılmadan,<br><span>işiniz ilerler.</span></h1>
+      <p class="hero-lead">Veriyi bilgisayarınızda şifreleyin. Bulutta şifreli hâliyle hesaplatın.<br class="desktop-break"> Sonucu, anahtarın sahibi olarak yalnız siz açın.</p>
+      <div class="hero-actions"><a class="button button-light" href="/app">Çalışma alanına gir <span aria-hidden="true">↗</span></a><a class="button button-outline" href="/demo"><span class="play-icon" aria-hidden="true">▷</span> Tedarik demosu</a></div>
+      <p class="hero-caption">Yerel istemciyle çalışır · Dört kayıtlık sabit hesaplama profili</p>
+      <div class="flow-showcase" id="flow-showcase">
+        <div class="showcase-toolbar"><span><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span> Şifreli hesaplamanın içi</span><span class="diagram-label">Etkileşimli şema · Canlı işlem değil</span></div>
+        <div class="flow-scene" data-stage="cipher">
+          <div class="data-window input-window"><div class="data-window-title"><span class="device-icon" aria-hidden="true">▤</span> Sizin bilgisayarınız <span class="mini-label">GİRDİ</span></div><div class="sample-table"><div class="sample-head"><span>KAYIT</span><span>KİMLİK</span><span>DEĞER</span></div><div><span>01</span><b>10</b><b>255</b></div><div><span>02</span><b>20</b><b>42</b></div><div><span>03</span><b>10</b><b>150</b></div><div><span>04</span><b>30</b><b>100</b></div></div><div class="window-note"><span class="lock-icon" aria-hidden="true">⌑</span> Anahtar bu bilgisayarda kalır.</div></div>
+          <div class="cipher-bridge"><div class="bridge-line bridge-line-left" aria-hidden="true"></div><div class="cipher-core" aria-hidden="true"><svg viewBox="0 0 120 120" fill="none"><path d="M26 26L60 94L94 26M38 26L60 70L82 26M50 26L60 46L70 26" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/><path d="M13 13H30M13 13V30M107 13H90M107 13V30M13 107H30M13 107V90M107 107H90M107 107V90" stroke="currentColor" stroke-opacity=".3"/></svg></div><div class="bridge-line bridge-line-right" aria-hidden="true"></div><strong>Şifreli hesaplama</strong><span>VERİ AÇILMADAN İŞLENİR</span><div class="cipher-stream" aria-hidden="true">a7f2 · c09e · 84b1 · e3d6</div></div>
+          <div class="data-window output-window"><div class="data-window-title"><span class="device-icon" aria-hidden="true">▤</span> Yine sizin bilgisayarınız <span class="mini-label">SONUÇ</span></div><div class="sample-table"><div class="sample-head"><span>KİMLİK</span><span>DEĞER</span><span>KONTROL</span></div><div><b>10</b><b class="value-changed">0</b><span>Dönüştürüldü</span></div><div><b>20</b><b>42</b><span>Korundu</span></div><div><b>10</b><b class="value-changed">100</b><span>Tekrar · sınır</span></div><div><b>30</b><b>100</b><span>Korundu</span></div></div><div class="window-note"><span class="check-icon" aria-hidden="true">✓</span> Sonuç yerelde açılır ve karşılaştırılır.</div></div>
+        </div>
+        <div class="flow-controls" role="tablist" aria-label="Şifreli akışın adımları"><button id="flow-tab-client" role="tab" aria-controls="flow-description" aria-selected="false" tabindex="-1" data-flow="client"><span>01</span> Yerelde şifrele</button><button id="flow-tab-cipher" role="tab" aria-controls="flow-description" aria-selected="true" tabindex="0" data-flow="cipher"><span>02</span> Bulutta hesaplat</button><button id="flow-tab-result" role="tab" aria-controls="flow-description" aria-selected="false" tabindex="-1" data-flow="result"><span>03</span> Sonucu aç</button></div>
+        <div id="flow-description" class="flow-description" role="tabpanel" aria-labelledby="flow-tab-cipher" tabindex="0"><strong>Bulut, açık kayıtlarınızı almaz.</strong><p>Yürütücü şifreli girdi ve değerlendirme anahtarıyla çalışır. Şifre çözme anahtarı bilgisayarınızda kalır.</p></div>
       </div>
-      <div class="hero-art" aria-label="Yerel istemci açık veriyi şifreler, ayrı değerlendirici şifreli hesap yapar, sonuç yerelde açılır.">
-        <div class="art-topline"><span>HESAPLAMANIN YOLCULUĞU</span><span>01 — 03</span></div>
-        <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
-        <div class="art-node node-local"><span class="node-number">01 / YEREL İSTEMCİ</span><strong>Verinin<br>başladığı yer.</strong><span class="node-foot">Açık girdi + gizli anahtar</span></div>
-        <div class="art-connector" aria-hidden="true"><span>↓</span><i></i><span>↓</span></div>
-        <div class="art-node node-remote"><span class="node-number">02 / AYRI DEĞERLENDİRİCİ</span><div class="cipher-glyph" aria-hidden="true">⠿ ⠶ ⠿ ⠶<br>⠶ ⠿ ⠶ ⠿</div><span class="node-foot">Şifreli istek · değerlendirme anahtarı</span></div>
-        <div class="art-return"><span aria-hidden="true">↳</span> 03 / YERELDE AÇ & DOĞRULA</div>
-        <div class="art-caption"><span class="small-dot" aria-hidden="true"></span> Girdiden doğrulanmış sonuca: akış şeması.</div>
-      </div>
+      <p class="illustration-caption">Yukarıdaki değerler örnek veridir. Şema bir işlem başlatmaz.</p>
     </section>
-    <div class="principle-strip"><div class="page-width"><span>SABİT PROFİL, AÇIK SINIRLAR</span><span>4 kayıt</span><span>8 bit tam sayılar</span><span>Yerel referans kontrolü</span></div></div>
-    <section id="how" class="section page-width">
-      <div class="section-heading"><p class="eyebrow">01 / İŞ AKIŞI</p><h2>Dört kaydı hazırlayın.<br><em>Değişimi birlikte görün.</em></h2><p>Yerel uygulamada yinelenen kimlikleri işaretleyin, özel değerleri dönüştürün, önce ve sonrayı karşılaştırın.</p></div>
-      <div class="feature-grid">
-        <article class="feature"><span class="feature-number">01</span><h3>Girdiyi hazırlayın.</h3><p>Dört satırı düzenleyin veya CSV dosyanızı açın. Kimlik ve değer alanlarına 0–255 arasında tam sayılar girin.</p><span class="feature-tag">TARAYICI → YEREL İSTEMCİ</span></article>
-        <article class="feature"><span class="feature-number">02</span><h3>Şifreli hesaplatın.</h3><p>İşlemi başlatın; sıraya alma, şifreleme, hesaplama ve doğrulama aşamalarını çalışma alanından takip edin.</p><span class="feature-tag">GERÇEK İŞLEM AŞAMALARI</span></article>
-        <article class="feature"><span class="feature-number">03</span><h3>Farkı inceleyin.</h3><p>Girdi ve sonucu yan yana görün. Referans kontrolünü inceleyin; ayrıntılı işlem kaydına denetim panelinden ulaşın.</p><span class="feature-tag">SONUÇ + DENETİM İZİ</span></article>
-      </div>
+    <section class="technology-strip page-width" aria-label="Kullanılan bileşenler"><span>AYRI ROLLER. TEK AKIŞ.</span><div><strong>Concrete <small>FHE</small></strong><span class="strip-plus">+</span><strong>NEAR <small>Testnet</small></strong><span class="strip-plus">+</span><strong>Vercel <small>Compute</small></strong></div><p>Kullanılan teknolojiler; ortaklık beyanı değildir.</p></section>
+    <section class="section page-width" id="how">
+      <div class="section-intro"><p class="eyebrow">01 / İŞİNİZE ODAKLANIN</p><h2>Hesap dışarıda.<br><span>Kontrol sizde.</span></h2><p>Hassas veriyi işlemek için onu yürütücüye açık olarak vermeniz gerekmez. Veil, her adımın sınırını görünür kılar.</p></div>
+      <div class="process-grid"><article><div class="process-icon" aria-hidden="true">↗</div><h3>İşi hazırlayın</h3><p>Dört kaydı yerel çalışma alanında düzenleyin veya CSV olarak açın. İşlenecek kuralları başlatmadan önce görün.</p><span class="process-label">01 — YEREL İSTEMCİ</span></article><article><div class="process-icon" aria-hidden="true">⌘</div><h3>Şifreli çalıştırın</h3><p>Davetinizle bulut değerlendiricisini seçin. Şifreleme, hesaplama ve doğrulama adımlarını tek ekranda izleyin.</p><span class="process-label">02 — UZAK DEĞERLENDİRİCİ</span></article><article><div class="process-icon" aria-hidden="true">✓</div><h3>Sonucu inceleyin</h3><p>Sonucu bilgisayarınızda çözün. Önce ve sonrayı karşılaştırın; işlem kaydı ve dosya özetlerini inceleyin.</p><span class="process-label">03 — YEREL DOĞRULAMA</span></article></div>
     </section>
-    <section id="results" class="boundary-section page-width">
-      <div><p class="eyebrow">02 / SOMUT SONUÇ</p><h2>Her kaydın<br><em>değişimini görün.</em></h2><p>Tek bir sabit profil, üç açık kural. Kayıtlarınızın sırası korunur; her satırın sonucu ayrı ayrı gösterilir.</p><a class="button button-light" href="/app">Yerel uygulamayı inceleyin <span aria-hidden="true">↗</span></a></div>
-      <div class="boundary-list"><article><span aria-hidden="true">01</span><div><h3>Yinelenen kimlikleri bulun.</h3><p>Aynı kimlik yeniden geçtiğinde sonraki kayıt işaretlenir. Hiçbir satır silinmez.</p></div></article><article><span aria-hidden="true">02</span><div><h3>Özel değeri dönüştürün.</h3><p>255, bu profilin özel değeridir ve sonuçta 0 olarak döner.</p></div></article><article><span aria-hidden="true">03</span><div><h3>Değeri 100 ile sınırlayın.</h3><p>255 dışındaki 100 üstü değerler 100’e çekilir. Diğerleri korunur.</p></div></article></div>
+    <section class="privacy-section page-width" id="privacy">
+      <div class="privacy-copy"><p class="eyebrow">02 / GİZLİLİĞİN SINIRI</p><h2>Anahtar sizde.<br><span>Her aşamada.</span></h2><p>Şifreleme yalnız aktarım sırasında kullanılmaz. FHE, hesabın da şifreli veri üzerinde yapılmasını sağlar.</p><a class="text-link" href="/app#audit">Yetenekleri ve sınırları incele <span aria-hidden="true">↗</span></a></div>
+      <div class="visibility-table"><div class="visibility-heading"><span>NE, NEREDE GÖRÜNÜR?</span><span class="mini-label">PİLOT</span></div><div><span>Açık kayıtlar</span><strong>Yalnız yerel istemcide</strong></div><div><span>Şifre çözme anahtarı</span><strong>Yerel bellekte</strong></div><div><span>Buluta giden</span><strong>Şifreli veri + değerlendirme anahtarı</strong></div><div><span>İş boyutu ve zamanlama</span><strong class="muted-value">Bulut tarafından görülebilir</strong></div><p>Yerel istemci açık veriyi görür. Sonuç kontrolü, bağımsız bir kriptografik yürütme ispatı değildir.</p></div>
     </section>
-    <section class="closing page-width"><p class="eyebrow">KÜÇÜK BİR VERİ SETİ. İNCELENEBİLİR BİR AKIŞ.</p><h2>İlk dört kayıtla başlayın.</h2><a class="button button-dark" href="/app">Çalışma alanına gir <span aria-hidden="true">↗</span></a></section>
+    <section class="section page-width pilot-section" id="scope"><div class="section-intro"><p class="eyebrow">03 / BUGÜN NE ÇALIŞIYOR?</p><h2>Ölçülmüş bir pilot.<br><span>Açık bir kapsam.</span></h2><p>Ürünün mevcut sürümünü, planlanan yeteneklerden ayrı görün.</p></div><div class="pilot-ledger"><div><span class="pilot-index">01</span><strong>Şifreli bulut hesabı</strong><span>İki gerçek uçtan uca test geçti.</span><span class="state-tag">Doğrulandı</span></div><div><span class="pilot-index">02</span><strong>NEAR iş kaydı</strong><span>Kontrat ve iş oluşturma testnette.</span><span class="state-tag">Testnet</span></div><div><span class="pilot-index">03</span><strong>Gizli teklif akışı</strong><span>Üç yerel süreçle tedarik demosu.</span><a href="/demo" class="ledger-link">Kaydı incele ↗</a></div></div><div class="scope-note"><span aria-hidden="true">↳</span><p><strong>Bu sürüm dört sayısal kayıt işler.</strong> Gerçek ödeme, bağımsız MPC operatörleri ve genel amaçlı veri temizleme henüz sunulmaz.</p></div></section>
+    <section class="closing page-width"><span class="brand-mark closing-mark" aria-hidden="true">v</span><h2>Bir sonraki hesabınız<br><span>şifreli olsun.</span></h2><p>Yerel istemciyi kurun. Davetinizle çalışma alanına geçin.</p><a class="button button-light" href="/app">Başlamaya hazırım <span aria-hidden="true">↗</span></a></section>
   </main>
-  <footer class="site-footer page-width"><a class="brand footer-brand" href="/">veil.</a><p>Veil Procurement · Yerel prototip</p><span><a href="/app#audit">Yetenekler & sınırlar ↗</a></span></footer>
+  <footer class="site-footer page-width"><a class="brand" href="/">veil<span class="footer-period">.</span></a><p>Şifreli hesaplama için geliştiriliyor.</p><div><a href="#privacy">Gizlilik sınırları</a><a href="/demo">Tedarik demosu ↗</a></div><span>Veil Procurement · 2026</span></footer>
 </body>
 </html>

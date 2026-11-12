@@ -39,6 +39,7 @@ STATIC = {
     "/demo": ("demo.html", "text/html; charset=utf-8"),
     "/demo.js": ("demo.js", "text/javascript; charset=utf-8"),
     "/deployment.mjs": ("deployment.mjs", "text/javascript; charset=utf-8"),
+    "/landing.js": ("landing.js", "text/javascript; charset=utf-8"),
     "/styles.css": ("styles.css", "text/css; charset=utf-8"),
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
     "/input.mjs": ("input.mjs", "text/javascript; charset=utf-8"),
