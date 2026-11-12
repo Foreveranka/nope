@@ -1,0 +1,2 @@
+# A unified diff's empty context line is a required single space, not source whitespace.
+mpc/patches/*.patch whitespace=-blank-at-eol

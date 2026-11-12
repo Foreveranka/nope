@@ -1,7 +1,7 @@
 # NOPE — uygulama ve testnet doğrulama raporu
 
 12 Kasım 2026. Bu rapor tamamlanan kontrolleri ve kalan ürün sınırlarını ayırır.
-Yerel node taşıma katmanının son kontrolü sürerken hazırlanmıştır.
+Yerel node taşıma katmanının son denetimi tamamlandı; aşağıdaki sınırlar halen geçerlidir.
 
 ## Kullanılabilen yüzeyler
 
@@ -37,6 +37,19 @@ yapılmadı. Kanıt: `verification/procurement-app-chain-live.json`.
 Üç operatörün imzalı seçimini doğrulayan bileşen; kimlik, sertifika, plan, süre,
 revizyon, teklif kümesi ve tekrar kontrolleriyle hazırlandı. İmzalar hesaplamanın
 matematiksel ispatı değildir. Aynı kişinin üç süreci yönetmesi bağımsızlık sağlamaz.
+
+## Node çalıştırma sonucu
+
+Tek operatör başlatıcısı ve açıkça etkinleştirilen TLS ağ taşıması tamamlandı.
+42 test (8 derleme kaynağı denetimi, 10 başlatıcı testi dahil) geçti. Son gerçek
+üç taraflı sentetik MPC koşumu 7,85 saniyede tamamlandı; tekrar reddi, geçici
+anahtar temizliği, varsayılan yerel çalışma ve beş TLS regresyonu doğrulandı.
+Derlemeye gizlice eklenen staged değişiklikleri atlayabilen kontrol düzeltildi.
+
+Bu Mac üzerinde yalnız 127.0.0.1 ve farklı portlar kullanıldı. Diğer iki yerel
+arayüz bağlanamadığından üç arayüz testi yapılmış sayılmadı. WAN, ayrı sunucu
+ve bağımsız yönetici doğrulaması yoktur. Kurulum: `../operators/deploy/NATIVE-LAUNCH.md`;
+kanıt: `../mpc/evidence/explicit-bind-final-verification.json`.
 
 ## Gerçek testnet sonucu
 

@@ -11,6 +11,7 @@ import json
 import os
 import platform
 import shutil
+import stat
 import subprocess
 import sys
 import tarfile
@@ -34,6 +35,82 @@ SOURCES = {
         "https://download.libsodium.org/libsodium/releases/libsodium-1.0.20.tar.gz",
         "ebb65ef6ca439333c2bb41a0c1990587288da07f6c7fd07cb3a18cc18d30ce19"),
 }
+PATCHED_FILES = ("Networking/Player.cpp", "Networking/ServerSocket.cpp", "Networking/ssl_sockets.h",
+                 "Processor/ExternalClients.cpp", "Processor/OnlineOptions.cpp", "Tools/NetworkOptions.cpp")
+PATCH_HEADER = "Networking/VeilBind.h"
+
+
+def transport_diff():
+    # Index state is not an approval channel. In particular, a staged Makefile
+    # change is invisible to plain `git diff` and must never reach make/stamping.
+    git_diff = ["git", "diff", "--no-ext-diff", "--no-textconv"]
+    staged = subprocess.run(git_diff+["--cached", "--quiet", "HEAD", "--"], cwd=VENDOR,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if staged.returncode != 0:
+        raise RuntimeError("staged vendor changes or unreadable vendor index are forbidden")
+    names = subprocess.check_output(git_diff+["--name-only", "-z", "HEAD", "--"], cwd=VENDOR)
+    changes = {os.fsdecode(p) for p in names.split(b"\0") if p}
+    if changes - set(PATCHED_FILES):
+        raise RuntimeError("unexpected tracked native source changes")
+    # Compare actual tracked bytes/modes with HEAD, even if index flags or stat
+    # caching hide a change from Git's worktree diff. Do not refresh/mutate index.
+    tree = subprocess.check_output(["git", "ls-tree", "-r", "-z", "HEAD"], cwd=VENDOR)
+    for entry in tree.split(b"\0"):
+        if not entry:
+            continue
+        metadata, raw_name = entry.split(b"\t", 1)
+        mode, kind, object_id = metadata.split()
+        if kind != b"blob":
+            continue
+        name = os.fsdecode(raw_name)
+        path = VENDOR / name
+        try:
+            info = path.lstat()
+            if mode == b"120000" and stat.S_ISLNK(info.st_mode):
+                contents = os.fsencode(os.readlink(path))
+                actual_mode = b"120000"
+            elif mode in (b"100644", b"100755") and stat.S_ISREG(info.st_mode):
+                contents = path.read_bytes()
+                actual_mode = b"100755" if info.st_mode & 0o111 else b"100644"
+            else:
+                raise RuntimeError("tracked vendor file type differs from HEAD")
+        except OSError:
+            raise RuntimeError("tracked vendor contents are unreadable") from None
+        blob = hashlib.sha1(b"blob " + str(len(contents)).encode() + b"\0" + contents).hexdigest().encode()
+        if (blob != object_id or actual_mode != mode) and name not in changes:
+            raise RuntimeError("hidden tracked vendor change differs from HEAD")
+    diff = subprocess.check_output(git_diff+["HEAD", "--", *PATCHED_FILES], cwd=VENDOR)
+    header = VENDOR / PATCH_HEADER
+    if header.exists():
+        extra = subprocess.run(["git", "diff", "--no-index", "--", "/dev/null", PATCH_HEADER],
+                               cwd=VENDOR, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if extra.returncode != 1:
+            raise RuntimeError("cannot verify native bind header")
+        diff += extra.stdout
+    return diff.decode().strip()
+
+
+def check_transport_patch():
+    patch = ROOT / "patches/local-transport.patch"
+    diff = transport_diff()
+    if not diff:
+        run(["git", "apply", patch], VENDOR, "transport-patch")
+    if transport_diff() != patch.read_text().strip():
+        raise RuntimeError("unexpected vendor transport changes")
+
+
+def record_native_build(stamp, *, mode):
+    # Do not certify a build if vendor/index inputs changed while make ran.
+    check_transport_patch()
+    stamp.update(upstream=UPSTREAM, transportPatchSha256=sha(ROOT / "patches/local-transport.patch"),
+                 configSha256=sha(VENDOR / "CONFIG.mine"), binarySha256=sha(VENDOR / "spdz2k-party.x"),
+                 sharedLibrarySha256=sha(VENDOR / "libSPDZ.so"),
+                 transportGeneration="explicit-bind-leaf-pin-v2", buildMode=mode,
+                 nativePatchSourcesSha256={p: sha(VENDOR / p) for p in (*PATCHED_FILES, PATCH_HEADER)},
+                 insecureFlags=False, livePreprocessing=True)
+    (LOCAL / "build-stamp.json").write_text(json.dumps(stamp, indent=2) + "\n")
+    (ROOT / "evidence/native-build.json").write_text(json.dumps(stamp, indent=2) + "\n")
+    print(json.dumps(stamp, indent=2))
 
 
 def sha(path):
@@ -113,9 +190,22 @@ MY_CFLAGS += -Wno-error=deprecated-literal-operator -Wno-error=unused-parameter
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--jobs", type=int, choices=(1, 2), default=2)
+    parser.add_argument("--native-only", action="store_true",
+                        help="rebuild existing verified native setup with -j1; no dependency installation")
     args = parser.parse_args()
     if platform.system() != "Darwin" or platform.machine() != "arm64":
         raise RuntimeError("this bootstrap is specifically tested for macOS arm64")
+    if args.native_only:
+        stamp = json.loads((LOCAL / "build-stamp.json").read_text())
+        if (output(["git", "rev-parse", "HEAD"], VENDOR) != UPSTREAM or
+                (VENDOR / "CONFIG.mine").read_text() != native_config() or
+                stamp.get("insecureFlags") is not False or stamp.get("livePreprocessing") is not True):
+            raise RuntimeError("native-only requires the existing approved secure setup")
+        check_transport_patch()
+        disk_gate()
+        run(["make", "-j1", "spdz2k-party.x"], VENDOR, "explicit-bind-native")
+        record_native_build(stamp, mode="native-only")
+        return
     for dependency in ("/opt/homebrew/opt/gmp/include/gmpxx.h",
                        "/opt/homebrew/opt/openssl@3/include/openssl/ssl.h"):
         if not Path(dependency).exists():
@@ -131,11 +221,7 @@ def main():
     if output(["git", "rev-parse", "HEAD"], VENDOR) != UPSTREAM:
         raise RuntimeError("refusing to replace a different vendor checkout")
     patch = ROOT / "patches/local-transport.patch"
-    diff = output(["git", "diff", "--", "Networking/ServerSocket.cpp", "Networking/ssl_sockets.h"], VENDOR)
-    if not diff:
-        run(["git", "apply", patch], VENDOR, "transport-patch")
-    elif diff != patch.read_text().strip():
-        raise RuntimeError("unexpected vendor transport changes")
+    check_transport_patch()
     run(["git", "submodule", "update", "--init", "--depth", "1",
          "deps/SimplestOT_C", "deps/simde", "deps/sse2neon", "deps/libOTe2", "Programs/Circuits"], VENDOR, "submodules")
     ote = VENDOR / "deps/libOTe2"
@@ -181,6 +267,7 @@ def main():
          "-DOC_THIRDPARTY_HINT=" + str(PREFIX)], VENDOR, "simplestot", env)
     (VENDOR / "local/lib/liblibOTe.a").touch()  # explicit bounded build above satisfies make dependency
     disk_gate()
+    check_transport_patch()
     run(["make", "-j1", "spdz2k-party.x"], VENDOR, "spdz2k", env)
     stamp = {"upstream": UPSTREAM, "transportPatchSha256": sha(patch),
              "configSha256": sha(config), "binarySha256": sha(VENDOR / "spdz2k-party.x"),
@@ -192,9 +279,7 @@ def main():
              "submodules": output(["git", "submodule", "status"], VENDOR),
              "liboteTransitiveCommits": {name: output(["git", "rev-parse", "HEAD"], ote / "out" / name)
                                         for name in ("coproto", "macoro", "function2")}}
-    (LOCAL / "build-stamp.json").write_text(json.dumps(stamp, indent=2) + "\n")
-    (ROOT / "evidence/native-build.json").write_text(json.dumps(stamp, indent=2) + "\n")
-    print(json.dumps(stamp, indent=2))
+    record_native_build(stamp, mode="full-bootstrap")
 
 
 if __name__ == "__main__":

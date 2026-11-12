@@ -1,0 +1,138 @@
+{
+  "recordedAt": "2026-11-12T01:06:29.475028+00:00",
+  "unitTests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s mpc/tests -v",
+    "passed": 42,
+    "bootstrapProvenanceTests": 8,
+    "launcherTests": 10
+  },
+  "nativeMpc": {
+    "defaultV1": "VERIFIED_LOCAL_MPC",
+    "explicitBindV2": "VERIFIED_NATIVE_LAUNCHER_LOOPBACK_MPC",
+    "runtimeSeconds": 7.853548291999999,
+    "actualSyntheticPrivateOutputs": [
+      [
+        1,
+        2,
+        80,
+        80
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        80
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "durableReplayRejected": true,
+    "wholeSyntheticMpcVerified": true
+  },
+  "nativeTlsRegressionCases": 5,
+  "nativeIdentity": {
+    "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+    "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+    "sharedLibrarySha256": "850c0557c8bc014437869c716306b57f534c94c774c45561e1f64fe894d90c32",
+    "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+    "transportPatchSha256": "72d3b68314191ec8ffc6a1ecdf3ffbbc322c8aac81abdfc8a5be946609165972",
+    "transportGeneration": "explicit-bind-leaf-pin-v2"
+  },
+  "patchAppliesToPristineUpstream": true,
+  "patchMatchesCurrentVendorReverseCheck": true,
+  "diffWhitespaceCheckPassed": true,
+  "sameAdministration": true,
+  "threeInterfaceTest": "unavailable-no-interface-alias-created",
+  "interfaceProbes": [
+    {
+      "address": "127.0.0.1",
+      "bindable": true
+    },
+    {
+      "address": "127.0.0.2",
+      "bindable": false,
+      "errno": 49
+    },
+    {
+      "address": "127.0.0.3",
+      "bindable": false,
+      "errno": 49
+    }
+  ],
+  "exercisedInterfaces": [
+    "127.0.0.1"
+  ],
+  "externalHostsVerified": false,
+  "independentOperators": false,
+  "executionProof": false,
+  "bootstrapFinding": {
+    "outcome": "fixed",
+    "originalTrigger": "staged vendor Makefile -DINSECURE hidden from index-relative git diff",
+    "enforcement": "reject staged inputs; compare actual tracked bytes/modes with HEAD; require reviewed patch before build and before stamp",
+    "nativeRebuildRequiredForGuardFix": false
+  },
+  "sha256": {
+    "mpc/bootstrap.py": "d3884a43af83857522df9d21f3a701f64e334d7d49bbe2e7cf9dbbf4ffe9777d",
+    "mpc/party_launcher.py": "398ad13b758f47c61941adc84852c47cb4441cfacc124cbdf433ee0fedd344ff",
+    "mpc/patches/local-transport.patch": "72d3b68314191ec8ffc6a1ecdf3ffbbc322c8aac81abdfc8a5be946609165972",
+    "mpc/tests/test_bootstrap_transport.py": "4ef586a7bda0aa1eceae5cdabb862b3bcf6758151ef21b586db5e5029f3757a0",
+    "mpc/tests/test_party_launcher.py": "bbd0f88ab6c6ba9d9f121b61d2ee62f1ea95cf46dd59f4719ffafdf3921ddc95",
+    "mpc/tests/verify_party_launcher.py": "2d5dfdb09b976e685241b0f1a87b820912fbe378b6b0ba2ccc4295c0f882af60",
+    "mpc/evidence/explicit-bind-build.log": "550ee9d3aaedbe7fc134ce2355ccedb2ab191d87a44c5804190a162764521790",
+    "mpc/evidence/explicit-bind-functional.json": "09ac915909509892fa4a4c0a3bb68d6aad212f3d735b8a637e446e1dc2dacaa8",
+    "mpc/evidence/explicit-bind-functional.log": "09ac915909509892fa4a4c0a3bb68d6aad212f3d735b8a637e446e1dc2dacaa8",
+    "mpc/evidence/explicit-bind-local-v1-regression.json": "eb79c9db18914dcb627d0e2d23958b181068efc907755618c98cda6a10c974ac",
+    "mpc/evidence/explicit-bind-tls-regression.log": "76ae84bde0072f28dcfc9c7091c7539856a82309d01be8664e0da05c4b7e44ff",
+    "mpc/evidence/explicit-bind-unit-tests.log": "f212f4aced2f16371022c559152c76a67cbccb17acab0a3e12ca7cb0d5a57bbe",
+    "mpc/evidence/pre-explicit-bind-native-identity.json": "66a0efad940f4b4a54fbc1dd1d484ed39721159e20998dd17b8c8f740b58baf4",
+    "mpc/evidence/pre-explicit-bind-tls-results.json": "a2ee9f702eab2d85e18d481c62283a156d0e479350ad67b6f985937a35d74a13",
+    "mpc/evidence/native-build.json": "d947c6f89e0554556efee687b1f1d4fc7c3aec9f7548e21f0ed5371dc51c97a7",
+    "mpc/evidence/tls-results.json": "ca4d835213632f0be09111f498492b6f2f6a94da9471cb7cbbd46712a66862dd",
+    "mpc/evidence/party-launcher-unit-tests.log": "aa9e4e18f5a4de7d9138abe1dc8eb581cfce2ad088c874bc92d4aad4956c3ea3",
+    "mpc/evidence/explicit-bind-local-v1-regression.error.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "operators/deploy/NATIVE-LAUNCH.md": "ca27e449ecb561272c048e0a0b4f942973fddd63b8dc7e1c289d8f12b4569824"
+  },
+  "changedPaths": [
+    "mpc/bootstrap.py",
+    "mpc/evidence/explicit-bind-build.log",
+    "mpc/evidence/explicit-bind-final-verification.json",
+    "mpc/evidence/explicit-bind-functional.json",
+    "mpc/evidence/explicit-bind-functional.log",
+    "mpc/evidence/explicit-bind-local-v1-regression.error.log",
+    "mpc/evidence/explicit-bind-local-v1-regression.json",
+    "mpc/evidence/explicit-bind-tls-regression.log",
+    "mpc/evidence/explicit-bind-unit-tests.log",
+    "mpc/evidence/native-build.json",
+    "mpc/evidence/party-launcher-unit-tests.log",
+    "mpc/evidence/pre-explicit-bind-native-identity.json",
+    "mpc/evidence/pre-explicit-bind-tls-results.json",
+    "mpc/evidence/tls-results.json",
+    "mpc/party_launcher.py",
+    "mpc/patches/local-transport.patch",
+    "mpc/tests/test_bootstrap_transport.py",
+    "mpc/tests/test_party_launcher.py",
+    "mpc/tests/verify_party_launcher.py",
+    "operators/deploy/NATIVE-LAUNCH.md"
+  ],
+  "ignoredVendorSourcePaths": [
+    "mpc/vendor/MP-SPDZ/Networking/Player.cpp",
+    "mpc/vendor/MP-SPDZ/Networking/ServerSocket.cpp",
+    "mpc/vendor/MP-SPDZ/Networking/ssl_sockets.h",
+    "mpc/vendor/MP-SPDZ/Processor/ExternalClients.cpp",
+    "mpc/vendor/MP-SPDZ/Processor/OnlineOptions.cpp",
+    "mpc/vendor/MP-SPDZ/Tools/NetworkOptions.cpp",
+    "mpc/vendor/MP-SPDZ/Networking/VeilBind.h"
+  ],
+  "ignoredGeneratedNativePaths": [
+    "mpc/vendor/MP-SPDZ/spdz2k-party.x",
+    "mpc/vendor/MP-SPDZ/libSPDZ.so",
+    "mpc/.local/build-stamp.json"
+  ],
+  "approvedProfileSha256": "2ea2e13c18efbc2b611bcf4a3559824bc14e923600a7a55ccfc466dfd8167b16",
+  "bootstrapRecipeSha256": "d3884a43af83857522df9d21f3a701f64e334d7d49bbe2e7cf9dbbf4ffe9777d",
+  "syntheticBindTestPrivateKeysRemaining": 0
+}

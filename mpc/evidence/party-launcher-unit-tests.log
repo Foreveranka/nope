@@ -1,0 +1,15 @@
+test_actual_native_rejects_incomplete_bind_configuration_before_listening (test_party_launcher.LauncherTests) ... ok
+test_all_approval_and_opt_in_boundaries_fail_before_process_creation (test_party_launcher.LauncherTests) ... ok
+test_changed_runtime_bytecode_schedule_stamp_or_ca_rejected (test_party_launcher.LauncherTests) ... ok
+test_epoch_and_clock_rollback_are_persistent (test_party_launcher.LauncherTests) ... ok
+test_missing_state_or_foreign_private_key_fails_closed (test_party_launcher.LauncherTests) ... ok
+test_real_artifact_and_tls_preflight_selects_only_one_party (test_party_launcher.LauncherTests) ... ok
+test_remote_profile_has_no_loopback_override_without_separate_test_config (test_party_launcher.LauncherTests) ... ok
+test_reservation_race_replay_and_same_epoch_new_job (test_party_launcher.LauncherTests) ... ok
+test_spawn_failure_burns_round_and_removes_transient_material (test_party_launcher.LauncherTests) ... ok
+test_timeout_kills_process_group_and_removes_keys_and_preprocessing (test_party_launcher.LauncherTests) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 13.965s
+
+OK

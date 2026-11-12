@@ -1,0 +1,41 @@
+Building/checking explicit-bind-native
+{
+  "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+  "transportPatchSha256": "72d3b68314191ec8ffc6a1ecdf3ffbbc322c8aac81abdfc8a5be946609165972",
+  "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+  "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+  "sharedLibrarySha256": "850c0557c8bc014437869c716306b57f534c94c774c45561e1f64fe894d90c32",
+  "clang": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin",
+  "cmake": "cmake version 3.31.10\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).",
+  "python": "3.9.6 (default, May 22 2026, 11:13:45) \n[Clang 21.0.0 (clang-2100.1.1.101)]",
+  "dependencyArchives": {
+    "boost_1_86_0.tar.bz2": [
+      "https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.bz2",
+      "1bed88e40401b2cb7a1f76d4bab499e352fa4d0c5f31c0dbae64e24d34d7513b"
+    ],
+    "libsodium-1.0.20.tar.gz": [
+      "https://download.libsodium.org/libsodium/releases/libsodium-1.0.20.tar.gz",
+      "ebb65ef6ca439333c2bb41a0c1990587288da07f6c7fd07cb3a18cc18d30ce19"
+    ]
+  },
+  "dependenciesBytes": 1199779840,
+  "insecureFlags": false,
+  "livePreprocessing": true,
+  "submodules": "1603ed6aa12348c2ef15ed8395b9b96e4c558b7f Programs/Circuits (heads/master)\n-44aac605389d6478a75b172a9cf6e76e3c964ce7 deps/SimpleOT\n 7ef7666909e493a18c99efe56f97cc4d13723005 deps/SimplestOT_C (heads/master)\n-558f74d5b6bd557b62bfb06699f014c0931da466 deps/libOTe\n fe6b2ff82a976a5332b3a2efe325831588b1324a deps/libOTe2 (heads/master)\n-335a7ac8f05d8096071a847f905ba74e824c2958 deps/secure-join\n 0ba20859e9f557cee161d2cab2728b56dca7ec38 deps/simde (0ba2085)\n ddca67108e3e96a288e9aa7e31bfacca2309f624 deps/sse2neon (ddca671)",
+  "liboteTransitiveCommits": {
+    "coproto": "8dce3918b06c80dbcd65baeb899f1a694433f926",
+    "macoro": "ee5fa61a9bc2e4cd4cdddea8d4a6485332e8d58e",
+    "function2": "02ca99831de59c7c3a4b834789260253cace0ced"
+  },
+  "transportGeneration": "explicit-bind-leaf-pin-v2",
+  "buildMode": "native-only",
+  "nativePatchSourcesSha256": {
+    "Networking/Player.cpp": "8331041820a5e126adae084479c5d2c81c12f7100a3523d29179682767126931",
+    "Networking/ServerSocket.cpp": "81b3130ed0166b283ab57311dd381edbc5b230aa41ef1b266af1469834365fa0",
+    "Networking/ssl_sockets.h": "213098c94ce496d5964497a250774350a55e4e1bd5e69cb996abdb950ca09435",
+    "Processor/ExternalClients.cpp": "25a9eaffb4d75c928527b0e0ae9e332ebf72dddad80b4c3781c73b4a9f1ee36f",
+    "Processor/OnlineOptions.cpp": "eba861d0c7d3d98d4b4c06d959befaab06a4eaab1a229320fdfad9fcc72aea59",
+    "Tools/NetworkOptions.cpp": "1dee0d3df641ae3cbfe0ce420591098af3a9de5c19f589f2ce15162d754f8cf8",
+    "Networking/VeilBind.h": "11b312273b3057d517113d8d375b079ccf07ba7dafee52080a7d087ebec63922"
+  }
+}

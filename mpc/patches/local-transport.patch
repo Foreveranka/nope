@@ -1,13 +1,120 @@
+diff --git a/Networking/Player.cpp b/Networking/Player.cpp
+index de6d75a..67275ea 100644
+--- a/Networking/Player.cpp
++++ b/Networking/Player.cpp
+@@ -6,6 +6,7 @@
+ #include "Tools/NetworkOptions.h"
+ #include "Networking/Server.h"
+ #include "Networking/ServerSocket.h"
++#include "Networking/VeilBind.h"
+ #include "Networking/Exchanger.h"
+ #include "Processor/OnlineOptions.h"
+ 
+@@ -45,6 +46,7 @@ void Names::init(int player,int pnb,vector<string> Nms)
+ // initialize names from file, no Server.x coordination.
+ void Names::init(int player, int pnb, const string& filename, int nplayers_wanted)
+ {
++  veil::validate_peer_file(filename, player, pnb, nplayers_wanted);
+   ifstream hostsfile(filename.c_str());
+   if (hostsfile.fail())
+   {
+@@ -305,7 +307,7 @@ void PlainPlayer::setup_sockets(const vector<string>& names,
+     for (int i=0; i<=player_no; i++) {
+         auto pn=id_base+"P"+to_string(player_no);
+         if (i==player_no) {
+-          const char* localhost = "127.0.0.1";
++          const char* localhost = veil::bind_ipv4().c_str();
+ #ifdef DEBUG_NETWORKING
+           fprintf(stderr,
+               "Setting up send to self socket to %s:%d with id %s\n",
 diff --git a/Networking/ServerSocket.cpp b/Networking/ServerSocket.cpp
-index 5beebf1..bfe04f4 100644
+index 5beebf1..6af1b86 100644
 --- a/Networking/ServerSocket.cpp
 +++ b/Networking/ServerSocket.cpp
-@@ -30,7 +30,7 @@ ServerSocket::ServerSocket(int Portnum) : portnum(Portnum), thread(0)
+@@ -5,6 +5,7 @@
+ 
+ #include <Networking/ServerSocket.h>
+ #include <Networking/sockets.h>
++#include "Networking/VeilBind.h"
+ #include "Tools/Exceptions.h"
+ #include "Tools/time-func.h"
+ #include "Tools/octetStream.h"
+@@ -13,11 +14,68 @@
+ #include <netinet/ip.h>
+ #include <netinet/tcp.h>
+ #include <fcntl.h>
++#include <arpa/inet.h>
++#include <algorithm>
++#include <fstream>
+ 
+ #include <iostream>
+ #include <sstream>
+ using namespace std;
+ 
++namespace veil {
++static string configured_address = "127.0.0.1";
++static string configured_pin;
++const string& bind_ipv4() { return configured_address; }
++const string& profile_pin() { return configured_pin; }
++bool explicit_bind() { return not configured_pin.empty(); }
++bool valid_ipv4(const string& address)
++{
++  in_addr parsed;
++  char canonical[INET_ADDRSTRLEN];
++  if (inet_pton(AF_INET, address.c_str(), &parsed) != 1 or
++      not inet_ntop(AF_INET, &parsed, canonical, sizeof(canonical)) or address != canonical)
++    return false;
++  auto n = ntohl(parsed.s_addr);
++  return (n >> 24) != 0 and (n >> 24) < 224 and
++      (n >> 16) != 0xa9fe and n != 0x646464c8 and n != 0xa83f8110;
++}
++void configure_bind(bool enabled, const string& address, const string& pin)
++{
++  if (not enabled and address.empty() and pin.empty())
++    return;
++  if (not enabled or not valid_ipv4(address) or pin.size() != 64 or
++      pin == string(64, '0') or not all_of(pin.begin(), pin.end(), [](char c) {
++        return (c >= '0' and c <= '9') or (c >= 'a' and c <= 'f'); }))
++    throw runtime_error("explicit bind requires opt-in, canonical IPv4 and approved profile pin");
++  if (explicit_bind() and (configured_address != address or configured_pin != pin))
++    throw runtime_error("cannot change explicit bind configuration");
++  configured_address = address;
++  configured_pin = pin;
++}
++void validate_peer_file(const string& filename, int party, int base, int parties)
++{
++  if (not explicit_bind()) return;
++  if (parties != 3 or party < 0 or party > 2 or base != 17500 or filename.empty())
++    throw runtime_error("explicit bind requires fixed three-party IP-file layout");
++  ifstream file(filename);
++  string line;
++  for (int i = 0; i < 3; ++i) {
++    if (not getline(file, line))
++      throw runtime_error("explicit bind requires complete peer file");
++    auto pos = line.find(':');
++    auto address = line.substr(0, pos);
++    if (pos == string::npos or not valid_ipv4(address) or
++        line.substr(pos + 1) != to_string(17500 + i) or
++        (i == party and address != bind_ipv4()))
++      throw runtime_error("explicit bind peer file mismatch");
++  }
++  if (getline(file, line))
++    throw runtime_error("explicit bind peer file has extra entries");
++  cerr << "VEIL_EXPLICIT_BIND party=" << party << " address=" << bind_ipv4()
++       << " profile=" << profile_pin() << endl;
++}
++}
++
+ void* accept_thread(void* server_socket)
+ {
+   ((ServerSocket*)server_socket)->accept_clients();
+@@ -30,7 +88,8 @@ ServerSocket::ServerSocket(int Portnum) : portnum(Portnum), thread(0)
  
    memset(&serv, 0, sizeof(serv));    /* zero the struct before filling the fields */
    serv.sin_family = AF_INET;         /* set the type of connection to TCP/IP */
 -  serv.sin_addr.s_addr = INADDR_ANY; /* set our address to any interface */
-+  serv.sin_addr.s_addr = htonl(INADDR_LOOPBACK); /* set our address to any interface */
++  if (inet_pton(AF_INET, veil::bind_ipv4().c_str(), &serv.sin_addr) != 1)
++    throw runtime_error("invalid configured bind IPv4");
    serv.sin_port = htons(Portnum);    /* set the server port number */
  
    main_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -68,3 +175,143 @@ index a5c4b4f..fd3ac24 100644
          if (client)
              try
              {
+diff --git a/Processor/ExternalClients.cpp b/Processor/ExternalClients.cpp
+index 80b5e2f..fda224c 100644
+--- a/Processor/ExternalClients.cpp
++++ b/Processor/ExternalClients.cpp
+@@ -2,6 +2,7 @@
+ #include "Processor/OnlineOptions.h"
+ #include "Networking/ServerSocket.h"
+ #include "Networking/ssl_sockets.h"
++#include "Networking/VeilBind.h"
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ #include <thread>
+@@ -33,6 +34,11 @@ ExternalClients::~ExternalClients()
+ 
+ void ExternalClients::start_listening(int portnum_base)
+ {
++  if (veil::explicit_bind() and portnum_base != 17400)
++    throw runtime_error("explicit bind requires approved external client port base");
++  if (veil::explicit_bind())
++    cerr << "VEIL_EXPLICIT_CLIENT_LISTENER party=" << get_party_num() << " address="
++         << veil::bind_ipv4() << " port=" << (portnum_base + get_party_num()) << endl;
+   ScopeLock _(lock);
+   client_connection_servers[portnum_base] = new AnonymousServerSocket(portnum_base + get_party_num());
+   client_connection_servers[portnum_base]->init();
+diff --git a/Processor/OnlineOptions.cpp b/Processor/OnlineOptions.cpp
+index 13512af..c2ad9a4 100644
+--- a/Processor/OnlineOptions.cpp
++++ b/Processor/OnlineOptions.cpp
+@@ -12,6 +12,7 @@
+ #include "FHEOffline/config.h"
+ #include "Tools/benchmarking.h"
+ #include "Networking/CryptoPlayer.h"
++#include "Networking/VeilBind.h"
+ 
+ #include "Math/gfp.hpp"
+ 
+@@ -370,9 +371,15 @@ OnlineOptions::OnlineOptions(ez::ezOptionParser& opt, int argc,
+ void OnlineOptions::finalize(ez::ezOptionParser& opt, int argc,
+         const char** argv, bool networking)
+ {
++    veil::register_bind_options(opt);
+     opt.resetArgs();
+     opt.parse(argc, argv);
+ 
++    string veil_address, veil_pin;
++    opt.get("--veil-bind-ipv4")->getString(veil_address);
++    opt.get("--veil-network-profile-sha256")->getString(veil_pin);
++    veil::configure_bind(opt.isSet("--veil-enable-bind"), veil_address, veil_pin);
++
+     vector<string*> allArgs(opt.firstArgs);
+     allArgs.insert(allArgs.end(), opt.unknownArgs.begin(), opt.unknownArgs.end());
+     allArgs.insert(allArgs.end(), opt.lastArgs.begin(), opt.lastArgs.end());
+@@ -442,6 +449,18 @@ void OnlineOptions::finalize(ez::ezOptionParser& opt, int argc,
+         }
+     }
+ 
++    if (veil::explicit_bind())
++    {
++        if (not networking or not opt.get("-N") or not opt.get("-pn") or not opt.get("-ip"))
++            throw runtime_error("explicit bind requires fixed network options");
++        int parties, base;
++        string peers;
++        opt.get("-N")->getInt(parties);
++        opt.get("-pn")->getInt(base);
++        opt.get("-ip")->getString(peers);
++        veil::validate_peer_file(peers, playerno, base, parties);
++    }
++
+     if (has_option("throw_exceptions"))
+         finalize_with_error(opt);
+     else
+diff --git a/Tools/NetworkOptions.cpp b/Tools/NetworkOptions.cpp
+index aa939cf..8681f14 100644
+--- a/Tools/NetworkOptions.cpp
++++ b/Tools/NetworkOptions.cpp
+@@ -5,9 +5,22 @@
+ 
+ #include "NetworkOptions.h"
+ #include "Networking/Server.h"
++#include "Networking/VeilBind.h"
++#include <fstream>
++#include <stdexcept>
+ 
+ using namespace std;
+ 
++void veil::register_bind_options(ez::ezOptionParser& opt)
++{
++    if (opt.get("--veil-enable-bind"))
++        return;
++    opt.add("", 0, 0, 0, "Explicit operator-approved listener binding.", "--veil-enable-bind");
++    opt.add("", 0, 1, 0, "Approved canonical listener IPv4.", "--veil-bind-ipv4");
++    opt.add("", 0, 1, 0, "Approved public network profile SHA-256 (launcher verified).",
++            "--veil-network-profile-sha256");
++}
++
+ NetworkOptions::NetworkOptions(ez::ezOptionParser& opt, int argc,
+         const char** argv)
+ {
+@@ -29,7 +42,12 @@ NetworkOptions::NetworkOptions(ez::ezOptionParser& opt, int argc,
+             "-pn", // Flag token.
+             "--portnum" // Flag token.
+     );
++    veil::register_bind_options(opt);
+     opt.parse(argc, argv);
++    string bind_address, profile_pin;
++    opt.get("--veil-bind-ipv4")->getString(bind_address);
++    opt.get("--veil-network-profile-sha256")->getString(profile_pin);
++    veil::configure_bind(opt.isSet("--veil-enable-bind"), bind_address, profile_pin);
+     opt.get("-pn")->getInt(portnum_base);
+     opt.get("-h")->getString(hostname);
+     opt.resetArgs();
+@@ -74,6 +92,7 @@ NetworkOptionsWithNumber::NetworkOptionsWithNumber(ez::ezOptionParser& opt,
+ 
+ Server* NetworkOptionsWithNumber::start_networking(Names& N, int my_num)
+ {
++    veil::validate_peer_file(ip_filename, my_num, portnum_base, nplayers);
+     if (ip_filename.length() > 0)
+     {
+         N.init(my_num, portnum_base, ip_filename, nplayers);
+diff --git a/Networking/VeilBind.h b/Networking/VeilBind.h
+new file mode 100644
+index 0000000..9d1335b
+--- /dev/null
++++ b/Networking/VeilBind.h
+@@ -0,0 +1,15 @@
++// Explicit local operator configuration. Default listeners remain loopback.
++#ifndef VEIL_BIND_H_
++#define VEIL_BIND_H_
++#include <string>
++namespace ez { class ezOptionParser; }
++namespace veil {
++void register_bind_options(ez::ezOptionParser& opt);
++const std::string& bind_ipv4();
++const std::string& profile_pin();
++bool explicit_bind();
++bool valid_ipv4(const std::string& address);
++void configure_bind(bool enabled, const std::string& address, const std::string& pin);
++void validate_peer_file(const std::string& filename, int party, int base, int parties);
++}
++#endif

@@ -1,0 +1,47 @@
+test_assume_unchanged_and_skip_worktree_cannot_hide_tracked_build_inputs (test_bootstrap_transport.TransportProvenanceTests) ... ok
+test_build_stamp_cannot_certify_staged_vendor_inputs (test_bootstrap_transport.TransportProvenanceTests) ... ok
+test_clean_head_and_unstaged_reviewable_transport_delta_remain_supported (test_bootstrap_transport.TransportProvenanceTests) ... ok
+test_even_staged_allowlisted_transport_change_is_rejected (test_bootstrap_transport.TransportProvenanceTests) ... ok
+test_native_only_entry_point_never_reaches_make_with_staged_insecure_input (test_bootstrap_transport.TransportProvenanceTests) ... ok
+test_staged_makefile_insecure_injection_hidden_from_legacy_diff_is_rejected (test_bootstrap_transport.TransportProvenanceTests) ... ok
+test_staged_then_restored_worktree_is_still_rejected (test_bootstrap_transport.TransportProvenanceTests) ... ok
+test_unstaged_unreviewed_makefile_change_is_rejected (test_bootstrap_transport.TransportProvenanceTests) ... ok
+test_certificate_setup_failure_erases_generation_and_moved_keys (test_cleanup.CleanupRegressionTests) ... ok
+test_transient_signal_permission_error_still_reaps_and_erases (test_cleanup.CleanupRegressionTests) ... ok
+test_unreaped_child_is_error_but_keys_are_still_erased (test_cleanup.CleanupRegressionTests) ... ok
+test_amount_codec_rejects_coercion_overflow_negative (test_codec.CodecTests) ... ok
+test_commitment_codec_independent_hashlib (test_codec.CodecTests) ... ok
+test_context_and_private_value_are_bound (test_codec.CodecTests) ... ok
+test_descriptor_is_strict (test_codec.CodecTests) ... ok
+test_reference_edges (test_codec.CodecTests) ... ok
+test_active_output_authentication_rejects_corrupt_share (test_codec.WireTests) ... ok
+test_fragmented_length_and_payload (test_codec.WireTests) ... ok
+test_large_or_passive_frame_rejected (test_codec.WireTests) ... ok
+test_truncation_fails_instead_of_hanging (test_codec.WireTests) ... ok
+test_actual_native_rejects_incomplete_bind_configuration_before_listening (test_party_launcher.LauncherTests) ... ok
+test_all_approval_and_opt_in_boundaries_fail_before_process_creation (test_party_launcher.LauncherTests) ... ok
+test_changed_runtime_bytecode_schedule_stamp_or_ca_rejected (test_party_launcher.LauncherTests) ... ok
+test_epoch_and_clock_rollback_are_persistent (test_party_launcher.LauncherTests) ... ok
+test_missing_state_or_foreign_private_key_fails_closed (test_party_launcher.LauncherTests) ... ok
+test_real_artifact_and_tls_preflight_selects_only_one_party (test_party_launcher.LauncherTests) ... ok
+test_remote_profile_has_no_loopback_override_without_separate_test_config (test_party_launcher.LauncherTests) ... ok
+test_reservation_race_replay_and_same_epoch_new_job (test_party_launcher.LauncherTests) ... ok
+test_spawn_failure_burns_round_and_removes_transient_material (test_party_launcher.LauncherTests) ... ok
+test_timeout_kills_process_group_and_removes_keys_and_preprocessing (test_party_launcher.LauncherTests) ... ok
+test_client_version_and_expected_public_digest_checked_before_network (test_v2.V2CodecTests) ... ok
+test_commitment_strict_range_and_salt_slot_binding (test_v2.V2CodecTests) ... ok
+test_every_intent_field_binds_precommit (test_v2.V2CodecTests) ... ok
+test_independent_binary_intent_vector (test_v2.V2CodecTests) ... ok
+test_independent_commitment_and_v1_separation (test_v2.V2CodecTests) ... ok
+test_independent_registry_borsh_encoder (test_v2.V2CodecTests) ... ok
+test_manifest_mutations_fail_and_public_digest_covers_full_closed_snapshot (test_v2.V2CodecTests) ... ok
+test_prepare_is_immutable_and_does_not_embed_circular_bindings (test_v2.V2CodecTests) ... ok
+test_public_json_rejects_duplicate_keys_and_nonfinite_numbers (test_v2.V2CodecTests) ... ok
+test_registry_config_mutations_fail_even_rehashed (test_v2.V2CodecTests) ... ok
+test_registry_missing_reordered_extra_fake_root_and_early_attempt_fail (test_v2.V2CodecTests) ... ok
+test_strict_intent_rejects_unknowns_types_order_and_deadlines (test_v2.V2CodecTests) ... ok
+
+----------------------------------------------------------------------
+Ran 42 tests in 14.757s
+
+OK
