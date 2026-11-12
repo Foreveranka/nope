@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const target = path.join(root, 'dist');
-const files = ['privacy.html','privacy.js','privacy.css','testnet.html', 'testnet.js', 'market.html', 'market.js', 'market.css', 'sealed.mjs', 'index.html', 'app.html', 'demo.html', 'styles.css','landing.js', 'app.js', 'input.mjs', 'demo.js', 'deployment.mjs'];
+const files = ['try.html','try.css','try.js','private-sum.mjs','privacy.html','privacy.js','privacy.css','testnet.html', 'testnet.js', 'market.html', 'market.js', 'market.css', 'sealed.mjs', 'index.html', 'app.html', 'demo.html', 'styles.css','landing.js', 'app.js', 'input.mjs', 'demo.js', 'deployment.mjs'];
 await fs.rm(target, { recursive: true, force: true });
 await fs.mkdir(target, { recursive: true });
 for (const name of files) {
