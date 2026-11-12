@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const target = path.join(root, 'dist');
-const files = ['testnet.html', 'testnet.js', 'market.html', 'market.js', 'market.css', 'sealed.mjs', 'index.html', 'app.html', 'demo.html', 'styles.css','landing.js', 'app.js', 'input.mjs', 'demo.js', 'deployment.mjs'];
+const files = ['privacy.html','privacy.js','privacy.css','testnet.html', 'testnet.js', 'market.html', 'market.js', 'market.css', 'sealed.mjs', 'index.html', 'app.html', 'demo.html', 'styles.css','landing.js', 'app.js', 'input.mjs', 'demo.js', 'deployment.mjs'];
 await fs.rm(target, { recursive: true, force: true });
 await fs.mkdir(target, { recursive: true });
 for (const name of files) {
@@ -27,6 +27,12 @@ try {
  const raw=await fs.readFile(testnetSource,'utf8'), summary=JSON.parse(raw);
  if(summary.schema!==1||summary.network!=='testnet'||summary.completed!==true||!Array.isArray(summary.transactions))throw new Error('Invalid testnet evidence');
  await fs.writeFile(path.join(target,'testnet-evidence.json'),raw);
+}catch(error){if(error.code!=='ENOENT')throw error;}
+const privacySource=path.join(root,'docs/verification/privacy-demo-public.json');
+try {
+ const raw=await fs.readFile(privacySource,'utf8'), value=JSON.parse(raw);
+ if(value.run?.status!=='completed'||value.run?.result?.network!=='testnet'||value.run?.result?.payment?.verified!==true||value.run?.result?.synthetic_only!==true||value.run?.result?.independent_operators!==false||value.run?.result?.execution_proof!==false)throw new Error('Invalid full privacy demo evidence');
+ await fs.writeFile(path.join(target,'privacy-evidence.json'),raw);
 }catch(error){if(error.code!=='ENOENT')throw error;}
 await fs.writeFile(path.join(target, 'deployment.json'), JSON.stringify({ mode: 'hosted-evidence', summaryUrl: '/demo-evidence.json' }));
 execFileSync('python3', [path.join(root,'scripts/package-client.py'), path.join(target,'nope-client.zip')], {stdio:'inherit'});

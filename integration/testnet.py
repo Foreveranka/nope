@@ -482,6 +482,7 @@ async def _run(output_dir, evidence, *, mpc_port):
                 "rejected_registry_actions": calls.rejections,
                 "closed_job": closed, "executing_job": executing, "accepted_job": accepted,
                 "artifactHashes": result["artifactHashes"], "fhe_metrics": result["metrics"],
+                "verified_synthetic_records": copy.deepcopy(result["records"]),
                 "stage_elapsed_seconds": [{"stage": e["stage"], "elapsed_seconds": e["elapsed_seconds"]}
                                           for e in evidence.events],
                 "elapsed_seconds": time.monotonic() - evidence.started,

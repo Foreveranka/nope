@@ -62,6 +62,15 @@
           "value": "no-store"
         }
       ]
+    },
+    {
+      "source": "/privacy-evidence.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
     }
   ]
 }

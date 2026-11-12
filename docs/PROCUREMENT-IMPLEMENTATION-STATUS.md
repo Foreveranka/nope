@@ -1,5 +1,10 @@
 # NOPE procurement implementation — active 12 November 2026
 
+## Privacy demo entegrasyonu — 12 Kasım 2026
+
+Yeni `/privacy` yüzeyi yerel tek düğmeli FHE/MPC/testnet kabulü/escrow akışını birleştirir. İnternetteki sayfa kayıtlı gerçek kanıtları gösterir; ziyaretçi proje cüzdanını kullanamaz. Bu ek, aşağıdaki genel müşteri pazarı/bağımsız operatör sınırlarını kaldırmaz. Ayrıntılar: [çalıştırma rehberi](PRIVACY-DEMO-RUNBOOK.md).
+
+
 ## Latest verified checkpoint (supersedes earlier pending statements)
 
 - GitHub commit `98accef5b11ca58b975f865c89b3713c7a7a6277` auto-deployed READY on Vercel. `/market` and `/testnet` were inspected in the actual browser. The authenticated production HTTPS/Blob smoke passed create, durable read, provider draft denial and exact/changed-payload replay checks: `verification/procurement-deployed-https.json`.

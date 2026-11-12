@@ -6,7 +6,7 @@ from pathlib import Path
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-WEB=['market.html','market.js','market.css','sealed.mjs','index.html','app.html','demo.html','styles.css','landing.js','app.js','input.mjs','demo.js','deployment.mjs']
+WEB=['privacy.html','privacy.js','privacy.css','market.html','market.js','market.css','sealed.mjs','index.html','app.html','demo.html','styles.css','landing.js','app.js','input.mjs','demo.js','deployment.mjs']
 
 def package(destination):
     files=[ROOT/'install-client.sh',ROOT/'scripts/client-launch.py']

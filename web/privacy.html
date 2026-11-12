@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0c10">
+  <meta name="description" content="Dört sentetik kayıt, üç kapalı teklif: gerçek FHE, yerel MPC ve NEAR testnet akışını sınırlarıyla inceleyin.">
+  <title>Gizlilik demosu — NOPE</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/privacy.css">
+  <script type="module" src="/privacy.js"></script>
+</head>
+<body class="privacy-page">
+  <a class="skip-link" href="#main">İçeriğe geç</a>
+  <header class="privacy-header privacy-width">
+    <a class="brand" href="/" aria-label="NOPE ana sayfa"><span class="brand-mark" aria-hidden="true">N</span> NOPE</a>
+    <nav aria-label="Ana menü"><a href="/privacy" aria-current="page">Gizlilik demosu</a><a href="/market">İş pazarı ↗</a></nav>
+  </header>
+  <main id="main" class="privacy-width">
+    <section class="privacy-hero" aria-labelledby="privacy-title">
+      <p class="eyebrow">GİZLİ HESAPLAMANIN İÇİ / TESTNET</p>
+      <h1 id="privacy-title">İçerik gizli.<br><span>Akış görünür.</span></h1>
+      <p class="privacy-lead">Sentetik girdiler, gerçek şifreleme/MPC/testnet.</p>
+      <p class="privacy-intro">Dört kaydı açmadan işlemek. Üç kapalı tekliften yürütücü seçmek. İşlem izini NEAR testnet üzerinde görmek.</p>
+      <div class="privacy-meta"><span>04 kayıt</span><span>03 teklif</span><span>01 sabit senaryo</span></div>
+    </section>
+
+    <div class="privacy-layout">
+      <div class="privacy-story">
+        <section class="privacy-card privacy-scenario" aria-labelledby="scenario-title">
+          <div class="privacy-section-heading"><div><p class="eyebrow">01 / GİRDİDEN SONUCA</p><h2 id="scenario-title">Açmadan hesapla.</h2></div><span class="privacy-tag">SENTETİK</span></div>
+          <p class="privacy-muted">Sabit profil: eksik değer işaretini dönüştür, üst sınırı uygula, tekrarlanan kimliği işaretle. Dosya yükleme veya özel komut yok.</p>
+          <div class="privacy-flow" aria-label="Yerel alıcıdan şifreli değerlendiriciye, ardından yerel sonuca akış">
+            <span>Yerel alıcı</span><span aria-hidden="true">→</span><strong>FHE</strong><span aria-hidden="true">→</span><span>Yerel sonuç</span>
+          </div>
+          <label class="privacy-reveal-label" for="privacy-reveal"><input id="privacy-reveal" type="checkbox" aria-controls="privacy-records privacy-bids privacy-output"><span>Sentetik açık değerleri göster<small>Yalnızca öğretici görünümü değiştirir; gizlilik garantisi değildir.</small></span></label>
+          <div class="privacy-data-heading"><h3>Girdi · 4 kayıt</h3><span id="privacy-input-label">Değerler görünümde gizli</span></div>
+          <div class="privacy-table-wrap"><table><caption class="sr-only">Sabit sentetik girdi kayıtları</caption><thead><tr><th scope="col">Kayıt</th><th scope="col">Kimlik</th><th scope="col">Değer</th></tr></thead><tbody id="privacy-records"></tbody></table></div>
+          <div class="privacy-data-heading"><h3>Kapalı teklifler · 3 sağlayıcı</h3><span>MPC ile seçim</span></div>
+          <ul id="privacy-bids" class="privacy-bids" aria-label="Üç sentetik teklif"></ul>
+          <p id="privacy-budget" class="privacy-small">Bütçe ve fiyatlar görünümde gizli. Bunlar test ödemesinin tutarı değildir.</p>
+          <div class="privacy-output-area"><div class="privacy-data-heading"><h3>Doğrulanan çıktı</h3><span id="privacy-output-label">Henüz sonuç yok</span></div><p id="privacy-output-note" class="privacy-small">Gerçek çalıştırmanın çözülen kayıtları gelmeden sonuç gösterilmez.</p><div id="privacy-output" class="privacy-table-wrap"></div></div>
+        </section>
+
+        <section class="privacy-card" aria-labelledby="visibility-title">
+          <p class="eyebrow">02 / KİM, NEYİ GÖRÜR?</p><h2 id="visibility-title">Güvenin sınırını bil.</h2>
+          <dl class="privacy-visibility">
+            <div><dt><span aria-hidden="true">↳</span> Yerel alıcı</dt><dd>Açık girdileri, şifre çözme anahtarını ve çözülen sonucu görür. Anahtar yerel süreçtedir.</dd></div>
+            <div><dt><span aria-hidden="true">⌘</span> FHE değerlendiricisi</dt><dd>Şifreli girdiyi ve değerlendirme anahtarlarını alır; hesaplama için açık kayıt gerekmez. İş boyutu ve zamanlama gizlenmez.</dd></div>
+            <div><dt><span aria-hidden="true">≋</span> NEAR testnet</dt><dd>Taahhütleri, hesapları, seçilen yürütücüyü, makbuzları ve sabit test ödeme tutarını görür; açık kayıtlar zincire gönderilmez.</dd></div>
+          </dl>
+          <aside class="privacy-boundary"><strong>Sentetik senaryo · tek makine · açık, sabit test ödemesi.</strong><p>Koordinatör tüm sentetik teklifleri bilir. Bağımsız operatör ve yürütme ispatı yoktur.</p><details><summary>Teknik güven sınırlarını aç</summary><p>Koordinatör sentetik bütçeyi, tüm teklifleri ve tanık değerlerini bilir. FHE ve üç MPC süreci aynı makine/kullanıcı altında çalışır; testnet hesaplarının yöneticisi ortaktır. Arayüzde değerleri gizlemek süreçleri yalıtmaz.</p><p>Bağımsız gizlilik ispatı yoktur. Sözleşme MPC seçiminin doğruluğunu ya da FHE yürütmesini ispatlamaz. Yerel referans kontrolü bir yürütme ispatı değildir.</p></details></aside>
+        </section>
+      </div>
+
+      <div class="privacy-console">
+        <section class="privacy-card privacy-launch" aria-labelledby="launch-title">
+          <div class="privacy-section-heading"><p class="eyebrow">03 / ÇALIŞTIR VE İZLE</p><span id="privacy-mode" class="privacy-tag">Bağlantı kontrol ediliyor</span></div>
+          <h2 id="launch-title">Gerçek akışı izle.</h2>
+          <p id="privacy-mode-note" class="privacy-muted">Aynı kaynaktaki demo API’si sorgulanıyor. Henüz işlem başlatılmadı.</p>
+          <div id="privacy-replay" class="privacy-callout" hidden><strong>Kayıtlı kanıt · tekrar gösterim</strong><p>Bu yayında yeni hesaplama başlatılmaz. Aşağıdaki olaylar ve sonuçlar daha önceki çalıştırmaya aittir; canlı ilerleme değildir.</p></div>
+          <fieldset id="privacy-consent-field" class="privacy-consent" disabled><legend>Yalnızca testnet</legend><label for="privacy-consent"><input id="privacy-consent" type="checkbox"><span>Sentetik senaryoyu ve sabit 0,001 test NEAR ödemesini başlatmayı onaylıyorum. Mainnet veya gerçek para kullanılmaz.</span></label></fieldset>
+          <button id="privacy-start" type="button" class="button button-light privacy-start" disabled>Testnet demosunu çalıştır <span aria-hidden="true">↗</span></button>
+          <div class="privacy-status-row"><span id="privacy-status" role="status" aria-live="polite">Durum bekleniyor</span><button id="privacy-refresh" type="button" class="text-link">Durumu yenile</button></div>
+          <p id="privacy-message" class="privacy-message" role="alert" hidden></p>
+          <div id="privacy-setup" class="privacy-setup" hidden><h3>Kendi bilgisayarında çalıştır</h3><p>Tam demo, proje sahibinin hazırlanmış deposunu, yerel FHE/native MPC kurulumunu ve testnet cüzdanlarını gerektirir. Hazır deponun kökünde:</p><pre><code>.venv/bin/python scripts/privacy-demo-launch.py</code></pre><p>Komutun açtığı yerel <code>/privacy</code> sayfasında onay kutusunu seçip çalıştırın. Bu yayın bilgisayarınızdaki servise bağlanmaz.</p><p><a href="/nope-client.zip" class="text-link">Ayrı hesaplama istemcisini indir ↗</a><br>Bu ZIP tam gizlilik demosunu çalıştırmaz; testnet anahtarlarını ve native MPC çalışma ortamını sağlamaz.</p></div>
+          <noscript><p class="privacy-message">Demoyu izlemek ve başlatmak için JavaScript gereklidir. Hiçbir işlem başlatılmadı.</p></noscript>
+        </section>
+
+        <section class="privacy-card" aria-labelledby="timeline-title">
+          <div class="privacy-section-heading"><div><p class="eyebrow">04 / OLAY İZİ</p><h2 id="timeline-title">Bildirilen aşamalar</h2></div><span id="privacy-event-count" class="privacy-tag">0 olay</span></div>
+          <p id="privacy-run-id" class="privacy-small">Henüz çalıştırma kaydı alınmadı.</p>
+          <ol id="privacy-events" class="privacy-events" aria-label="Sunucunun bildirdiği olaylar"></ol>
+          <p id="privacy-time" class="privacy-small">Süre tahmini yapılmaz; yalnızca bildirilen ölçümler gösterilir.</p>
+        </section>
+
+        <section class="privacy-card" aria-labelledby="result-title">
+          <p class="eyebrow">05 / SONUÇ VE KANIT</p><h2 id="result-title">Kayıttan kontrol et.</h2>
+          <p id="privacy-result-note" class="privacy-muted">Sonuç ve ödeme henüz doğrulanmadı.</p>
+          <div id="privacy-result" hidden><dl id="privacy-facts" class="privacy-facts"></dl><div class="privacy-data-heading"><h3>Kontroller</h3><span id="privacy-check-count">Bildirilmedi</span></div><ul id="privacy-checks" class="privacy-checks"></ul><h3 class="privacy-subheading">Testnet işlem makbuzları</h3><ul id="privacy-transactions" class="privacy-transactions"></ul></div>
+          <p class="privacy-proof-note">Ödeme sabit, herkese açık 0,001 test NEAR bedelidir. Gizli MPC kazanan fiyatının ödendiği ispatlanmaz. İşlem bağlantıları testnet makbuzlarını gösterir; bağımsız hesaplama ispatı sunmaz.</p>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="privacy-footer privacy-width"><a href="/">NOPE · Ana sayfa</a><span>Sentetik senaryo. Açık sınırlar.</span><a href="https://veil-procurement.vercel.app/testnet" target="_blank" rel="noopener noreferrer">Diğer testnet kanıtları ↗</a></footer>
+</body>
+</html>

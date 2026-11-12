@@ -5,6 +5,7 @@ import copy
 import importlib
 import json
 import math
+import os
 import re
 import secrets
 import socket
@@ -16,6 +17,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 from .demo import DemoRuns, DemoBusy
+from .privacy_demo import PrivacyDemoRuns
 from .remote import RemoteClient
 from .procurement_proxy import ProcurementProxy, ProxyError
 
@@ -35,6 +37,9 @@ STAGES = {
 }
 ORDER = {stage: index for index, stage in enumerate(STAGES)}
 STATIC = {
+    "/privacy": ("privacy.html", "text/html; charset=utf-8"),
+    "/privacy.js": ("privacy.js", "text/javascript; charset=utf-8"),
+    "/privacy.css": ("privacy.css", "text/css; charset=utf-8"),
     "/market": ("market.html", "text/html; charset=utf-8"),
     "/market.js": ("market.js", "text/javascript; charset=utf-8"),
     "/market.css": ("market.css", "text/css; charset=utf-8"),
@@ -319,6 +324,7 @@ class CompanionServer(ThreadingHTTPServer):
         self.procurement_lock = threading.Lock()
         super().__init__(address, CompanionHandler)
         self.demo = DemoRuns(state.runtime_dir, enabled=state.pipeline is None and state.remote_client is None)
+        self.privacy_demo = PrivacyDemoRuns(state.runtime_dir, enabled=(os.environ.get("NOPE_ENABLE_PRIVACY_DEMO") == "1" and state.pipeline is None and state.remote_client is None))
         self.expected_host = "127.0.0.1:{}".format(self.server_address[1])
         self.origin = "http://" + self.expected_host
         self.web_dir = ROOT / "web"
@@ -331,6 +337,7 @@ class CompanionServer(ThreadingHTTPServer):
     def server_close(self):
         super().server_close()
         self.demo.close()
+        self.privacy_demo.close()
         if self.procurement_mount is not None:
             self.procurement_mount.close()
         self.state.close()
@@ -366,7 +373,7 @@ class CompanionHandler(BaseHTTPRequestHandler):
             # Permit only HTML document navigation, never iframe/embed, assets,
             # sensitive API reads, or requests carrying a foreign Origin.
             public_navigation = (
-                self.command in ("GET", "HEAD") and path in ("/", "/app", "/demo")
+                self.command in ("GET", "HEAD") and path in ("/", "/app", "/demo", "/privacy", "/market")
                 and site in ("cross-site", "same-site")
                 and self._header("Sec-Fetch-Mode") == "navigate"
                 and self._header("Sec-Fetch-Dest") == "document"
@@ -475,6 +482,8 @@ class CompanionHandler(BaseHTTPRequestHandler):
                     self._json(200, self.server.state.capabilities())
                 elif path == "/api/jobs":
                     self._json(200, {"jobs": self.server.state.list_jobs()})
+                elif path == "/api/privacy-demo":
+                    self._json(200, self.server.privacy_demo.snapshot())
                 elif path == "/api/demo":
                     self._json(200, {"run": self.server.demo.snapshot()})
                 elif JOB_PATH.fullmatch(path):
@@ -487,6 +496,13 @@ class CompanionHandler(BaseHTTPRequestHandler):
                     self._send(200, file.read_bytes(), content_type)
                 else:
                     raise RequestError(404, "Not found.")
+            elif self.command == "POST" and path == "/api/privacy-demo":
+                if self._body() != {}:
+                    raise RequestError(400, "Demo accepts only fixed synthetic inputs.")
+                try:
+                    self._json(201, self.server.privacy_demo.start())
+                except DemoBusy as exc:
+                    raise RequestError(409, str(exc))
             elif self.command == "POST" and path == "/api/demo":
                 if self._body() != {}:
                     raise RequestError(400, "Demo accepts only an empty object; inputs are synthetic and fixed.")
@@ -556,7 +572,7 @@ def main():
     parser.add_argument("--runtime-dir", type=Path, default=ROOT / "runtime")
     args = parser.parse_args()
     server = create_server(port=args.port, runtime_dir=args.runtime_dir)
-    print("NOPE local client companion: {} (no live payments)".format(server.origin), flush=True)
+    print("NOPE local client companion: {} (mainnet disabled)".format(server.origin), flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

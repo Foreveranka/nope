@@ -1,0 +1,310 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-11-12T11:24:49.036735+00:00",
+  "mode": "recorded-testnet-evidence",
+  "liveExecution": false,
+  "run": {
+    "id": "602505ceff248fa575147157",
+    "status": "completed",
+    "events": [
+      {
+        "stage": "starting",
+        "elapsed_seconds": 0.014270541999999997
+      },
+      {
+        "stage": "driver_ready",
+        "elapsed_seconds": 1.2959314169999998
+      },
+      {
+        "stage": "fhe_prepare_started",
+        "elapsed_seconds": 1.296786958
+      },
+      {
+        "stage": "prepared",
+        "elapsed_seconds": 5.543225
+      },
+      {
+        "stage": "chain_clock",
+        "elapsed_seconds": 6.078076958
+      },
+      {
+        "stage": "create_job",
+        "elapsed_seconds": 9.246849667000001
+      },
+      {
+        "stage": "bid",
+        "elapsed_seconds": 13.736198167000001
+      },
+      {
+        "stage": "bid",
+        "elapsed_seconds": 17.726811125
+      },
+      {
+        "stage": "bid",
+        "elapsed_seconds": 22.007451708
+      },
+      {
+        "stage": "close_not_ready",
+        "elapsed_seconds": 22.300752083
+      },
+      {
+        "stage": "close_not_ready",
+        "elapsed_seconds": 42.758512874999994
+      },
+      {
+        "stage": "close_not_ready",
+        "elapsed_seconds": 64.008941458
+      },
+      {
+        "stage": "close_not_ready",
+        "elapsed_seconds": 84.319062833
+      },
+      {
+        "stage": "close_not_ready",
+        "elapsed_seconds": 104.811019792
+      },
+      {
+        "stage": "close_not_ready",
+        "elapsed_seconds": 125.36691145799999
+      },
+      {
+        "stage": "close_not_ready",
+        "elapsed_seconds": 145.743813583
+      },
+      {
+        "stage": "close_not_ready",
+        "elapsed_seconds": 166.06339929199999
+      },
+      {
+        "stage": "close",
+        "elapsed_seconds": 190.767258
+      },
+      {
+        "stage": "mpc_started",
+        "elapsed_seconds": 190.776772792
+      },
+      {
+        "stage": "mpc_completed",
+        "elapsed_seconds": 208.785636625
+      },
+      {
+        "stage": "begin_execution",
+        "elapsed_seconds": 213.952567292
+      },
+      {
+        "stage": "execution_bound",
+        "elapsed_seconds": 214.180151333
+      },
+      {
+        "stage": "fhe_evaluation_started",
+        "elapsed_seconds": 214.180262167
+      },
+      {
+        "stage": "evaluated",
+        "elapsed_seconds": 252.271105583
+      },
+      {
+        "stage": "client_verified",
+        "elapsed_seconds": 252.278225333
+      },
+      {
+        "stage": "sdk_claim_built",
+        "elapsed_seconds": 252.279465958
+      },
+      {
+        "stage": "submit_receipt",
+        "elapsed_seconds": 263.786241625
+      },
+      {
+        "stage": "decide",
+        "elapsed_seconds": 273.052581917
+      },
+      {
+        "stage": "view",
+        "elapsed_seconds": 273.21097391700005
+      },
+      {
+        "stage": "accepted",
+        "elapsed_seconds": 273.21188
+      },
+      {
+        "stage": "driver_stopped",
+        "elapsed_seconds": 273.222878625
+      },
+      {
+        "stage": "payment_started",
+        "elapsed_seconds": 274.93000104199996
+      },
+      {
+        "stage": "payment_verified",
+        "elapsed_seconds": 292.798162917
+      },
+      {
+        "stage": "completed",
+        "elapsed_seconds": 292.79922729200007
+      }
+    ],
+    "result": {
+      "completed": true,
+      "real_fhe": true,
+      "real_mpc": true,
+      "independent_operators": false,
+      "execution_proof": false,
+      "synthetic_only": true,
+      "network": "testnet",
+      "job_id": "5",
+      "selected_executor": "p2.veil-reg-e138f5c88250f821.testnet",
+      "elapsed_seconds": 292.79863991700006,
+      "payment": {
+        "verified": true,
+        "amountYocto": "1000000000000000000000",
+        "transactionHash": "8KqiT1EnbQ758uBe3KstFbn7XhQcuEQr3XU3gMPJAxfz",
+        "mpcPriceProven": false,
+        "publicAmount": true
+      },
+      "transactions": [
+        {
+          "command": "create_job",
+          "hash": "D7SF7AZYmeJKw7KVqNaLpFMTVQmmDRCY7eKWi6MSSske"
+        },
+        {
+          "command": "bid",
+          "hash": "BARv5UPNFyXDTRYyfQhKbH4oCEUeRdGiwWiE2usmyTku"
+        },
+        {
+          "command": "bid",
+          "hash": "9w36W83nsxVA5KcnsomS245oFgAdtaGRxuyC86WiKiuG"
+        },
+        {
+          "command": "bid",
+          "hash": "CxJN3NXUkdPXewGYxRQrDGQqjJDxQr93DyzQk92zW5fJ"
+        },
+        {
+          "command": "close",
+          "hash": "EQCjVybp8dX97e64AaSCabcu46QgsVuuBAguN8qgb56v"
+        },
+        {
+          "command": "begin_execution",
+          "hash": "BMivgFMEWUwvuXqrCX2fSYCBt2Z2WZxrUw1h9Qb5hfFk"
+        },
+        {
+          "command": "submit_receipt",
+          "hash": "9nz63PAhjkFQjFfM8fz88nTLvJvx2KgGqVSknvtJpNJe"
+        },
+        {
+          "command": "decide",
+          "hash": "3WREd7CYcUKZ7HpehV3qWaVPQLv9Y7E4C3fdTbF7BV1E"
+        },
+        {
+          "command": "fund",
+          "hash": "77dAXxrhMFA9xHfa5yUjGXNVRDoNV1jYkhU3H6EMDUY1"
+        },
+        {
+          "command": "release",
+          "hash": "8KqiT1EnbQ758uBe3KstFbn7XhQcuEQr3XU3gMPJAxfz"
+        }
+      ],
+      "checks": [
+        {
+          "name": "Kontrol 1",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 2",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 3",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 4",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 5",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 6",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 7",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 8",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 9",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 10",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 11",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 12",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 13",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 14",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 15",
+          "pass": true
+        },
+        {
+          "name": "Kontrol 16",
+          "pass": true
+        }
+      ],
+      "artifactHashes": {
+        "serverSha256": "73ef85b53a58273d543cdbfd21a5ef97408db22ef11fc303ee215a0be0ba7d7e",
+        "inputSha256": "3936786a5583c769dbb03fe56f1df32308a82b99d9b31fe211ee7a5502230d39",
+        "evaluationKeysSha256": "73b5d8a68b26c269780a9b219526a873340d543cbeb7f3549d30e001b566b36e",
+        "externalBindingSha256": "daf8e062734fa13420b62e429b600d6060f74eeea8b5a0551c4237c881d6f274",
+        "outputSha256": "ce4a33956df16a154ac5f36d2a6c86a9948ee8e9b73f9e3e691dcee5340b0487"
+      },
+      "verified_synthetic_records": [
+        {
+          "id": 7,
+          "value": 0,
+          "duplicate": false
+        },
+        {
+          "id": 2,
+          "value": 100,
+          "duplicate": false
+        },
+        {
+          "id": 7,
+          "value": 42,
+          "duplicate": true
+        },
+        {
+          "id": 3,
+          "value": 5,
+          "duplicate": false
+        }
+      ],
+      "limits": [
+        "Sentetik girdiler aynı operatör tarafından hazırlanır.",
+        "Üç MPC süreci aynı makinede; bağımsız operatör kanıtı yok.",
+        "Ödeme açık sabit test bedeli; gizli kazanan fiyatla eşitlik ispatı yok.",
+        "FHE sonucu yerel referansla doğrulanır; genel yürütme ispatı değil."
+      ]
+    }
+  }
+}

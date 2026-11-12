@@ -6,6 +6,15 @@ Uygulama dört sayısal kaydı gerçek Concrete FHE ile işler. Kayıt kimlikler
 
 Marka adı NOPE olarak güncellendi. Mevcut GitHub/Vercel adresleri ve `VEIL_*` yapılandırma adları bağlantı uyumluluğu için korunur. Yeni indirme adı `nope-client.zip`; eski indirme bağlantısı da çalışır.
 
+## Tek akışlı Privacy demosu
+
+[Privacy demosu](https://veil-procurement.vercel.app/privacy) tamamlanmış gerçek
+koşumun kanıtlarını gösterir. Yapılandırılmış operatör bilgisayarında
+`.venv/bin/python scripts/privacy-demo-launch.py` ile açılan yerel sayfa,
+tek düğmeyle gerçek FHE → MPC → NEAR testnet kabulü → escrow ödemesi yürütür.
+Bu kontrollü sentetik demo, bağımsız operatörlü genel müşteri pazarı değildir.
+[Başlatma ve gizlilik sınırları](docs/PRIVACY-DEMO-RUNBOOK.md).
+
 ## İş pazarı ve gerçek testnet kanıtı
 
 `/market` müşteri ve sağlayıcı davetleriyle kalıcı iş/teklif defterini açar.

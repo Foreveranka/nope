@@ -1,5 +1,10 @@
 # NOPE — uygulama ve testnet doğrulama raporu
 
+## Privacy demo entegrasyonu — 12 Kasım 2026
+
+Yeni `/privacy` yüzeyi yerel tek düğmeli FHE/MPC/testnet kabulü/escrow akışını birleştirir. İnternetteki sayfa kayıtlı gerçek kanıtları gösterir; ziyaretçi proje cüzdanını kullanamaz. Bu ek, aşağıdaki genel müşteri pazarı/bağımsız operatör sınırlarını kaldırmaz. Ayrıntılar: [çalıştırma rehberi](PRIVACY-DEMO-RUNBOOK.md).
+
+
 12 Kasım 2026. Bu rapor tamamlanan kontrolleri ve kalan ürün sınırlarını ayırır.
 Yerel node taşıma katmanının son denetimi tamamlandı; aşağıdaki sınırlar halen geçerlidir.
 

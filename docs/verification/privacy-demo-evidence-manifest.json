@@ -1,0 +1,13 @@
+{
+  "scope": "local-synthetic-run-and-trusted-RPC-observer",
+  "jobId": "5",
+  "startedFromBrowser": true,
+  "sha256": {
+    "result.json": "c7e021bfb95d7c767a40fd7057a600f9c1577cc38249254aaf7c7395783bd690",
+    "payment-handoff.json": "994f76078cf0d2c0f65252445ad12a8a69cc91148d7fc09a588dc857e6b7679b",
+    "payment-verified.json": "c7576b900ef1945a6fa24faf2b95f30a514465447fcb7c2919934cb9480b7249",
+    "privacy-http-result.json": "ffcfcd22cbc2a54b9010413ad75bbe6c337b2911795877e1ecf348e9595e513a",
+    "events.jsonl": "8bf62e12200376f4190248d04b4007624d96b84e83deee84620a3cb506008df7",
+    "privacy-events.jsonl": "e4e79ace26e69891b62ff923105d80021d688ae6b7c9dd39e67440c706427c3b"
+  }
+}
