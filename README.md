@@ -6,6 +6,19 @@ Uygulama dört sayısal kaydı gerçek Concrete FHE ile işler. Kayıt kimlikler
 
 Marka adı NOPE olarak güncellendi. Mevcut GitHub/Vercel adresleri ve `VEIL_*` yapılandırma adları bağlantı uyumluluğu için korunur. Yeni indirme adı `nope-client.zip`; eski indirme bağlantısı da çalışır.
 
+## İş pazarı ve gerçek testnet kanıtı
+
+`/market` müşteri ve sağlayıcı davetleriyle kalıcı iş/teklif defterini açar.
+Gerçek testnet iş #3, üç sağlayıcı hesabıyla FHE/MPC seçimi, makbuz ve müşteri
+kabulünü tamamladı; ayrı escrow p2'ye **0,001 test NEAR** ödedi. Final zincir
+kaydı, çıktı hash'i ve native Transfer makbuzu bağımsız kontrol edildi.
+Bağlantılar: [testnet kanıtları](https://veil-procurement.vercel.app/testnet),
+[uygulama durumu](docs/PROCUREMENT-IMPLEMENTATION-STATUS.md),
+[teslim raporu](docs/NOPE-TESTNET-TESLIM-RAPORU.md).
+Bu koşum yerel MPC ve tek yönetici kullanır; sabit açık test ödemesi gizli
+kazanan fiyatla eşitlik ispatı değildir. İş pazarı tüm zincir adımlarını henüz
+otomatik yürütmez. `/demo` altındaki eski yerel ödeme fixture'ı ayrı tutulur.
+
 ## Davetli bulut istemcisi
 
 [Canlı site](https://veil-procurement.vercel.app) tanıtım sayfasından `/app` bölümüne, oradan istemci indirmesine yönlendirir. İndirilen pakette `sh install-client.sh`, ardından `.venv/bin/python scripts/client-launch.py` çalıştırılır. Davet kodu terminalde gizli olarak girilir; yerel uygulamada bulut hesabı seçilir. Açık kayıtlar tarayıcıdan yalnız `127.0.0.1` istemcisine gider; Vercel'e şifreli girdiler, değerlendirme anahtarları ve hash manifestleri yüklenir. Şifre çözme anahtarı bilgisayardan çıkmaz. Sonuç alınmadan istemci kapatılırsa bellekteki anahtar kaybolur.
@@ -66,4 +79,4 @@ Hangi verinin kimden ve hangi kriptografik mekanizmayla gizlendiği `docs/PRIVAC
 
 Yerel serviste `/demo`, sabit sentetik girdilerle gerçek FHE hazırlama → NEAR sandbox kaydı → üç taraflı MPC → seçilen yürütücü → FHE değerlendirme → istemci doğrulama → kontratta kabul akışını başlatır. Ödeme adımları SQLite fixture simülasyonudur; gerçek para kullanılmaz. Terminal karşılığı: `./scripts/run-integration.sh`.
 
-GitHub deposu `Foreveranka/veil-procurement`, Vercel projesi `veil-procurement` ile bağlıdır. `main` dalına push ana sitenin production dağıtımını tetikler. Build yalnız allowlist web dosyalarını, müşteri istemci paketini ve temizlenmiş **önceden çalıştırılmış yerel test sonucunu** yayımlar. Davet denetimli API ayrı serverless fonksiyonudur; `veil-evaluator` projesindeki Linux container şifreli hesabı yürütür. Container ayrı allowlist paketinden dağıtılır; ana sitenin Git push'u onu kendiliğinden güncellemez. Vercel'de MPC operatörleri veya NEAR node çalıştırılmaz; `/demo` kayıtlı yerel kanıttır. Yerel açık-veri API'si internete açılmaz. Ayrıntı: `docs/DEPLOYMENT.md`.
+GitHub deposu `Foreveranka/veil-procurement`, Vercel projesi `veil-procurement` ile bağlıdır. `main` dalına push ana sitenin production dağıtımını tetikler. Build yalnız allowlist web dosyalarını, müşteri istemci paketini ve temizlenmiş **önceden çalıştırılmış yerel/testnet kanıtlarını** yayımlar. Davet denetimli API ayrı serverless fonksiyonudur; `veil-evaluator` projesindeki Linux container şifreli hesabı yürütür. Container ayrı allowlist paketinden dağıtılır; ana sitenin Git push'u onu kendiliğinden güncellemez. Vercel'de MPC operatörleri veya NEAR node çalıştırılmaz; `/demo` kayıtlı yerel kanıttır. Yerel açık-veri API'si internete açılmaz. Ayrıntı: `docs/DEPLOYMENT.md`.

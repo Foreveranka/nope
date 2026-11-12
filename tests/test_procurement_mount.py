@@ -18,6 +18,7 @@ class FakeClient:
     def __init__(self,*a,**kw): self.prepared=None
     def prepare(self,draft,required,budget): self.prepared=budget;return {'id':'test-session','state':'PREPARED'}
     def close(self): pass
+    def snapshot(self): return self.public
 
 class MountTests(unittest.TestCase):
     def setUp(self):
@@ -53,4 +54,39 @@ class MountTests(unittest.TestCase):
         with self.assertRaisesRegex(BidClientError,'SESSION_OWNER_MISMATCH'):
             self.mount.request('bid-close',{'sessionId':'ab'*16},'Bearer synthetic')
         self.mount.bidders.close_session.assert_not_called()
+    def test_chain_disabled_by_default(self):
+        self.assertFalse(self.mount.request('chain-capabilities',{},'Bearer synthetic')['publicationConfigured'])
+        with self.assertRaisesRegex(ProcurementClientError,'TESTNET_RELAY_UNAVAILABLE'):
+            self.mount.request('chain-publish',{'jobId':'ab'*16,'sessionId':'cd'*16},'Bearer synthetic')
+    def chain_fixture(self):
+        principal=self.proxy.principal
+        self.mount.principal=principal
+        self.mount.chain_bridge=Mock()
+        public={'id':'cd'*16,'draftId':'ab'*16,'state':'PREPARED','engineMode':'real-fhe','intent':{'synthetic':True},
+                'contextHash':'11'*32,'budgetCommitment':'22'*32,'winningPrice':999999}
+        self.mount.client.public=public
+        job={'id':'ab'*16,'buyer':principal,'status':'PUBLISHED',**{k:public[k] for k in ('intent','contextHash','budgetCommitment')}}
+        self.proxy.request=Mock(side_effect=[(200,{'role':'buyer','principal':principal}),(200,{'job':job})])
+        return job
+    def test_chain_gets_only_current_public_preparation(self):
+        job=self.chain_fixture()
+        self.mount.request('chain-publish',{'jobId':job['id'],'sessionId':'cd'*16},'Bearer synthetic')
+        expected=self.mount.chain_bridge.publish.call_args.args[1]
+        self.assertEqual(set(expected),{'id','draftId','intent','contextHash','budgetCommitment'})
+        self.assertNotIn('999999',repr(expected))
+    def test_chain_rejects_substituted_cloud_commitment(self):
+        job=self.chain_fixture();job['budgetCommitment']='33'*32
+        with self.assertRaisesRegex(ProcurementClientError,'PUBLICATION_CONTEXT_MISMATCH'):
+            self.mount.request('chain-publish',{'jobId':job['id'],'sessionId':'cd'*16},'Bearer synthetic')
+        self.mount.chain_bridge.publish.assert_not_called()
+    def test_chain_status_does_not_need_or_publish_private_session(self):
+        job=self.chain_fixture();self.mount.client.public=None;self.mount.principal=None
+        self.mount.request('chain-status',{'jobId':job['id']},'Bearer synthetic')
+        self.mount.chain_bridge.status.assert_called_once_with(job['id'])
+        self.mount.chain_bridge.publish.assert_not_called()
+    def test_injected_test_preparation_cannot_broadcast(self):
+        job=self.chain_fixture();self.mount.client.public['engineMode']='test-double'
+        with self.assertRaisesRegex(ProcurementClientError,'LOCAL_PREPARATION_REQUIRED'):
+            self.mount.request('chain-publish',{'jobId':job['id'],'sessionId':'cd'*16},'Bearer synthetic')
+        self.mount.chain_bridge.publish.assert_not_called()
 if __name__=='__main__':unittest.main()

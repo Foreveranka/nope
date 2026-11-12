@@ -31,6 +31,13 @@ def package(destination):
 4. Enter the access invitation provided by your project operator.
 5. In the local app, explicitly select remote encrypted evaluation.
 
+For the procurement workspace instead:
+  .venv/bin/python scripts/client-launch.py --market
+Enter the buyer/provider role invitation on the opened local /market page.
+The compute invitation and procurement role invitation are separate credentials.
+Owner-only testnet publication additionally requires the configured owner
+repository and its local test wallet; it is disabled in this standalone package.
+
 The current fixed profile processes FOUR byte-valued id/value records.
 It flags later duplicate IDs, converts sentinel 255 to zero, and caps other
 values at 100. This is not a generic CSV processing service.

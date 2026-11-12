@@ -28,6 +28,21 @@ operator infrastructure or a general-purpose marketplace is deployed.
 
 ## Actual chain integration
 
+The owner-host local companion now has `chain-capabilities`, `chain-publish` and
+read-only `chain-status`. It is disabled unless the operator explicitly sets
+`NOPE_ENABLE_TESTNET_RELAY=1` and `NOPE_TESTNET_RELAY_ROOT` to the reviewed local
+repository containing the existing signer. No key/path comes from the browser.
+The authenticated buyer's live REAL-FHE session must exactly match the published
+cloud intent/context/budget commitment. This bridge was exercised against the
+actual deployed app and actual testnet job **4**; FINAL and same-hash lookup passed
+(`verification/procurement-app-chain-live.json`). Publication only: that test did
+not select, deliver or pay. The local journal retains the binding; hosted job
+capabilities still describe the app ledger rather than pretending chain finality.
+
+For procurement-only local startup use
+`.venv/bin/python scripts/client-launch.py --market`. Role invitations are entered
+in that local page, separately from encrypted-compute access invitations.
+
 `integration/testnet.py` and
 `contracts/registry/deploy/procurement-driver.mjs` run a **separate synthetic
 integration** on the real NEAR testnet. This does not automatically bind an app

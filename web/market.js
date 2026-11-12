@@ -1,9 +1,10 @@
 import {parseAmount} from './sealed.mjs';
 import {loadDeployment} from './deployment.mjs';
 const $=s=>document.querySelector(s);
-let token='',session=null,current=null,cursor=null,busy=false,csrf=null,privateSession=null;
+let token='',session=null,current=null,cursor=null,busy=false,csrf=null,privateSession=null,chainEnabled=false;
 const bidSessions=new Map();
-const ready=(async()=>{if((await loadDeployment()).mode==='local'){const r=await fetch('/api/capabilities',{cache:'no-store'});if(!r.ok)throw new Error('Yerel istemci hazır değil.');csrf=(await r.json()).csrfToken;if(typeof csrf!=='string')throw new Error('Yerel oturum doğrulanamadı.');}})();
+const chainBindings=new Map();
+const ready=(async()=>{if((await loadDeployment()).mode==='local'){const r=await fetch('/api/capabilities',{cache:'no-store'});if(!r.ok)throw new Error('Yerel istemci hazır değil.');csrf=(await r.json()).csrfToken;$('#market-install').hidden=true;if(typeof csrf!=='string')throw new Error('Yerel oturum doğrulanamadı.');}})();
 ready.catch(e=>message(e.message,true));
 const stages={DRAFT:'Taslak',PUBLISHED:'Teklifler açık',CLOSED:'Teklifler kapalı',SELECTED:'Sağlayıcı seçildi',DELIVERED:'Teslim edildi',REJECTED:'Düzeltme bekliyor',ACCEPTED:'Teslim kabul edildi'};
 function message(text,error=false){const e=$('#message');e.hidden=!text;e.textContent=text;e.classList.toggle('message-error',error);}
@@ -14,13 +15,14 @@ function render(job){current=job;const d=$('#detail');d.replaceChildren(element(
  if(job.status==='DRAFT'){d.append(element('p','Yayınlamadan önce yerel istemci bu işe bağlı şifreli girdiyi hazırlar. Pilot yalnızca dört sentetik kayıt kullanır; özel müşteri dosyası yüklemeyin.'));if(csrf&&session.principal===job.buyer)prepareControls(d,job);else d.append(element('a','Yerel istemci kurulumu','text-link'));const link=d.querySelector('a');if(link)link.href='/app';}
  if(job.status==='PUBLISHED'&&session.role==='provider'){if(csrf)bidControls(d,job);else{d.append(element('p','Gizli fiyat ve teklif açılımı yerel istemcide tutulur. Teklif vermek için yerel istemcide bu işe girin.'));const link=element('a','Yerel istemci kurulumu','text-link');link.href='/app';d.append(link);}}
  if(job.status==='PUBLISHED'&&session.principal===job.buyer&&BigInt(Date.now())*1000000n>=BigInt(job.bidDeadlineNs))action(d,'Teklifleri kapat','close',{expectedRevision:job.revision});
+ if(csrf&&chainEnabled&&session.principal===job.buyer&&job.status!=='DRAFT')chainControls(d,job);
  if(job.status==='CLOSED')d.append(element('p','Teklifler donduruldu. Doğrulanmış operatör seçimi bekleniyor.'));
  if(job.selection)d.append(element('p',`Seçilen sağlayıcı: ${job.selection.provider}`));
  const latest=job.deliveries.at(-1);if(latest){d.append(element('p',`Teslim sürümü: ${latest.version}`));if(job.status==='DELIVERED'&&session.principal===job.buyer){d.append(element('p','Kabul, son teslimin kimliğini kaydeder; ödeme başlatmaz. Şifreli sonucu yerel istemcinizde doğrulamadan kabul etmeyin.'));for(const decision of ['accept','reject'])action(d,decision==='accept'?'Bu teslimi kabul et':'Düzeltme iste','decision',{expectedRevision:job.revision,version:latest.version,outputHash:latest.outputHash,receiptHash:latest.receiptHash,decision});}}
 }
 function action(parent,label,route,body){const b=element('button',label,'button button-outline');const key=crypto.randomUUID(),jobId=current.id;b.addEventListener('click',()=>run(async()=>{b.disabled=true;try{render((await api(`/jobs/${jobId}/${route}`,body,key)).job);await load();}finally{b.disabled=false;}}));parent.append(b);}
 async function load(append=false){const data=await api('/jobs?limit=20'+(append&&cursor?'&cursor='+encodeURIComponent(cursor):''));if(!append)$('#jobs').replaceChildren();for(const job of data.jobs){const b=element('button',`${job.title} · ${stages[job.status]||job.status}`);b.type='button';b.addEventListener('click',()=>run(async()=>render((await api('/jobs/'+job.id)).job)));$('#jobs').append(b);}if(!$('#jobs').children.length)$('#jobs').append(element('p','Henüz görünür bir iş yok.'));cursor=data.nextCursor;$('#more').hidden=!cursor;}
-$('#login').addEventListener('submit',e=>{e.preventDefault();run(async()=>{token=$('#token').value.trim();$('#token').value='';try{session=await api('/session');}catch(e){token='';throw e;}$('#login-panel').hidden=true;$('#workspace').hidden=false;$('#logout').hidden=false;$('#identity').textContent=`${session.principal} · ${session.role==='buyer'?'Müşteri':session.role==='provider'?'Sağlayıcı':'Operatör'}`;$('#buyer-panel').hidden=session.role!=='buyer';$('#providers').replaceChildren();for(const name of session.availableProviders||[]){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.value=name;label.append(input,document.createTextNode(name));$('#providers').append(label);}if(!session.availableProviders?.length)$('#providers').append(element('p','Henüz davet edilmiş sağlayıcı bulunmuyor.'));await load();});});
+$('#login').addEventListener('submit',e=>{e.preventDefault();run(async()=>{token=$('#token').value.trim();$('#token').value='';try{session=await api('/session');}catch(e){token='';throw e;}chainEnabled=false;if(csrf&&session.role==='buyer'){try{chainEnabled=(await local('chain-capabilities',{})).publicationConfigured===true;}catch{chainEnabled=false;}}$('#login-panel').hidden=true;$('#workspace').hidden=false;$('#logout').hidden=false;$('#identity').textContent=`${session.principal} · ${session.role==='buyer'?'Müşteri':session.role==='provider'?'Sağlayıcı':'Operatör'}`;$('#buyer-panel').hidden=session.role!=='buyer';$('#providers').replaceChildren();for(const name of session.availableProviders||[]){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.value=name;label.append(input,document.createTextNode(name));$('#providers').append(label);}if(!session.availableProviders?.length)$('#providers').append(element('p','Henüz davet edilmiş sağlayıcı bulunmuyor.'));await load();});});
 $('#logout').onclick=()=>{token='';session=null;current=null;location.reload();};
 $('#refresh').onclick=()=>run(async()=>{await load();if(current)render((await api('/jobs/'+current.id)).job);});$('#more').onclick=()=>run(()=>load(true));
 let pendingCreate=null;
@@ -47,4 +49,16 @@ function bidControls(parent,job){
  if(existing){const b=element('button','Taahhüdü iş defterine kaydet','button button-dark');b.onclick=()=>run(async()=>{b.disabled=true;try{render((await api(`/jobs/${job.id}/bids`,{expectedRevision:job.revision,commitment:existing.commitment},existing.key)).job);await load();}finally{b.disabled=false;}});parent.append(b);return;}
  const form=document.createElement('form'),label=element('label','Gizli teklif fiyatı (pilot hesap birimi)'),input=document.createElement('input'),button=element('button','Teklifi yerelde hazırla','button button-dark');input.type='password';input.inputMode='decimal';input.autocomplete='off';input.required=true;input.id='private-price';label.htmlFor=input.id;form.append(label,input,button);
  form.onsubmit=e=>{e.preventDefault();run(async()=>{const price=Number(parseAmount(input.value));input.value='';button.disabled=true;try{const prepared=await local('bid-prepare',{jobId:job.id,price});bidSessions.set(job.id,{...prepared,key:crypto.randomUUID()});render(job);}finally{button.disabled=false;}});};parent.append(form);
+}
+
+function chainControls(parent,job){
+ const binding=chainBindings.get(job.id);
+ if(binding?.finalExecutionStatus==='FINAL'&&binding.scope==='testnet-registry-publication-only'&&/^[0-9]+$/.test(binding.registryJobId)&&/^[1-9A-HJ-NP-Za-km-z]{32,64}$/.test(binding.transactionHash)){
+  parent.append(element('p',`NEAR testnet iş #${binding.registryJobId}: kayıt doğrulandı. Bu işlem teklif seçimi veya ödeme başlatmaz.`));
+  const link=element('a','Zincir kayıt işlemi','text-link');link.href='https://testnet.nearblocks.io/txns/'+binding.transactionHash;link.target='_blank';link.rel='noopener noreferrer';parent.append(link);return;
+ }
+ parent.append(element('p','Yerel testnet kayıt bağlantısı açık. Kayıt müşteri bilgisayarındaki test cüzdanıyla imzalanır; anahtar sunucuya gönderilmez.'));
+ const check=element('button','Zincir kaydını sorgula','button button-outline');check.onclick=()=>run(async()=>{chainBindings.set(job.id,await local('chain-status',{jobId:job.id}));render(job);message('Zincir durumu sorgulandı. Doğrulanmış kayıt varsa yukarıda gösterilir.');});parent.append(check);
+ if(job.status!=='PUBLISHED'||BigInt(Date.now())*1000000n>=BigInt(job.bidDeadlineNs))return;
+ const publish=element('button','İşi NEAR testnet’e kaydet','button button-outline');publish.onclick=()=>run(async()=>{publish.disabled=true;try{const prepared=(await local('snapshot',{})).session;if(prepared?.draftId!==job.id||prepared.state!=='PREPARED')throw new Error('Bu işin canlı yerel hazırlığı gerekli.');chainBindings.set(job.id,await local('chain-publish',{jobId:job.id,sessionId:prepared.id}));render(job);}finally{publish.disabled=false;}});parent.append(publish);
 }

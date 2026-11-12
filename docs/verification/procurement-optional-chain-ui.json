@@ -1,0 +1,10 @@
+{
+  "verifiedAt": "2026-11-12T01:02:26Z",
+  "scope": "actual-browser-with-synthetic-loopback-handler",
+  "origin": "http://127.0.0.1:8149",
+  "scenario": "Valid non-owner buyer; optional chain-capabilities returns 409 TESTNET_BUYER_REQUIRED",
+  "observedWorkspaceVisible": true,
+  "observedBuyerCreateFormVisible": true,
+  "chainPublicationRemainsUnavailable": true,
+  "actualCloudOrChainTest": false
+}

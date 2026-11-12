@@ -1,0 +1,13 @@
+{
+  "applicationJobId": "8450ea6d48f72c0084daf51f28176d96",
+  "registryJobId": "4",
+  "transactionHash": "2uKzkWVox48MnS2JAvTiAkGKhvGJPGNERcZhUa7Ugnmk",
+  "finalExecutionStatus": "FINAL",
+  "actualCloudApp": true,
+  "actualLocalFHEPreparation": true,
+  "actualTestnetPublication": true,
+  "readOnlyReconciliation": true,
+  "selectionExecuted": false,
+  "paymentExecuted": false,
+  "verifiedAt": "2026-11-12T01:00:27Z"
+}
