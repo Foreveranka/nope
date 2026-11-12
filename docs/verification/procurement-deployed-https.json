@@ -1,0 +1,15 @@
+{
+  "origin": "https://veil-procurement.vercel.app",
+  "jobId": "8346cd3968805a8692db5543315bfcb9",
+  "verifiedAt": "2026-11-12T00:45:47Z",
+  "actualDeployedHTTPS": true,
+  "health": true,
+  "unauthenticatedRejected": true,
+  "buyerSession": true,
+  "draftCreated": true,
+  "providerDraftInvisible": true,
+  "durableRead": true,
+  "idempotentReplay": true,
+  "conflictingReplayRejected": true,
+  "blockchainBinding": false
+}

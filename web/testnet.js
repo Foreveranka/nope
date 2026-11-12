@@ -7,7 +7,7 @@ try{
  if(data.schema!==1||data.network!=='testnet'||data.completed!==true||!Array.isArray(data.transactions))throw Error('Doğrulama kaydı geçersiz.');
  root.replaceChildren(el('h2',`İş #${data.jobId} · teslim kabul edildi`));
  root.append(el('p',`Gerçek FHE ve yerel MPC ile işlendi. ${data.checksPassed} bağlama ve sonuç kontrolü geçti.`));
- root.append(el('p',data.payment?.verified?'Test NEAR ödemesi: sözleşmeden sağlayıcıya aktarım makbuzu doğrulandı.':'Bu kayıtta doğrulanmış ödeme yok.'));
+ root.append(el('p',data.payment?.verified?'Test NEAR ödemesi: sözleşmeden sağlayıcıya aktarım makbuzu doğrulandı. Tutar herkese açık, sabit bir test bedelidir; gizli kazanan teklifin ödendiği ispatlanmış değildir.':'Bu kayıtta doğrulanmış ödeme yok.'));
  const list=document.createElement('ol');
  for(const item of data.transactions){
   if(typeof item.hash!=='string'||!/^\w{32,64}$/.test(item.hash))throw Error('İşlem kimliği geçersiz.');

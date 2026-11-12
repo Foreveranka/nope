@@ -1,0 +1,29 @@
+{
+  "network": "testnet",
+  "rpc": "https://test.rpc.fastnear.com",
+  "registry_id": "veil-reg-e138f5c88250f821.testnet",
+  "escrow_id": "escrow.veil-reg-e138f5c88250f821.testnet",
+  "escrow_code_hash": "36ArHnTqzmnL25wym4Hp5gLPAfp2yuShqKXAXYAUdo5A",
+  "wasm_sha256": "1f0a6a4566cf6b963ea2d29ad9dda4cca6d51e04172508ca3ccb67ad8b096819",
+  "wasm_size": 219847,
+  "already_deployed": false,
+  "storage": {
+    "code_storage_yocto": "2198470000000000000000000",
+    "minimum_with_state_reserve_yocto": "2280390000000000000000000",
+    "allocation_yocto": "3000000000000000000000000",
+    "sufficient": true,
+    "storage_price_per_byte": "10000000000000000000"
+  },
+  "owner_spendable_retained_yocto": "4301005721493948500000000",
+  "owner_minimum_retained_yocto": "1000000000000000000000000",
+  "owner_reserve_sufficient": true,
+  "mutation_performed": true,
+  "owner_lock_required": true,
+  "create_hash": "8dnyW6ou6vAoqbAxwCiYXS8pAVvHGgPBrXjgYTdAhAVW",
+  "deploy_hash": "2SvYgRniGrtfDpzjuwoex9dZBYkPeDqvyNmYSDAe6GE3",
+  "deployed": true,
+  "observed_at": "2026-11-12T00:44:26.685Z",
+  "account_id": "escrow.veil-reg-e138f5c88250f821.testnet",
+  "account_purpose": "NOPE testnet escrow contract; not a prize/payout wallet",
+  "local_key_file_path": "/Users/mete/near-private-procurement/payments/testnet_escrow/runtime/escrow-identity.json"
+}

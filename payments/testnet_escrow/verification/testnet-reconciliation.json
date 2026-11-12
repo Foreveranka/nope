@@ -1,0 +1,47 @@
+{
+  "network": "testnet",
+  "rpc": "https://test.rpc.fastnear.com",
+  "actual_external_chain": true,
+  "new_process_restart": true,
+  "send_tx_guard_enabled": true,
+  "send_tx_attempts": 0,
+  "tx_status_queries": [
+    {
+      "hash": "FAXoE6SZ4tiPnXsMhZYTdQ4JJvFuDF1jAvFUcwxD9ejq",
+      "sender": "veil-reg-e138f5c88250f821.testnet",
+      "wait_until": "FINAL"
+    },
+    {
+      "hash": "CSEhBWNyGKdcJD6xNmWJV7QYyXGrMc2uf3Ar4Gw6Dx7F",
+      "sender": "veil-reg-e138f5c88250f821.testnet",
+      "wait_until": "FINAL"
+    }
+  ],
+  "provider_id": "p2.veil-reg-e138f5c88250f821.testnet",
+  "provider_balance_before_yocto": "100150270762963700000000",
+  "provider_balance_after_yocto": "100150270762963700000000",
+  "provider_balance_changed": false,
+  "second_payout": false,
+  "journals": [
+    {
+      "label": "create-escrow",
+      "tx_hash": "8dnyW6ou6vAoqbAxwCiYXS8pAVvHGgPBrXjgYTdAhAVW"
+    },
+    {
+      "label": "deploy-escrow",
+      "tx_hash": "2SvYgRniGrtfDpzjuwoex9dZBYkPeDqvyNmYSDAe6GE3"
+    },
+    {
+      "label": "fund-3",
+      "tx_hash": "FAXoE6SZ4tiPnXsMhZYTdQ4JJvFuDF1jAvFUcwxD9ejq"
+    },
+    {
+      "label": "release-3",
+      "tx_hash": "CSEhBWNyGKdcJD6xNmWJV7QYyXGrMc2uf3Ar4Gw6Dx7F"
+    }
+  ],
+  "release_hash": "CSEhBWNyGKdcJD6xNmWJV7QYyXGrMc2uf3Ar4Gw6Dx7F",
+  "fund_hash": "FAXoE6SZ4tiPnXsMhZYTdQ4JJvFuDF1jAvFUcwxD9ejq",
+  "state": "Paid",
+  "observed_at": "2026-11-12T00:45:38.427Z"
+}

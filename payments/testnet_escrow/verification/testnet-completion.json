@@ -1,0 +1,27 @@
+{
+  "network": "testnet",
+  "rpc": "https://test.rpc.fastnear.com",
+  "actual_external_testnet_escrow_verified": true,
+  "job_id": "3",
+  "escrow_id": "escrow.veil-reg-e138f5c88250f821.testnet",
+  "provider_id": "p2.veil-reg-e138f5c88250f821.testnet",
+  "fixed_amount_yocto": "1000000000000000000000",
+  "release_hash": "CSEhBWNyGKdcJD6xNmWJV7QYyXGrMc2uf3Ar4Gw6Dx7F",
+  "payout_receipt_id": "4bZwU6DgSZwa1bMZuetb6Gd8VCGJDs8zqzyERU8Sz5Lt",
+  "restart_same_hash_verified": true,
+  "second_payout": false,
+  "market_settlement": false,
+  "mpc_winning_price_proven": false,
+  "private_key_output": false,
+  "checks": {
+    "python_tests": 95,
+    "node_signer_tests": 9,
+    "rust_unit_tests": 8,
+    "real_local_sandbox_lifecycle": true,
+    "fund_preemption_regression": true,
+    "wasm_and_clippy": true
+  },
+  "recorded_at": "2026-11-12T00:47:21.519960+00:00",
+  "scoped_diff_check_passed": true,
+  "global_diff_check_note": "Unrelated mpc/patches/local-transport.patch whitespace reported; not edited by payments worker."
+}

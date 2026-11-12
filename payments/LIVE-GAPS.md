@@ -1,5 +1,17 @@
 # Official Market connection status — 12 November 2026 (Istanbul)
 
+**Testnet decision added:** no public Market sandbox/testnet was established from
+the official docs/OpenAPI. A separate NOPE native-test-NEAR escrow implementation
+now lives in `payments/testnet_escrow/`, with actual contract calls and finalized
+receipt verification in `near_testnet_escrow.py`. Its bounded external-testnet
+lifecycle has now completed for accepted registry job 3: exact fixed 0.001 native
+test-NEAR payout, real Python receipt verification and new-process same-hash
+reconciliation with zero new broadcasts. It does not resolve Market's gaps below
+or establish equality to the private MPC price. Actual evidence is under
+`testnet_escrow/verification/testnet-*.json`; no local fixture is labelled live. See
+[TESTNET-PAYMENT-DECISION.md](../docs/TESTNET-PAYMENT-DECISION.md) for exact evidence,
+account/deployment prerequisites and the public-testnet completion boundary.
+
 **Real transports and scoped read/preparation are implemented. Financial connection
 is not certified complete. No authenticated account calls or live financial
 mutations were performed in this implementation run.** No registration, wallet

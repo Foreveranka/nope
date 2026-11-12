@@ -37,9 +37,16 @@
     {
       "label": "Müşteri kabulü",
       "hash": "GFwSeVRpefE4vqB6bT5mHuCKQnd32j1foV7aMNiXd6Yr"
+    },
+    {
+      "label": "Test NEAR ödemesi",
+      "hash": "CSEhBWNyGKdcJD6xNmWJV7QYyXGrMc2uf3Ar4Gw6Dx7F"
     }
   ],
   "payment": {
-    "verified": false
+    "verified": true,
+    "amountYocto": "1000000000000000000000",
+    "publicAmount": true,
+    "mpcPriceProven": false
   }
 }

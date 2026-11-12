@@ -1,0 +1,26 @@
+{
+  "network_target": "testnet",
+  "external_deployment_performed": false,
+  "wasm_sha256": "1f0a6a4566cf6b963ea2d29ad9dda4cca6d51e04172508ca3ccb67ad8b096819",
+  "code_hash": "36ArHnTqzmnL25wym4Hp5gLPAfp2yuShqKXAXYAUdo5A",
+  "size_bytes": 219847,
+  "source_sha256": {
+    "src/lib.rs": "a6eee27b407f19d9bfabcc6a08bf3a16f3d5a039158b4e36627df9f09dd390d3",
+    "Cargo.toml": "4ecfa5298891b289e81f146c3405bdc02cee231d6759a5f854065e5c38ffdc82",
+    "Cargo.lock": "8cf16450a9fde8935f1795f7da1db9cc3e0b2e4f2b9ccd2cbfd936b9457f8731"
+  },
+  "checks": {
+    "rust_unit_tests": 8,
+    "rust_unit_passed": true,
+    "local_sandbox_lifecycle_passed": true,
+    "public_testnet_payment_executed": false,
+    "clippy_warnings_denied_passed": true,
+    "python_payment_tests": 95,
+    "fund_preemption_regression_reproduced_before_fix": true,
+    "fund_preemption_regression_passed_after_fix": true,
+    "local_sandbox_recheck_pending": false,
+    "local_vm_outsider_preemption_rejected": true,
+    "node_signer_tests": 9
+  },
+  "recorded_at": "2026-11-12T00:35:41.269753+00:00"
+}

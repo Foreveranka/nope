@@ -1,5 +1,16 @@
 # NOPE procurement implementation — active 12 November 2026
 
+## Latest verified checkpoint (supersedes earlier pending statements)
+
+- GitHub commit `98accef5b11ca58b975f865c89b3713c7a7a6277` auto-deployed READY on Vercel. `/market` and `/testnet` were inspected in the actual browser. The authenticated production HTTPS/Blob smoke passed create, durable read, provider draft denial and exact/changed-payload replay checks: `verification/procurement-deployed-https.json`.
+- Actual registry job **3** completed all eight chain transactions at FINAL with three distinct provider accounts, actual local FHE/MPC, selected provider p2, exact receipt and buyer acceptance. All 16 driver checks passed. Main independently queried finalized job/acceptance and checked the local output ciphertext hash: `verification/e2e-testnet-result.json` and `verification/testnet-main-crosscheck.json`.
+- The separate testnet escrow was deployed. Exactly **0.001 test NEAR** reached p2 under job 3's accepted receipt. Python independently verified the complete payout receipt and exact binding twice (worker and main). Restart reconciliation queried the same transaction hashes with **zero broadcasts** and no second payout. Evidence: `payments/testnet_escrow/verification/` and `verification/testnet-payment-main-crosscheck.json`.
+- This payment is a PUBLIC FIXED TEST PRICE, not proof of equality to the private MPC winning price. Testnet provider accounts and local MPC processes share one administrator; no independent-operator claim.
+- Current active work: native opt-in authenticated node transport and a local journaled app-to-registry publication bridge. The app's complete browser-to-selection-to-settlement flow is not yet wired. Hosted capabilities remain honest and fail closed.
+- Latest combined main checks: 124 Node application tests and 149 Python tests; payment checks include 95 Python, 9 signer and 8 Rust tests plus local sandbox/Wasm/Clippy. These overlap other listed suites and must not be added as distinct test counts.
+
+The sections below retain chronological evidence, including earlier failures. Their pending status is superseded only where the checkpoint above explicitly records completion.
+
 User authorized completing buyer/provider workflow, private bids, operator layer, delivery/acceptance and external dependencies on TESTNET. No mainnet or real-money operations, paid services or human outreach is authorized by this technical integration request.
 
 Order: (1) authenticated durable jobs and role-separated UI, (2) sealed bid admission/close, (3) independently operated selection integration, (4) encrypted delivery/exact-version acceptance, (5) testnet settlement and end-to-end verification, (6) report.

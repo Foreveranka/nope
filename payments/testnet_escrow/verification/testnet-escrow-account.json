@@ -1,0 +1,12 @@
+{
+  "public_address": "escrow.veil-reg-e138f5c88250f821.testnet",
+  "public_key": "ed25519:BBhTsxkKjtMoySib4jrC3ej7Jco5HZFi2tWqj5QSNRhD",
+  "project": "NOPE private procurement",
+  "purpose": "native test-NEAR escrow contract; not a prize wallet or user payout address",
+  "network": "NEAR testnet",
+  "chain_id": "testnet",
+  "test_or_prize": "test escrow contract",
+  "verification_date": "2026-11-12",
+  "local_key_file_path": "/Users/mete/near-private-procurement/payments/testnet_escrow/runtime/escrow-identity.json",
+  "ledger_update_owner": "main; no write outside payments/ by this worker"
+}

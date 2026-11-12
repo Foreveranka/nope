@@ -32,4 +32,4 @@ await fs.writeFile(path.join(target, 'deployment.json'), JSON.stringify({ mode: 
 execFileSync('python3', [path.join(root,'scripts/package-client.py'), path.join(target,'nope-client.zip')], {stdio:'inherit'});
 // Preserve existing download links while publishing the new brand.
 await fs.copyFile(path.join(target,'nope-client.zip'), path.join(target,'veil-client.zip'));
-console.log(`Built ${files.length} static assets, invitation-only companion package, and recorded LOCAL evidence. Cloud API is packaged separately; payments remain disabled.`);
+console.log(`Built ${files.length} static assets, invitation-only companion package, and recorded evidence. Cloud API is packaged separately; hosted payment actions remain disabled.`);
