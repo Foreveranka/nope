@@ -19,7 +19,7 @@ an exact Origin. Authenticated GET may omit Origin, as native same-origin browse
 GET requests do, but a supplied foreign Origin or cross-site fetch is rejected.
 
 Adapter accepts direct `/api/workspace/jobs/ID` paths or
-`/api/workspace?route=jobs/ID`. Main owns rewrites. A Web Request core is exported
+`/api/workspace?route=jobs/ID`. The hosted browser uses the canonical `/api/workspace?route=...` entry so Vercel original-path rewrite semantics cannot change routing. Direct nested paths remain supported by the local adapter. A Web Request core is exported
 as `createWorkspace({store,env,now,verifyPayment})` for integration/tests; injected
 memory stores and RPC fixtures are explicitly test-only, never production fallback.
 

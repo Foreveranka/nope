@@ -24,10 +24,6 @@
   },
   "rewrites": [
     {
-      "source": "/api/workspace/:route*",
-      "destination": "/api/workspace?route=:route*"
-    },
-    {
       "source": "/api/cloud/:route*",
       "destination": "/api/gateway?route=:route*"
     },

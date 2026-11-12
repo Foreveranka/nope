@@ -33,8 +33,12 @@ function harness({ path = '/customer', identity = session, job = baseJob, local 
     querySelectorAll: () => [...descendants(elements.get('workspace-root')).filter(n => ['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(n.tagName)), elements.get('workspace-logout')] };
   const vault = { buyerPublicKey: async () => ({ kty: 'RSA', n: 'public-only' }), saveJob: async (k, v) => { if (failVault) throw Error('IDB unavailable'); order.push('local:' + k); records.set(k, structuredClone(v)); }, loadJob: async k => records.get(k) || null,
     saveDecoder: async k => { if (failVault) throw Error('no decoder'); order.push('decoder:' + k); decoders.add(k); }, decodeDelivery: async () => { if (!decoded) throw Error('missing decoder'); return decoded; }, decryptQuote: async () => { throw Error('missing buyer key'); }, encryptQuote: async () => ({ wrappedKey: 'opaque', iv: 'opaque', ciphertext: 'opaque' }) };
-  const app = createWorkspace({ document: doc, window: win, storage, vaultFactory: () => vault, fetch: async (url, options) => {
-    calls.push({ url, options, body: options.body ? JSON.parse(options.body) : undefined }); order.push('network:' + options.method + ':' + url);
+  const app = createWorkspace({ document: doc, window: win, storage, vaultFactory: () => vault, fetch: async (wireUrl, options) => {
+    const parsed = new URL(wireUrl, 'http://localhost');
+    assert.equal(parsed.pathname, '/api/workspace'); assert.equal(parsed.searchParams.getAll('route').length, 1);
+    const route = parsed.searchParams.get('route'); parsed.searchParams.delete('route');
+    const url = '/api/workspace/' + route + (parsed.search ? parsed.search : '');
+    calls.push({ url, wireUrl, options, body: options.body ? JSON.parse(options.body) : undefined }); order.push('network:' + options.method + ':' + url);
     const call = calls.at(-1); const result = fetchHook && await fetchHook(call); if (result) return result;
     let body = url.endsWith('/session') ? { session: identity } : url === '/api/workspace/jobs' && options.method === 'GET' ? { jobs: [job] } : { job };
     if (url === '/api/workspace/jobs' && options.method === 'POST') body = { job: { ...job, id: call.body.jobId } };

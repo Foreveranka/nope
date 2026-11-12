@@ -5,6 +5,12 @@ import { createVault, quoteCommitment, randomSalt, parseNearAmount, formatNearAm
 
 export const TOKEN_KEY = 'nope.workspace.session.v1';
 export const PROFILE = 'nope-csv-gc-v1';
+// Use the function's canonical query entry: Vercel preserves original paths on rewrites.
+export function workspaceApiUrl(path) {
+  const url = new URL(path, 'https://workspace.invalid');
+  const query = new URLSearchParams(url.searchParams); query.set('route', url.pathname.slice(1));
+  return '/api/workspace?' + query.toString();
+}
 export const ROUTES = new Set(['/workspace', '/customer', '/provider', '/jobs/new', '/jobs', '/job', '/offer', '/delivery', '/payments', '/activity', '/settings']);
 const HASH = /^[a-f0-9]{64}$/;
 export function routeOf(href, origin = 'http://localhost') {
@@ -81,7 +87,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
   }
   async function api(path, method = 'GET', body) {
     let response;
-    try { response = await fetcher('/api/workspace' + path, { method, credentials: 'same-origin', cache: 'no-store', headers: { ...(state.token ? { Authorization: 'Bearer ' + state.token } : {}), ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) }, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) }); }
+    try { response = await fetcher(workspaceApiUrl(path), { method, credentials: 'same-origin', cache: 'no-store', headers: { ...(state.token ? { Authorization: 'Bearer ' + state.token } : {}), ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) }, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) }); }
     catch { fail('Sunucuya ulaşılamadı. İşlemin durumunu yenileyerek kontrol edin.'); }
     if (!response.ok) {
       if (response.status === 401) { state.token = null; state.session = null; state.vault = null; storage.removeItem(TOKEN_KEY); chrome(); }
