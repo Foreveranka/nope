@@ -1,0 +1,21 @@
+{
+  "network": "testnet",
+  "contractId": "csv-evidence.veil-reg-e138f5c88250f821.testnet",
+  "transactionHash": "AD1ECJ1XseZqL97gAmcFLrP4Q3Qiyz5oCW9QrGJx3t3s",
+  "codeHash": "AtECFAmirREqGi75kDudxHfZ7xj774A8rvpb5ZdkcBAC",
+  "wasmSha256": "92d8b8d1e8554a5aacfc1f0c6b38d82abc593855aa5cf6c3081036c6e8b7fb25",
+  "sizeBytes": 26930,
+  "onchainWasmByteIdentical": true,
+  "ownerRegistryCodeUnchanged": true,
+  "ownerRegistryCodeHash": "5WzwjqPvm3nRz6CEkkx73R8dcBtu3YBH6gr6DnoccSEv",
+  "accessKeys": [],
+  "unrecordedManifestView": null,
+  "finalExecutionStatus": "FINAL",
+  "receiptCount": 2,
+  "verificationRpc": "https://rpc.testnet.near.org",
+  "verificationBlockHash": "AKy7S2dXg5dRY3TM5btq3Qps7Ym8q1VC9fZYF6W7mDZB",
+  "verificationBlockHeight": 277361109,
+  "verifiedAt": "2026-11-12T12:11:51.422Z",
+  "privacyProof": false,
+  "executionProof": false
+}

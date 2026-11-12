@@ -53,3 +53,9 @@
 
 !docs/verification/testnet-public-summary.json
 !docs/verification/privacy-demo-public.json
+
+!api/csv-evidence-config.json
+
+!Start-NOPE.command
+
+!docs/verification/csv-remote-proof.json

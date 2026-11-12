@@ -1,0 +1,15 @@
+{
+  "nearSdk": "5.30.1",
+  "rust": "1.98.0",
+  "command": "RUSTFLAGS='--cfg near' ./cargo-local.sh build --locked --offline --release --target wasm32-unknown-unknown",
+  "wasmSha256": "92d8b8d1e8554a5aacfc1f0c6b38d82abc593855aa5cf6c3081036c6e8b7fb25",
+  "codeHash": "AtECFAmirREqGi75kDudxHfZ7xj774A8rvpb5ZdkcBAC",
+  "sizeBytes": 26930,
+  "sourceSha256": {
+    "src/lib.rs": "e64236005734a3538113eee2d9f17aaf20a31d316f948af791b6cf0601bea9d6",
+    "Cargo.toml": "dfc4138ab7fc08c076346c9644bc7bfd08aca77667e430aa0c90eece4cc23fba",
+    "Cargo.lock": "3f92d1939a8b9f8add4831a24d9d1251b32e1f6ef96298165d76f3d69008260b",
+    "cargo-local.sh": "a8346e69a5c725c40b7cfb24f7906426507182bda217ac998e5da894fd55c024"
+  },
+  "builtAt": "2026-11-12T12:08:51.946Z"
+}

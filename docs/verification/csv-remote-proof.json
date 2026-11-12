@@ -1,0 +1,13 @@
+{
+  "manifestJson": "{\"batches\":[{\"artifactHashes\":{\"clientSpecsSha256\":\"87b1dd33c9db661f215962b975df389c3f4f7b2fb6123fb7721ac985766475f3\",\"evaluationKeysSha256\":\"299e7a7a0170adba486eec138a2626780eb70ac9290b3099699dd0a03920c356\",\"inputSha256\":\"1b989485078f45d7fda8d6a805099fae76a55dfd623ed09d317a98a97922b36e\",\"outputSha256\":\"227270039c1270373207ec53ddf2cbeb6e2e56cfaabbb9ff31089fd119023f73\",\"receiptSha256\":\"e8196184f93de6aa7e54eb74279bddaeac7da4ef8830708b82c0287c4e275f09\",\"requestManifestSha256\":\"430b20caac0673aa55b3c1dca57653f3a49e34ffcdf6ddd22026f7d8d90c54e5\",\"serverSha256\":\"898b318b83ccdfaa3fde53265fcee1ac2e14c6b32b739e80a75d508eb8f154d5\"},\"index\":0}],\"profile\":\"clean-column-batch4-v1\",\"realFhe\":true,\"rowCount\":4,\"schema\":\"nope-csv-evidence-v1\",\"verified\":true}",
+  "manifestSha256": "cf0d710cf0309305d52097d87abd98e47518672528b99aa08dabc5db65bcb4ec",
+  "anchor": {
+    "network": "testnet",
+    "contractId": "csv-evidence.veil-reg-e138f5c88250f821.testnet",
+    "manifestSha256": "cf0d710cf0309305d52097d87abd98e47518672528b99aa08dabc5db65bcb4ec",
+    "transactionHash": "5Fxw6RJBz9aTSo8BXqTYwgn6v3gBH6w1Wzm5B9KztSXU",
+    "codeHash": "AtECFAmirREqGi75kDudxHfZ7xj774A8rvpb5ZdkcBAC"
+  },
+  "scope": "ciphertext-manifest-commitment",
+  "privacyProof": false
+}

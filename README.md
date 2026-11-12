@@ -6,6 +6,16 @@ Uygulama dört sayısal kaydı gerçek Concrete FHE ile işler. Kayıt kimlikler
 
 Marka adı NOPE olarak güncellendi. Mevcut GitHub/Vercel adresleri ve `VEIL_*` yapılandırma adları bağlantı uyumluluğu için korunur. Yeni indirme adı `nope-client.zip`; eski indirme bağlantısı da çalışır.
 
+## CSV dosyasıyla kullanım
+
+[CSV çalışma alanı](https://veil-procurement.vercel.app/csv): dosyayı seç,
+sayısal sütunu belirle, müşteri istemcisinde şifrele, yerel veya yapılandırılmış
+uzak değerlendiricide şifreli temizle, sonucu cihazında çöz ve CSV indir.
+1–32 satır; boş değer →0,100 üstü→100. Diğer sütunlar tarayıcıda korunur.
+Yerel istemci gerektirir. [Kurulum ve kanıt sınırları](docs/CSV-PRIVATE-WORKFLOW.md).
+[Kanıt doğrulama](https://veil-procurement.vercel.app/verify) manifest hash’ini
+kesinleşmiş testnet kaydıyla karşılaştırır; bu genel yürütme/gizlilik ispatı değildir.
+
 ## Tek akışlı Privacy demosu
 
 [Privacy demosu](https://veil-procurement.vercel.app/privacy) tamamlanmış gerçek

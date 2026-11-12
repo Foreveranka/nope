@@ -1,0 +1,34 @@
+{
+  "rustUnitTests": {
+    "passed": 14,
+    "failed": 0,
+    "coverage": [
+      "owner authorization",
+      "initialization authorization",
+      "initialization once",
+      "append/read",
+      "exact replay preserves timestamp",
+      "replay mismatch",
+      "hash32 length",
+      "lowercase hex",
+      "fixed profile",
+      "count bounds",
+      "batch equals ceil rows divided by four",
+      "strict parser",
+      "unknown plaintext fields",
+      "duplicate fields",
+      "count JSON type"
+    ]
+  },
+  "nodeTests": {
+    "passed": 3,
+    "failed": 0,
+    "coverage": [
+      "strict CLI metadata",
+      "transaction action/deposit cap policy",
+      "journal-before-broadcast and same-hash query after timeout"
+    ]
+  },
+  "liveManifestAnchoredByWorker": false,
+  "actualIntegrationManifest": "main-owned; intentionally not substituted"
+}

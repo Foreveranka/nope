@@ -10,6 +10,10 @@
     },
     "api/procurement.mjs": {
       "maxDuration": 60
+    },
+    "api/csv-evidence.mjs": {
+      "maxDuration": 30,
+      "includeFiles": "api/csv-evidence-config.json"
     }
   },
   "rewrites": [

@@ -18,6 +18,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from .demo import DemoRuns, DemoBusy
 from .privacy_demo import PrivacyDemoRuns
+from .csv_jobs import CsvJobs, CsvJobsError
+from .csv_evidence import CsvEvidence
 from .remote import RemoteClient
 from .procurement_proxy import ProcurementProxy, ProxyError
 
@@ -37,6 +39,13 @@ STAGES = {
 }
 ORDER = {stage: index for index, stage in enumerate(STAGES)}
 STATIC = {
+    "/verify": ("verify.html", "text/html; charset=utf-8"),
+    "/verify.js": ("verify.js", "text/javascript; charset=utf-8"),
+    "/try.css": ("try.css", "text/css; charset=utf-8"),
+    "/csv": ("csv.html", "text/html; charset=utf-8"),
+    "/csv.js": ("csv.js", "text/javascript; charset=utf-8"),
+    "/csv.css": ("csv.css", "text/css; charset=utf-8"),
+    "/csv-input.mjs": ("csv-input.mjs", "text/javascript; charset=utf-8"),
     "/privacy": ("privacy.html", "text/html; charset=utf-8"),
     "/privacy.js": ("privacy.js", "text/javascript; charset=utf-8"),
     "/privacy.css": ("privacy.css", "text/css; charset=utf-8"),
@@ -319,6 +328,8 @@ class CompanionServer(ThreadingHTTPServer):
 
     def __init__(self, address, state):
         self.state = state
+        self.csv_jobs = CsvJobs(state.runtime_dir, pipeline=state.pipeline, remote_client=state.remote_client)
+        self.csv_evidence = CsvEvidence(self.csv_jobs, enabled=os.environ.get("NOPE_ENABLE_CSV_ANCHOR")=="1" and state.pipeline is None)
         self.procurement_proxy = ProcurementProxy()
         self.procurement_mount = None
         self.procurement_lock = threading.Lock()
@@ -338,6 +349,7 @@ class CompanionServer(ThreadingHTTPServer):
         super().server_close()
         self.demo.close()
         self.privacy_demo.close()
+        self.csv_jobs.close()
         if self.procurement_mount is not None:
             self.procurement_mount.close()
         self.state.close()
@@ -373,7 +385,7 @@ class CompanionHandler(BaseHTTPRequestHandler):
             # Permit only HTML document navigation, never iframe/embed, assets,
             # sensitive API reads, or requests carrying a foreign Origin.
             public_navigation = (
-                self.command in ("GET", "HEAD") and path in ("/", "/app", "/demo", "/privacy", "/market")
+                self.command in ("GET", "HEAD") and path in ("/", "/csv", "/app", "/demo", "/privacy", "/market")
                 and site in ("cross-site", "same-site")
                 and self._header("Sec-Fetch-Mode") == "navigate"
                 and self._header("Sec-Fetch-Dest") == "document"
@@ -452,6 +464,57 @@ class CompanionHandler(BaseHTTPRequestHandler):
             self._check_origin(path, mutation=self.command not in ("GET", "HEAD"))
             if self._header("Expect") is not None:
                 raise RequestError(417, "Expect is not supported.")
+            if path == "/api/csv-evidence" and self.command == "GET":
+                from urllib.parse import parse_qs
+                from urllib.request import urlopen
+                query=parse_qs(urlsplit(self.path).query, keep_blank_values=True)
+                if set(query)!={"hash"} or len(query["hash"])!=1 or not re.fullmatch(r"[0-9a-f]{64}",query["hash"][0]):
+                    raise RequestError(400,"One SHA-256 hash required.")
+                try:
+                    with urlopen("https://veil-procurement.vercel.app/api/csv-evidence?hash="+query["hash"][0],timeout=20) as response:
+                        raw=response.read(16385)
+                    if len(raw)>16384:raise ValueError()
+                    self._json(200,json.loads(raw))
+                except Exception:
+                    raise RequestError(503,"Testnet verification unavailable.")
+                return
+            if path == "/api/csv/jobs" and self.command == "POST":
+                payload = self._body()
+                if type(payload) is not dict or set(payload) != {"values", "mode"}:
+                    raise RequestError(400, "Expected only values and mode.")
+                try:
+                    self._json(201, self.server.csv_jobs.start(payload["values"], payload["mode"]))
+                except CsvJobsError as exc:
+                    raise RequestError(exc.status, exc.message)
+                except ValueError:
+                    raise RequestError(400, "Invalid CSV column or unavailable evaluation mode.")
+                except RuntimeError:
+                    raise RequestError(409, "CSV worker is busy or session capacity reached.")
+                return
+            proof_match = re.fullmatch(r"/api/csv/jobs/([0-9a-f]{32})/(evidence|anchor)", path)
+            if proof_match:
+                job_id, action = proof_match.groups()
+                try:
+                    if action == "evidence" and self.command == "GET":
+                        self._json(200, self.server.csv_evidence.bundle(job_id))
+                    elif action == "anchor" and self.command == "POST":
+                        if self._body() != {}: raise RequestError(400, "Anchor accepts no user fields.")
+                        self._json(200, self.server.csv_evidence.anchor(job_id))
+                    else: raise RequestError(405, "Method not allowed.")
+                except PermissionError:
+                    raise RequestError(403, "Testnet anchoring is not enabled in this client.")
+                except (ValueError, CsvJobsError):
+                    raise RequestError(409, "Verified ciphertext evidence is not available.")
+                return
+            if path.startswith("/api/csv/jobs/") and self.command == "GET":
+                job_id = path.rsplit("/", 1)[-1]
+                if not re.fullmatch(r"[0-9a-f]{32}", job_id):
+                    raise RequestError(404, "CSV job not found.")
+                try:
+                    self._json(200, self.server.csv_jobs.snapshot(job_id))
+                except (KeyError, CsvJobsError):
+                    raise RequestError(404, "CSV job not found.")
+                return
             if path.startswith("/api/private-procurement/") and self.command == "POST":
                 from .procurement_mount import ProcurementMount
                 from .procurement_client import ProcurementClientError
@@ -479,7 +542,7 @@ class CompanionHandler(BaseHTTPRequestHandler):
                 if path == "/health":
                     self._json(200, {"ok": True})
                 elif path == "/api/capabilities":
-                    self._json(200, self.server.state.capabilities())
+                    self._json(200, dict(self.server.state.capabilities(), csvAnchorEnabled=self.server.csv_evidence.enabled))
                 elif path == "/api/jobs":
                     self._json(200, {"jobs": self.server.state.list_jobs()})
                 elif path == "/api/privacy-demo":

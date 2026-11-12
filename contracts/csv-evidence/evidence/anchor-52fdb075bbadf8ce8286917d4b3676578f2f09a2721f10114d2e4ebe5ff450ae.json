@@ -1,0 +1,20 @@
+{
+  "network": "testnet",
+  "contractId": "csv-evidence.veil-reg-e138f5c88250f821.testnet",
+  "manifestSha256": "52fdb075bbadf8ce8286917d4b3676578f2f09a2721f10114d2e4ebe5ff450ae",
+  "transactionHash": "EUgxrpMXDhCnuRfD55njSW9vb8aMLidT3Qc4g3hCpDUr",
+  "codeHash": "AtECFAmirREqGi75kDudxHfZ7xj774A8rvpb5ZdkcBAC",
+  "manifest_hash": "52fdb075bbadf8ce8286917d4b3676578f2f09a2721f10114d2e4ebe5ff450ae",
+  "profile": "nope-csv-evidence-v1",
+  "row_count": 4,
+  "batch_count": 1,
+  "recorded_at": "1794485678369544361",
+  "owner": "veil-reg-e138f5c88250f821.testnet",
+  "idempotent": false,
+  "broadcastPerformed": true,
+  "verificationRpc": "https://rpc.testnet.near.org",
+  "verificationBlockHash": "ETTwEVAdbQ6DTKuy7yk7qpyeh6quUXiCCiAfNpaacwY",
+  "verificationBlockHeight": 277361445,
+  "privacyProof": false,
+  "executionProof": false
+}
