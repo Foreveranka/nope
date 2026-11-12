@@ -34,7 +34,7 @@ try {
  if(value.run?.status!=='completed'||value.run?.result?.network!=='testnet'||value.run?.result?.payment?.verified!==true||value.run?.result?.synthetic_only!==true||value.run?.result?.independent_operators!==false||value.run?.result?.execution_proof!==false)throw new Error('Invalid full privacy demo evidence');
  await fs.writeFile(path.join(target,'privacy-evidence.json'),raw);
 }catch(error){if(error.code!=='ENOENT')throw error;}
-await fs.copyFile(path.join(root,'docs/verification/csv-remote-proof.json'),path.join(target,'csv-proof.json'));
+await fs.copyFile(path.join(root,'docs/verification/csv-browser-proof.json'),path.join(target,'csv-proof.json'));
 await fs.writeFile(path.join(target, 'deployment.json'), JSON.stringify({ mode: 'hosted-evidence', summaryUrl: '/demo-evidence.json' }));
 execFileSync('python3', [path.join(root,'scripts/package-client.py'), path.join(target,'nope-client.zip')], {stdio:'inherit'});
 // Preserve existing download links while publishing the new brand.
