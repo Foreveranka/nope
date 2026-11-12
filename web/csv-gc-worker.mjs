@@ -1,0 +1,18 @@
+import {createGarbledJob} from './gc-client.mjs';
+import {PROFILE,canonicalRequest,hashRequest,hashOutput,hashProgram,validateOutputLabels,sha256} from './gc-core.mjs';
+let used=false;
+self.onmessage=async event=>{if(used)return;used=true;let job=null;try{const values=event.data?.values;if(!Array.isArray(values)||values.length<1||values.length>32||values.some(v=>!Number.isInteger(v)||v<0||v>255))throw Error();postMessage({type:'stage',stage:'PREPARING'});job=await createGarbledJob(values);postMessage({type:'stage',stage:'PREPARED'});const request=job.request;
+ const inputSha256=await hashRequest(request),programSha256=await hashProgram();
+ postMessage({type:'stage',stage:'EVALUATING'});
+ const r=await fetch('/api/csv-gc',{method:'POST',headers:{'Content-Type':'application/json'},body:canonicalRequest(request),credentials:'omit',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(60000)});
+ if(!r.ok)throw Error('Sunucu şifreli işlemi tamamlayamadı. Biraz sonra tekrar dene.');
+ const raw=await r.text();if(raw.length>32768)throw Error();const reply=JSON.parse(raw);
+ if(reply.profile!==PROFILE||reply.nonce!==request.nonce||reply.rowCount!==request.rowCount||reply.inputSha256!==inputSha256||reply.programSha256!==programSha256)throw Error('Şifreli cevap bu işe ait değil.');
+ validateOutputLabels(reply.outputs,request.rowCount);const outputSha256=await hashOutput(reply.outputs);if(reply.outputSha256!==outputSha256)throw Error('Çıktı özeti eşleşmedi.');
+ postMessage({type:'stage',stage:'VERIFYING'});const output=job.decode(reply.outputs);
+ if(output.some((v,i)=>v!==(values[i]===255?0:Math.min(values[i],100))))throw Error('Çıktı işlem kuralıyla eşleşmedi.');
+ const manifest={schema:'nope-csv-gc-evidence-v1',profile:PROFILE,rowCount:request.rowCount,nonce:request.nonce,inputSha256,outputSha256,programSha256,clientVerified:true,privacyProof:false,executionProof:false};
+ const manifestJson=JSON.stringify(manifest),manifestSha256=await sha256(manifestJson);
+ const bundle={manifestJson,manifestSha256,scope:'ciphertext-manifest-commitment',privacyProof:false,anchor:null,transcript:{request,outputs:reply.outputs}};
+ postMessage({type:'complete',values:output,bundle});
+ }catch(error){postMessage({type:'error',message:typeof error.message==='string'&&error.message.startsWith('Sunucu')?error.message:'Şifreli işlem doğrulanamadı. Sonuç dosyası oluşturulmadı.'});}finally{job=null;}};

@@ -3,9 +3,9 @@ const scene=document.querySelector('.flow-scene');
 const panel=document.querySelector('#flow-description');
 const tabs=[...document.querySelectorAll('[data-flow]')];
 const copy={
- client:['Veriniz önce kendi bilgisayarınızda şifrelenir.','Tarayıcı girdiyi yalnızca yerel Python istemcisine iletir. Açık kayıtlar ve şifre çözme anahtarı buluta yüklenmez.'],
- cipher:['Bulut, açık kayıtlarınızı almaz.','Yürütücü şifreli girdi ve değerlendirme anahtarıyla çalışır. Şifre çözme anahtarı bilgisayarınızda kalır.'],
- result:['Şifreli cevap geri gelir. Açma işi sizdedir.','Yerel istemci sonucu çözer ve beklenen değerlerle karşılaştırır. Örnekte 255 sıfıra dönüşür, 150 değeri 100 ile sınırlanır.']
+ client:['Veriniz önce kendi bilgisayarınızda şifrelenir.','Tarayıcı tek kullanımlık gizli etiketler ve şifreli devre üretir. Açık kayıtlar ve sonuç eşlemesi buluta gönderilmez.'],
+ cipher:['Bulut, açık kayıtlarınızı almaz.','Yürütücü kodlanmış girdiyi ve şifreli devreyi işler. Sonucu anlamlandıran eşleme tarayıcınızda kalır.'],
+ result:['Şifreli cevap geri gelir. Açma işi sizdedir.','Tarayıcı sonucu açar ve kuralla karşılaştırır. Boş değer sıfır, 100 üzeri sayı 100 olur; diğer sütunlar korunur.']
 };
 function activate(tab){
  const stage=tab.dataset.flow;

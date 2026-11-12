@@ -8,13 +8,17 @@ Marka adı NOPE olarak güncellendi. Mevcut GitHub/Vercel adresleri ve `VEIL_*` 
 
 ## CSV dosyasıyla kullanım
 
-[CSV çalışma alanı](https://veil-procurement.vercel.app/csv): dosyayı seç,
-sayısal sütunu belirle, müşteri istemcisinde şifrele, yerel veya yapılandırılmış
-uzak değerlendiricide şifreli temizle, sonucu cihazında çöz ve CSV indir.
-1–32 satır; boş değer →0,100 üstü→100. Diğer sütunlar tarayıcıda korunur.
-Yerel istemci gerektirir. [Kurulum ve kanıt sınırları](docs/CSV-PRIVATE-WORKFLOW.md).
-[Kanıt doğrulama](https://veil-procurement.vercel.app/verify) manifest hash’ini
-kesinleşmiş testnet kaydıyla karşılaştırır; bu genel yürütme/gizlilik ispatı değildir.
+[CSV çalışma alanı](https://veil-procurement.vercel.app/csv) kurulum veya davet
+kodu istemeden tarayıcıda gizli etiketler üretir; Vercel şifreli devreyi
+çalıştırır; tarayıcı sonucu açıp CSV indirir. Bu yol **garbled circuits**
+kullanır; Concrete FHE değildir. 1–32 satır; seçilen sayısal sütunda boş→0,
+100 üstü→100; diğer hücreler ve sıra korunur. Tek kullanımlık devre, AES-GCM
+etiketleri ve sonuç eşlemesi istemciye aittir. [Protokol ve sınırlar](docs/BROWSER-CSV-GC.md).
+
+[Kanıt doğrulama](https://veil-procurement.vercel.app/verify) şifreli devreyi
+tekrar çalıştırabilir ve ayrı testnet kaydı varsa manifest hash'ini karşılaştırır.
+ZK veya genel gizlilik ispatı değildir. Eski Concrete yolu isteğe bağlı müşteri
+istemcisinin `/csv-local` sayfasında korunur.
 
 ## Tek akışlı Privacy demosu
 

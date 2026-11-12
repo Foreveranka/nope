@@ -39,10 +39,16 @@ STAGES = {
 }
 ORDER = {stage: index for index, stage in enumerate(STAGES)}
 STATIC = {
+    "/gc-verify-worker.mjs": ("gc-verify-worker.mjs", "text/javascript; charset=utf-8"),
+    "/csv-local": ("csv-local.html", "text/html; charset=utf-8"),
+    "/csv-browser.js": ("csv-browser.js", "text/javascript; charset=utf-8"),
+    "/csv-gc-worker.mjs": ("csv-gc-worker.mjs", "text/javascript; charset=utf-8"),
+    "/gc-core.mjs": ("gc-core.mjs", "text/javascript; charset=utf-8"),
+    "/gc-client.mjs": ("gc-client.mjs", "text/javascript; charset=utf-8"),
     "/verify": ("verify.html", "text/html; charset=utf-8"),
     "/verify.js": ("verify.js", "text/javascript; charset=utf-8"),
     "/try.css": ("try.css", "text/css; charset=utf-8"),
-    "/csv": ("csv.html", "text/html; charset=utf-8"),
+    "/csv": ("csv-local.html", "text/html; charset=utf-8"),
     "/csv.js": ("csv.js", "text/javascript; charset=utf-8"),
     "/csv.css": ("csv.css", "text/css; charset=utf-8"),
     "/csv-input.mjs": ("csv-input.mjs", "text/javascript; charset=utf-8"),
@@ -66,7 +72,7 @@ STATIC = {
 CSP = (
     "default-src 'none'; script-src 'self'; style-src 'self'; "
     "img-src 'self'; font-src 'self'; connect-src 'self'; "
-    "base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'"
+    "base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; worker-src 'self'"
 )
 JOB_PATH = re.compile(r"/api/jobs/([0-9a-f]{32})\Z")
 
@@ -385,7 +391,7 @@ class CompanionHandler(BaseHTTPRequestHandler):
             # Permit only HTML document navigation, never iframe/embed, assets,
             # sensitive API reads, or requests carrying a foreign Origin.
             public_navigation = (
-                self.command in ("GET", "HEAD") and path in ("/", "/csv", "/app", "/demo", "/privacy", "/market")
+                self.command in ("GET", "HEAD") and path in ("/", "/csv", "/csv-local", "/app", "/demo", "/privacy", "/market")
                 and site in ("cross-site", "same-site")
                 and self._header("Sec-Fetch-Mode") == "navigate"
                 and self._header("Sec-Fetch-Dest") == "document"

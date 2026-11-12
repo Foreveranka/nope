@@ -6,7 +6,7 @@ from pathlib import Path
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-WEB=['verify.html','verify.js','try.css','csv.html','csv.js','csv.css','csv-input.mjs','privacy.html','privacy.js','privacy.css','market.html','market.js','market.css','sealed.mjs','index.html','app.html','demo.html','styles.css','landing.js','app.js','input.mjs','demo.js','deployment.mjs']
+WEB=['gc-verify-worker.mjs','csv-local.html','csv-browser.js','csv-gc-worker.mjs','gc-core.mjs','gc-client.mjs','verify.html','verify.js','try.css','csv.html','csv.js','csv.css','csv-input.mjs','privacy.html','privacy.js','privacy.css','market.html','market.js','market.css','sealed.mjs','index.html','app.html','demo.html','styles.css','landing.js','app.js','input.mjs','demo.js','deployment.mjs']
 
 def package(destination):
     files=[ROOT/'Start-NOPE.command',ROOT/'install-client.sh',ROOT/'scripts/client-launch.py']

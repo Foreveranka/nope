@@ -36,7 +36,7 @@ def main():
     sys.path.insert(0,str(ROOT))
     from service.server import create_server
     server=create_server(port=args.port,runtime_dir=ROOT/'runtime')
-    entry=server.origin+('/market' if args.market else '/csv')
+    entry=server.origin+('/market' if args.market else '/csv-local')
     print('NOPE companion: '+entry,flush=True)
     print('Your input and decryption key remain on this computer. Keep this window open.',flush=True)
     if not args.no_browser: webbrowser.open(entry)
