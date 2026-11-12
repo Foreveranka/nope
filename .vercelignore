@@ -61,3 +61,6 @@
 !docs/verification/csv-remote-proof.json
 
 !docs/verification/csv-browser-proof.json
+
+!workspace
+!workspace/**

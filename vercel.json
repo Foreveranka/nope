@@ -17,9 +17,16 @@
     },
     "api/csv-gc.mjs": {
       "maxDuration": 60
+    },
+    "api/workspace.mjs": {
+      "maxDuration": 60
     }
   },
   "rewrites": [
+    {
+      "source": "/api/workspace/:route*",
+      "destination": "/api/workspace?route=:route*"
+    },
     {
       "source": "/api/cloud/:route*",
       "destination": "/api/gateway?route=:route*"
@@ -27,6 +34,46 @@
     {
       "source": "/api/procurement/:route*",
       "destination": "/api/procurement?route=:route*"
+    },
+    {
+      "source": "/customer",
+      "destination": "/workspace.html"
+    },
+    {
+      "source": "/provider",
+      "destination": "/workspace.html"
+    },
+    {
+      "source": "/jobs",
+      "destination": "/workspace.html"
+    },
+    {
+      "source": "/jobs/new",
+      "destination": "/workspace.html"
+    },
+    {
+      "source": "/job",
+      "destination": "/workspace.html"
+    },
+    {
+      "source": "/offer",
+      "destination": "/workspace.html"
+    },
+    {
+      "source": "/delivery",
+      "destination": "/workspace.html"
+    },
+    {
+      "source": "/payments",
+      "destination": "/workspace.html"
+    },
+    {
+      "source": "/activity",
+      "destination": "/workspace.html"
+    },
+    {
+      "source": "/settings",
+      "destination": "/workspace.html"
     }
   ],
   "cleanUrls": true,

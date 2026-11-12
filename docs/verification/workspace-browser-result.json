@@ -1,0 +1,42 @@
+{
+  "network": "testnet",
+  "syntheticOnly": true,
+  "jobId": "460879637e5f3fc5287cb2ac0c45be69",
+  "environment": "localhost UI with real private Vercel Blob and real GC evaluator",
+  "checks": {
+    "nativeIndexedDBReload": true,
+    "buyerPublish": true,
+    "providerEncryptedQuote": true,
+    "buyerCloseAndLocalQuoteDecrypt": true,
+    "buyerAward": true,
+    "selectedProviderActualGC": true,
+    "buyerReloadDecodeAndBeforeAfterTable": true,
+    "buyerAcceptanceExactDelivery": true
+  },
+  "rows": 4,
+  "changedRows": 2,
+  "decodedOutput": [
+    0,
+    100,
+    42,
+    5
+  ],
+  "inputSha256": "b0fa56ae65a08de35e2adfbb1844b0dee1770a57ab3a3520c958efc2f26c3c18",
+  "outputSha256": "0a40b534ae77e6b6e9fddea8f7db30b4fbff9691b560c506b9a9e8aab4e8fb26",
+  "payment": {
+    "kind": "DIRECT_TESTNET_TRANSFER",
+    "transactionHash": "A44ZsfRbsyUfaYmyNDhcc27jTaiLH5v9r9txwzjvZ4kq",
+    "amountYocto": "1000000000000000000000",
+    "buyerAccount": "veil-reg-e138f5c88250f821.testnet",
+    "receiverId": "p2.veil-reg-e138f5c88250f821.testnet",
+    "actualTransferFinal": true,
+    "applicationReceiptVerification": "PAID observed in actual buyer UI"
+  },
+  "limits": [
+    "guest identity not wallet ownership proof",
+    "manual sealed-to-buyer offers not MPC auction",
+    "bounded numeric GC profile not arbitrary AI",
+    "testnet direct transfer not escrow/mainnet",
+    "local honest-browser key vault not independent security audit"
+  ]
+}
