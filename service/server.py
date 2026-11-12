@@ -17,6 +17,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from .demo import DemoRuns, DemoBusy
 from .remote import RemoteClient
+from .procurement_proxy import ProcurementProxy, ProxyError
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -34,6 +35,10 @@ STAGES = {
 }
 ORDER = {stage: index for index, stage in enumerate(STAGES)}
 STATIC = {
+    "/market": ("market.html", "text/html; charset=utf-8"),
+    "/market.js": ("market.js", "text/javascript; charset=utf-8"),
+    "/market.css": ("market.css", "text/css; charset=utf-8"),
+    "/sealed.mjs": ("sealed.mjs", "text/javascript; charset=utf-8"),
     "/": ("index.html", "text/html; charset=utf-8"),
     "/app": ("app.html", "text/html; charset=utf-8"),
     "/demo": ("demo.html", "text/html; charset=utf-8"),
@@ -309,6 +314,9 @@ class CompanionServer(ThreadingHTTPServer):
 
     def __init__(self, address, state):
         self.state = state
+        self.procurement_proxy = ProcurementProxy()
+        self.procurement_mount = None
+        self.procurement_lock = threading.Lock()
         super().__init__(address, CompanionHandler)
         self.demo = DemoRuns(state.runtime_dir, enabled=state.pipeline is None and state.remote_client is None)
         self.expected_host = "127.0.0.1:{}".format(self.server_address[1])
@@ -323,6 +331,8 @@ class CompanionServer(ThreadingHTTPServer):
     def server_close(self):
         super().server_close()
         self.demo.close()
+        if self.procurement_mount is not None:
+            self.procurement_mount.close()
         self.state.close()
 
     def handle_error(self, request, client_address):
@@ -435,6 +445,29 @@ class CompanionHandler(BaseHTTPRequestHandler):
             self._check_origin(path, mutation=self.command not in ("GET", "HEAD"))
             if self._header("Expect") is not None:
                 raise RequestError(417, "Expect is not supported.")
+            if path.startswith("/api/private-procurement/") and self.command == "POST":
+                from .procurement_mount import ProcurementMount
+                from .procurement_client import ProcurementClientError
+                from .bid_client import BidClientError
+                try:
+                    with self.server.procurement_lock:
+                        if self.server.procurement_mount is None:
+                            self.server.procurement_mount = ProcurementMount(self.server.state.runtime_dir, self.server.procurement_proxy)
+                    data = self.server.procurement_mount.request(path.rsplit("/", 1)[-1], self._body(), self._header("Authorization"))
+                    self._json(200, data)
+                except (ProcurementClientError, BidClientError) as exc:
+                    self._json(409, {"error": exc.code, "code": exc.code})
+                return
+            if path.startswith("/api/procurement/") and self.command in ("GET", "POST"):
+                try:
+                    status, data = self.server.procurement_proxy.request(
+                        self.command, self.path, self._header("Authorization"),
+                        self._body() if self.command == "POST" else None,
+                        self._header("Idempotency-Key"))
+                    self._json(status, data)
+                except ProxyError:
+                    self._json(503, {"error": "Procurement transport unavailable or request rejected.", "code": "LOCAL_PROXY_REJECTED"})
+                return
             if self.command in ("GET", "HEAD"):
                 if path == "/health":
                     self._json(200, {"ok": True})

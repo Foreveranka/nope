@@ -1,0 +1,238 @@
+{
+  "schema": "veil-local-operator-integration-v1",
+  "runtime": {
+    "chainFinalityVerified": false,
+    "executionProof": false,
+    "independentOperators": false,
+    "manifestHash": "76277b2ccb17e68de942567dc5cba2ea1511e68dcd096fa6d584af4046a8069c",
+    "privateInputs": "centralized-synthetic-only",
+    "registryMetadata": "fabricated-local-fixture",
+    "runtimeIdentity": {
+      "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+      "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+      "sharedLibrarySha256": "dc6cb490c62dfc8f28bf75d7a87d58af124508917ba3192a431945d1566e1cbd",
+      "transportPatchSha256": "b78b781aba98dc632c4af1618e8631cc9684b701bc7c0d7b762e909b3d508f6c",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf"
+    },
+    "runtimeSeconds": 8.440321667000001,
+    "status": "VERIFIED_LOCAL_MPC",
+    "syntheticNativeResult": {
+      "bidsetRoot": "7d92f9bede69d5eb839cf05f39325f67c411a0dd87dbe957965d66745ac91317",
+      "case": "v2-selection",
+      "chainFinalityVerified": false,
+      "circuitSourceHash": "2366fe6cd6a01c7d7eacc37053b05109b1ed9363e17cf889941281decdd8760d",
+      "codecVersion": 2,
+      "compileSeconds": 12.311027084000001,
+      "durableSelectionReplayGuard": false,
+      "independentOperators": false,
+      "jobBindingHash": "a6c8dfa4e37073458b9c563215d41aa121890e360055bd765753b1e5627b16c7",
+      "manifestHash": "76277b2ccb17e68de942567dc5cba2ea1511e68dcd096fa6d584af4046a8069c",
+      "nearBindingVerified": false,
+      "output": {
+        "buyer": [
+          1,
+          2,
+          80,
+          80
+        ],
+        "providers": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            80
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "precommitContext": "a437cf23347ec478f944dd3a71f9afa51a267840e71499c207de78213fb8b6b7",
+      "program": "sealed_v2_76277b2ccb17e68d-sealed_procurement_v2-_Users_mete_near-private-procurement_mpc_runtime_v2-selection-5d772c189882_manifest.json-19400",
+      "registryCodecBindingVerified": true,
+      "runtimeIdentity": {
+        "binarySha256": "a99f6a0a96d9fb6b500703dc14e797fa2286270a861d2bc9dd5d86b5200719e1",
+        "configSha256": "7b613261537214e2ad34af8096dc666b254dfb83a9316d2e973653735a48d406",
+        "sharedLibrarySha256": "dc6cb490c62dfc8f28bf75d7a87d58af124508917ba3192a431945d1566e1cbd",
+        "transportPatchSha256": "b78b781aba98dc632c4af1618e8631cc9684b701bc7c0d7b762e909b3d508f6c",
+        "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf"
+      },
+      "runtimeSeconds": 8.440321667000001,
+      "selectedExecutor": "beta.near",
+      "selectionRound": "947f64303e0a621ed7c99570417d61d0e011582ea9cd38c904e4586021593333",
+      "status": "VERIFIED_LOCAL_MPC",
+      "transportGeneration": "peer-leaf-pin-v1",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf"
+    }
+  },
+  "job": {
+    "id": "7ac75b4e3af81b21de4acdd542993673",
+    "title": "Synthetic operator integration",
+    "profile": "clean-4-records-v1",
+    "buyer": "buyer.near",
+    "roster": [
+      "alpha.near",
+      "beta.near",
+      "gamma.near"
+    ],
+    "bidDeadlineNs": "1794443099613000000",
+    "resultDeadlineNs": "1794446700613000000",
+    "status": "CLOSED",
+    "revision": 5,
+    "createdAt": 1794443098613,
+    "updatedAt": 1794443100613,
+    "ledger": "app",
+    "blockchainBinding": "pending",
+    "intent": {
+      "bidDeadlineNs": "1794443099613000000",
+      "buyer": "buyer.near",
+      "circuitHash": "0202020202020202020202020202020202020202020202020202020202020202",
+      "fixedFee": 0,
+      "inputHash": "0404040404040404040404040404040404040404040404040404040404040404",
+      "intentNonce": "7d0263cb22c529b80901019a84feda1f93bf6c07cd872aab996f26198ac67426",
+      "keyHash": "0303030303030303030303030303030303030303030303030303030303030303",
+      "mpcProgramHash": "2366fe6cd6a01c7d7eacc37053b05109b1ed9363e17cf889941281decdd8760d",
+      "networkDomainHash": "4242424242424242424242424242424242424242424242424242424242424242",
+      "outputPolicyHash": "0505050505050505050505050505050505050505050505050505050505050505",
+      "profile": "sealed-cheapest-3-spdz2k-v2",
+      "qualified": [
+        true,
+        true,
+        true
+      ],
+      "registryAccount": "registry.test.near",
+      "registryExecutor": "executor.near",
+      "resultDeadlineNs": "1794446700613000000",
+      "roster": [
+        "alpha.near",
+        "beta.near",
+        "gamma.near"
+      ],
+      "selectionRound": "947f64303e0a621ed7c99570417d61d0e011582ea9cd38c904e4586021593333",
+      "specHash": "0101010101010101010101010101010101010101010101010101010101010101",
+      "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+      "version": 2
+    },
+    "contextHash": "a437cf23347ec478f944dd3a71f9afa51a267840e71499c207de78213fb8b6b7",
+    "budgetCommitment": "c649d693e11fd94d1ef1024fc994e05f66e44714bb7d6c9928e2c26406561e31",
+    "bids": [
+      {
+        "provider": "alpha.near",
+        "slot": 1,
+        "commitment": "feb8d2bbc131a64e025dbe240e714cdbf4626ff79fcc3b0adf262b4e416adfff"
+      },
+      {
+        "provider": "beta.near",
+        "slot": 2,
+        "commitment": "09d87a5d6077f832f72f1adc5ab64d552db06edfc7d18c37875128016b8f996b"
+      },
+      {
+        "provider": "gamma.near",
+        "slot": 3,
+        "commitment": "124073f870bcf685f409dd5a5763aa77bbc2ffa5d5947b0cec6ba45e3156d816"
+      }
+    ],
+    "closedAt": 1794443100613,
+    "selection": null,
+    "deliveries": [],
+    "decision": null
+  },
+  "committee": {
+    "schema": "veil-selection-committee-v1",
+    "epoch": 1,
+    "notBeforeMs": 1794443121237,
+    "expiresAtMs": 1794443422237,
+    "operation": "local-synthetic",
+    "members": [
+      {
+        "id": "local-p0",
+        "publicKey": "628523e65efd4af6876e5c3940b93d18cccbe4d8f2452414b54a39cce833c57b"
+      },
+      {
+        "id": "local-p1",
+        "publicKey": "36401dbd4fe8451efb4cbbdeb5f5f97222461deb8ac9e1ce4e32da6c336322b3"
+      },
+      {
+        "id": "local-p2",
+        "publicKey": "a4ea9e8e93e3743ad3128f0ef1c869f9bbc8141380a0f9edc6eb532d42594dd5"
+      }
+    ]
+  },
+  "committeeHash": "dfd27ac9cb975a5186a505708ad09708251b5fc9a28a0ca7f73e905527b21340",
+  "evidenceHash": "f33bcedea84992c6f4340f94586a52d667e8adc957c1cdbb22d82b7b4dc26b41",
+  "report": {
+    "payload": {
+      "schema": "veil-selection-report-v1",
+      "kind": "operator-reported-selection",
+      "committeeHash": "dfd27ac9cb975a5186a505708ad09708251b5fc9a28a0ca7f73e905527b21340",
+      "epoch": 1,
+      "operation": "local-synthetic",
+      "jobId": "7ac75b4e3af81b21de4acdd542993673",
+      "closedRevision": 5,
+      "contextHash": "a437cf23347ec478f944dd3a71f9afa51a267840e71499c207de78213fb8b6b7",
+      "selectionRound": "947f64303e0a621ed7c99570417d61d0e011582ea9cd38c904e4586021593333",
+      "buyer": "buyer.near",
+      "roster": [
+        "alpha.near",
+        "beta.near",
+        "gamma.near"
+      ],
+      "commitments": [
+        "c649d693e11fd94d1ef1024fc994e05f66e44714bb7d6c9928e2c26406561e31",
+        "feb8d2bbc131a64e025dbe240e714cdbf4626ff79fcc3b0adf262b4e416adfff",
+        "09d87a5d6077f832f72f1adc5ab64d552db06edfc7d18c37875128016b8f996b",
+        "124073f870bcf685f409dd5a5763aa77bbc2ffa5d5947b0cec6ba45e3156d816"
+      ],
+      "selectedProvider": "beta.near",
+      "issuedAtMs": 1794443122237,
+      "expiresAtMs": 1794443422237
+    },
+    "signatures": [
+      {
+        "operatorId": "local-p0",
+        "signature": "e5660aaf04adeb53185ebfe9fdd63ef7c92ace8568c9fdbdec4ad0e9300b355b734a163e7f927362778c5a166894e3512bc1c0303f7ebcedb00c6c5a2cb0c001"
+      },
+      {
+        "operatorId": "local-p1",
+        "signature": "eaab1bc611e270afdd949066fc3596cd5b8213184b3a38ba4d592d56100d854349ea6f169462882a59a786ae5aaad3e44ef8923f93484c1fa9c616d318541e06"
+      },
+      {
+        "operatorId": "local-p2",
+        "signature": "574b8b4f026ca074e02543052f74a91571b31981be9bc0bb5fa7f127c6e1462fc36c0e08479b57733ba2793ceb1983028c9e7a6c432e9132f15f3a9579599b0e"
+      }
+    ]
+  },
+  "verified": {
+    "provider": "beta.near",
+    "contextHash": "a437cf23347ec478f944dd3a71f9afa51a267840e71499c207de78213fb8b6b7",
+    "evidenceHash": "f33bcedea84992c6f4340f94586a52d667e8adc957c1cdbb22d82b7b4dc26b41",
+    "closedRevision": 5,
+    "commitments": [
+      "c649d693e11fd94d1ef1024fc994e05f66e44714bb7d6c9928e2c26406561e31",
+      "feb8d2bbc131a64e025dbe240e714cdbf4626ff79fcc3b0adf262b4e416adfff",
+      "09d87a5d6077f832f72f1adc5ab64d552db06edfc7d18c37875128016b8f996b",
+      "124073f870bcf685f409dd5a5763aa77bbc2ffa5d5947b0cec6ba45e3156d816"
+    ]
+  },
+  "assurance": {
+    "kind": "operator-reported-selection",
+    "operation": "local-synthetic",
+    "independentOperators": false,
+    "executionProof": false,
+    "chainFinalityVerified": false
+  },
+  "httpIntegration": {
+    "status": "SELECTED",
+    "selection": {
+      "provider": "beta.near",
+      "evidenceHash": "f33bcedea84992c6f4340f94586a52d667e8adc957c1cdbb22d82b7b4dc26b41"
+    },
+    "revision": 6,
+    "storage": "synthetic-in-memory",
+    "admissionClock": "injected-pre-MPC-deadline",
+    "deployed": false
+  }
+}

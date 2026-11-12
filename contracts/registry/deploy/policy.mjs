@@ -5,7 +5,9 @@ import { baseEncode } from 'near-api-js';
 
 export const ROOT = fileURLToPath(new URL('./', import.meta.url));
 export const NETWORK = 'testnet';
-export const RPC = 'https://rpc.testnet.near.org';
+// Official NEAR provider list, verified 12 Nov 2026; no arbitrary endpoint input.
+export const RPC = 'https://test.rpc.fastnear.com';
+export const TESTNET_RPCS = [RPC, 'https://rpc.testnet.near.org'];
 // Official near-cli-rs testnet faucet configuration, checked 2026-11-12.
 export const FAUCET = 'https://helper.nearprotocol.com/account';
 export const DOMAIN = 'veil/registry/network/v1:near:testnet';
@@ -16,7 +18,7 @@ export const domainHash = () => Array.from(Buffer.from(DOMAIN_HEX, 'hex'));
 export const EMPTY_CODE = '11111111111111111111111111111111';
 
 export function requirePolicy(network, rpc) {
-  if (network !== NETWORK || rpc !== RPC) throw new Error('TESTNET_ENDPOINT_REQUIRED');
+  if (network !== NETWORK || !TESTNET_RPCS.includes(rpc)) throw new Error('TESTNET_ENDPOINT_REQUIRED');
 }
 export function accountForPublicKey(publicKey) {
   return `veil-reg-${sha256(publicKey).toString('hex').slice(0, 16)}.testnet`;

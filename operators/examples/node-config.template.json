@@ -1,0 +1,20 @@
+{
+  "schema": "veil-operator-node-v1",
+  "party": 0,
+  "plan": "/etc/veil-operator/approved-plan.json",
+  "plan_sha256": "REPLACE_WITH_INDEPENDENTLY_APPROVED_CANONICAL_PLAN_SHA256",
+  "roster": "/etc/veil-operator/approved-roster.json",
+  "roster_sha256": "REPLACE_WITH_INDEPENDENTLY_APPROVED_CANONICAL_ROSTER_SHA256",
+  "openssl": "/usr/bin/openssl",
+  "signing_key": "/etc/veil-operator/private/receipt.key",
+  "tls_directory": "/etc/veil-operator/tls",
+  "state_directory": "/var/lib/veil-operator",
+  "artifacts": {
+    "source_sha256": "/opt/veil-procurement/mpc/programs/sealed_procurement_v2.mpc",
+    "transport_patch_sha256": "/opt/veil-procurement/mpc/patches/local-transport.patch",
+    "build_recipe_sha256": "/opt/veil-operator-artifacts/approved-build-recipe.json",
+    "binary_sha256": "/opt/veil-operator-artifacts/spdz2k-party.x",
+    "bytecode_sha256": "/opt/veil-operator-artifacts/approved.bc",
+    "schedule_sha256": "/opt/veil-operator-artifacts/approved.sch"
+  }
+}

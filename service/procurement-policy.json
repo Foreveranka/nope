@@ -1,0 +1,7 @@
+{
+  "schema": "nope-output-policy-v1",
+  "profile": "clean-4-records-v1",
+  "verification": "buyer-local-plaintext-reference",
+  "executionProofRequired": false,
+  "automaticAcceptance": false
+}

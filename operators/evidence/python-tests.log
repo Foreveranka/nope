@@ -1,0 +1,46 @@
+test_crashed_signature_is_burned (test_node.NodeTests) ... ok
+test_durable_issue_replay_and_export (test_node.NodeTests) ... ok
+test_expired_receipt_roster_and_future_issue (test_node.NodeTests) ... ok
+test_health_is_loopback_read_only_and_never_mpc_ready (test_node.NodeTests) ... ok
+test_missing_journal_symlink_and_broad_mode_fail_closed (test_node.NodeTests) ... ok
+test_quorum_requires_three_distinct_configured_signers (test_node.NodeTests) ... ok
+test_real_cli_check_admit_and_export (test_node.NodeTests) ... ok
+test_real_preflight_admit_and_health_truth (test_node.NodeTests) ... ok
+test_real_signature_roundtrip_and_tamper_foreign_job_wrong_signer (test_node.NodeTests) ... ok
+test_roster_and_clock_rollback_are_durable (test_node.NodeTests) ... ok
+test_wrong_artifact_signing_key_and_tls_pin_rejected (test_node.NodeTests) ... ok
+test_invalid_selection_context_roster_bidset_and_registry_hashes (test_v2_manifest.SelectionTests) ... ok
+test_no_implicit_mode_or_cross_version_fallback (test_v2_manifest.SelectionTests) ... ok
+test_paired_null_selection_fields_and_legacy_closed_shape (test_v2_manifest.SelectionTests) ... ok
+test_plain_json_execution_hash_is_not_the_v2_digest (test_v2_manifest.SelectionTests) ... ok
+test_upstream_rejection_never_falls_back_to_legacy_checks (test_v2_manifest.SelectionTests) ... ok
+test_v2_build_source_must_equal_intent_and_execution_build (test_v2_manifest.SelectionTests) ... ok
+test_v2_cli_is_always_a_deployment_gate (test_v2_manifest.SelectionTests) ... ok
+test_v2_performs_no_dns_or_socket_access (test_v2_manifest.SelectionTests) ... ok
+test_v2_uses_authoritative_validation_and_domain_tagged_digest (test_v2_manifest.SelectionTests) ... ok
+test_build_endpoint_and_certificate_substitution_fail_external_pin (test_validate_manifest.ManifestTests) ... ok
+test_canonical_digest_ignores_whitespace_and_key_order (test_validate_manifest.ManifestTests) ... ok
+test_cli_default_blocks_and_structure_only_is_explicit (test_validate_manifest.ManifestTests) ... ok
+test_cli_failures_are_nonzero_and_never_echo_input (test_validate_manifest.ManifestTests) ... ok
+test_coherent_context_substitution_still_fails_external_pin (test_validate_manifest.ManifestTests) ... ok
+test_digest_is_required_and_canonical (test_validate_manifest.ManifestTests) ... ok
+test_duplicate_operator_identities_admins_hosts_and_certificates (test_validate_manifest.ManifestTests) ... ok
+test_endpoint_ambiguities_and_local_addresses_rejected (test_validate_manifest.ManifestTests) ... ok
+test_exact_schemas_reject_unknown_and_missing_fields (test_validate_manifest.ManifestTests) ... ok
+test_execution_digest_mismatch_and_commitment_order (test_validate_manifest.ManifestTests) ... ok
+test_hashes_are_strict_not_just_length_checked (test_validate_manifest.ManifestTests) ... ok
+test_identity_aliases_rejected (test_validate_manifest.ManifestTests) ... ok
+test_json_duplicates_nonfinite_encoding_size_and_depth (test_validate_manifest.ManifestTests) ... ok
+test_ports_are_integers_with_no_local_collision (test_validate_manifest.ManifestTests) ... ok
+test_private_network_and_ipv6_plans_can_be_declared_without_dialing (test_validate_manifest.ManifestTests) ... ok
+test_qualification_and_fee_boundaries (test_validate_manifest.ManifestTests) ... ok
+test_three_ordered_parties_only (test_validate_manifest.ManifestTests) ... ok
+test_unsupported_versions_and_profiles (test_validate_manifest.ManifestTests) ... ok
+test_valid_plan_is_pinned_but_always_blocked (test_validate_manifest.ManifestTests) ... ok
+test_validation_has_no_network_or_subprocess_effects (test_validate_manifest.ManifestTests) ... ok
+test_wrong_container_types_fail_cleanly (test_validate_manifest.ManifestTests) ... ok
+
+----------------------------------------------------------------------
+Ran 41 tests in 2.951s
+
+OK

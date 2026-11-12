@@ -6,15 +6,17 @@ from pathlib import Path
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-WEB=['index.html','app.html','demo.html','styles.css','landing.js','app.js','input.mjs','demo.js','deployment.mjs']
+WEB=['market.html','market.js','market.css','sealed.mjs','index.html','app.html','demo.html','styles.css','landing.js','app.js','input.mjs','demo.js','deployment.mjs']
 
 def package(destination):
     files=[ROOT/'install-client.sh',ROOT/'scripts/client-launch.py']
-    for directory in ['engine','engine/portable','service']:
+    for directory in ['engine','engine/portable','service','sdk']:
         files+=sorted((ROOT/directory).glob('*.py'))
     for directory in ['engine/artifacts','engine/artifacts/portable-clean4-v1']:
         files += [ROOT/directory/name for name in ['server.zip','client-specs.json']]
     files += [ROOT/'web'/name for name in WEB]
+    files += [ROOT/'service'/name for name in ['procurement-config.json','procurement-policy.json']]
+    files += [ROOT/'mpc'/name for name in ['v2.py','auction.py','sealed_client.py','network_profile.py','programs/sealed_procurement_v2.mpc','programs/sealed_procurement.mpc']]
     manifest={}; contents={}
     for file in files:
         if file.is_symlink() or not file.is_file() or file.stat().st_size>2097152:

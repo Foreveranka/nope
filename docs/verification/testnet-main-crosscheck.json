@@ -1,0 +1,11 @@
+{
+  "network": "testnet",
+  "jobId": "3",
+  "finalViewMatches": true,
+  "ciphertextFileHashMatches": true,
+  "acceptanceTransactionFinal": true,
+  "outputSha256": "cc9e25de8a2f1dfa8f422bbf4fecf28f33c6ae1e4dd2d750f0600dd7287f1de7",
+  "viewBlock": "GruU3FTtkFSqUSY13YXxvPB1D7MnaC355doD55D464Uj",
+  "transaction": "GFwSeVRpefE4vqB6bT5mHuCKQnd32j1foV7aMNiXd6Yr",
+  "verifiedAt": "2026-11-12T00:43:45.066Z"
+}

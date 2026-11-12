@@ -19,6 +19,8 @@ const good = hash => ({ final_execution_status: 'FINAL', status: { SuccessValue:
 
 test('exact testnet endpoint policy rejects mainnet, alternate origins, redirects and credentials', () => {
   requirePolicy(NETWORK, RPC);
+  assert.equal(RPC,'https://test.rpc.fastnear.com');
+  requirePolicy(NETWORK,'https://rpc.testnet.near.org');
   for (const [network, rpc] of [['mainnet', RPC], ['testnet', 'https://rpc.mainnet.near.org'],
     ['testnet', RPC + '/'], ['testnet', RPC + '.evil'], ['testnet', 'http://rpc.testnet.near.org'],
     ['testnet', 'https://user@rpc.testnet.near.org']]) assert.throws(() => requirePolicy(network, rpc));

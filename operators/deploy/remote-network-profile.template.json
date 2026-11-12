@@ -1,0 +1,33 @@
+{
+  "schema": "veil-mpc-network-profile-v1",
+  "transport": "remote-mtls-ipv4-v1",
+  "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+  "epoch": 1,
+  "not_before": 0,
+  "expires_at": 0,
+  "selection_manifest_sha256": "REPLACE_WITH_APPROVED_V2_DOMAIN_TAGGED_SELECTION_DIGEST",
+  "registry_job_id": "REPLACE_WITH_FROZEN_REGISTRY_JOB_ID",
+  "job_binding_hash": "REPLACE_WITH_FROZEN_REGISTRY_JOB_BINDING_HASH",
+  "selection_round": "REPLACE_WITH_PRECOMMITTED_SELECTION_ROUND",
+  "trust_anchor_sha256": "REPLACE_WITH_CA_DER_SHA256",
+  "parties": [
+    {"party": 0, "address": "10.80.0.11", "peer_port": 17500, "client_port": 17400, "tls_name": "P0", "certificate_sha256": "REPLACE_WITH_P0_DER_SHA256"},
+    {"party": 1, "address": "10.80.0.12", "peer_port": 17501, "client_port": 17401, "tls_name": "P1", "certificate_sha256": "REPLACE_WITH_P1_DER_SHA256"},
+    {"party": 2, "address": "10.80.0.13", "peer_port": 17502, "client_port": 17402, "tls_name": "P2", "certificate_sha256": "REPLACE_WITH_P2_DER_SHA256"}
+  ],
+  "clients": [
+    {"client": 0, "tls_name": "C0", "certificate_sha256": "REPLACE_WITH_C0_DER_SHA256"},
+    {"client": 1, "tls_name": "C1", "certificate_sha256": "REPLACE_WITH_C1_DER_SHA256"},
+    {"client": 2, "tls_name": "C2", "certificate_sha256": "REPLACE_WITH_C2_DER_SHA256"},
+    {"client": 3, "tls_name": "C3", "certificate_sha256": "REPLACE_WITH_C3_DER_SHA256"}
+  ],
+  "program": {
+    "name": "sealed_v2_REPLACE_WITH_FIRST_16_OF_SELECTION_DIGEST",
+    "source_sha256": "REPLACE_WITH_APPROVED_V2_PROGRAM_SOURCE_HASH",
+    "transport_patch_sha256": "REPLACE_AFTER_REMOTE_PATCH_REVIEW_AND_BUILD",
+    "build_recipe_sha256": "REPLACE_WITH_APPROVED_BUILD_RECIPE_HASH",
+    "binary_sha256": "REPLACE_WITH_REMOTE_CAPABLE_BINARY_HASH",
+    "bytecode_sha256": "REPLACE_WITH_SELECTION_SPECIALIZED_BYTECODE_HASH",
+    "schedule_sha256": "REPLACE_WITH_SELECTION_SPECIALIZED_SCHEDULE_HASH"
+  }
+}

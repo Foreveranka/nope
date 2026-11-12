@@ -1,0 +1,22 @@
+✔ optional Blob transport uses fixed content-addressed private immutable paths (3.646083ms)
+✔ bounded Blob read cancels oversized streams and rejects unavailable storage (0.323916ms)
+✔ 3/3 configured signatures bind exact provider without claiming independence or proof (8.862417ms)
+✔ arbitrary signer, wrong key, duplicate member, partial quorum and signature tamper fail (6.457292ms)
+✔ legitimate signatures for a foreign app job, context, frozen commitment, round or provider fail (15.5125ms)
+✔ changing selected provider without new member signatures fails (1.167333ms)
+✔ expired roster, expired receipt, future issue and same epoch foreign committee fail (1.343458ms)
+✔ storage latency cannot extend an expired receipt or roster (0.960834ms)
+✔ missing slots, reorder, wrong context, nonclosed job and post-selection replay fail (9.483917ms)
+✔ local-synthetic committee requires explicit server opt-in (1.556667ms)
+✔ hash substitution, noncanonical/duplicate JSON and unsupported proof claims fail (1.255666ms)
+✔ configured committee cannot be replaced by mutating the original object (1.65625ms)
+✔ durable signing reservation rejects repeat and conflicting selected provider across restart (36.305125ms)
+✔ real procurement HTTP handler accepts exact signed frozen result and blocks new-key replay (42.117ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 263.34825

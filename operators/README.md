@@ -1,7 +1,16 @@
-# Offline operator deployment gate
+# Operator controls and deployment gate
 
-This directory validates a **public plan for future separate hosts**. It does
-not deploy or launch anything. Current MPC transport is loopback-only. A valid
+The original offline plan validator below is unchanged. Runnable host-local
+identity/admission/journal/health software and the procurement selection bridge
+are now in [NODE.md](NODE.md). `node operators/local-integration.mjs` executes
+the real existing local native MPC and a signed selection adapter; this is a
+centralized synthetic integration, not external or independent operation.
+Remote MPC launch remains blocked by the existing loopback transport.
+
+## Offline validator (existing interface)
+
+The offline validator validates a **public plan for future separate hosts**. It
+does not deploy or launch anything. Current MPC transport is loopback-only. A valid
 plan always returns `deployment_allowed: false`; administrative independence
 cannot be proved from names, addresses, labels or certificate hashes.
 

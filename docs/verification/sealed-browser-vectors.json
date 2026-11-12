@@ -1,0 +1,37 @@
+[
+  {
+    "contextHash": "abababababababababababababababababababababababababababababababab",
+    "slot": 0,
+    "amount": "0",
+    "salt": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+    "commitment": "a6a27d54983083966d5f431a3e03bb3cf464b47377c9a229e8acc378ce6dcbb1"
+  },
+  {
+    "contextHash": "abababababababababababababababababababababababababababababababab",
+    "slot": 0,
+    "amount": "100000000",
+    "salt": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+    "commitment": "35a2bbe7fd4123a027cdf72a44fbc2a5f41e7b6068af1be414368e8e6807fd8e"
+  },
+  {
+    "contextHash": "abababababababababababababababababababababababababababababababab",
+    "slot": 1,
+    "amount": "1",
+    "salt": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+    "commitment": "c666530d9061bdf27bd27e21b4ce71aa4d4d472331a6240f644394d5f51eaa68"
+  },
+  {
+    "contextHash": "abababababababababababababababababababababababababababababababab",
+    "slot": 2,
+    "amount": "80000000",
+    "salt": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+    "commitment": "fbdd51c9c0f325877c2720b4146682c7487a35d3661969825a677a887bf6e784"
+  },
+  {
+    "contextHash": "abababababababababababababababababababababababababababababababab",
+    "slot": 3,
+    "amount": "1000000000000",
+    "salt": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+    "commitment": "b3b54567e545b10eff9ec6479b1259404f729ec5ca1cb380656bee8148e623de"
+  }
+]

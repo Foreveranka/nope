@@ -1,0 +1,17 @@
+{
+  "realFhePreparation": true,
+  "fabricatedPublicDraft": true,
+  "networkRequests": false,
+  "blockchainPublication": false,
+  "mpcSelection": false,
+  "payment": false,
+  "elapsedSeconds": 3.879,
+  "contextHash": "ae75e3da321f8a4a71b2d7e8677c7433cb4b7c00c2d8327251130a39539688e4",
+  "artifactHashes": {
+    "serverSha256": "898b318b83ccdfaa3fde53265fcee1ac2e14c6b32b739e80a75d508eb8f154d5",
+    "clientSpecsSha256": "87b1dd33c9db661f215962b975df389c3f4f7b2fb6123fb7721ac985766475f3",
+    "inputSha256": "a95b228788d416190bb517091d2f6610864e0e95c8ef89e343514f44c86a59e8",
+    "evaluationKeysSha256": "20044619dc6ed0a1e8f31f25ae6c4a5b30b53cdeb96cf55a7e1c730e3bb09cd0"
+  },
+  "publishPayloadSha256": "2f659ec59667fd80b334c847becc6e08b16f0fe4a6ebf6e5c951f0baf659bd9d"
+}

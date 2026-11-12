@@ -1,0 +1,9 @@
+{
+  "registry_account": "veil-reg-e138f5c88250f821.testnet",
+  "network_domain_hash": "b913ada2cc6f5e0f14bc58b1515dc858d28730f9fbccc078dc74ef98df6ffb9d",
+  "registry_executor": "veil-reg-e138f5c88250f821.testnet",
+  "output_policy_hash": "3b0cce04da3b8eeb791fd58167a59820620dd079705b1b9ed4f4334676b7a46f",
+  "mpc_program_hash": "2366fe6cd6a01c7d7eacc37053b05109b1ed9363e17cf889941281decdd8760d",
+  "upstream": "cd4d517a8a37b266d7233ae412717ca181cec6bf",
+  "artifact_set": "portable-v1"
+}

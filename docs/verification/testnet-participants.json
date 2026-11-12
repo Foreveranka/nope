@@ -1,0 +1,28 @@
+{
+  "network": "testnet",
+  "synthetic": true,
+  "independentAdministrators": false,
+  "participants": [
+    {
+      "accountId": "p1.veil-reg-e138f5c88250f821.testnet",
+      "publicKey": "ed25519:8j3iYCBcsE16o8QTrVtdYMKmr2yXXhwExQxpF2fufrsY",
+      "network": "testnet",
+      "transactionHash": "8c11EYfyF4dqZvZhy1NuxK3d8tYkqVG3dKQHTmxP3zfy",
+      "keyFile": "/Users/mete/near-private-procurement/contracts/registry/deploy/runtime/near-testnet/procurement-participants/p1.json"
+    },
+    {
+      "accountId": "p2.veil-reg-e138f5c88250f821.testnet",
+      "publicKey": "ed25519:GCf2EK78tFvfnHzBEKtnhrihG45LfcGX9dX6A2ZJ7Yat",
+      "network": "testnet",
+      "transactionHash": "BWt94ksVmzCJ5SXD2nqynEYWkEiCwKXYTavjmqyf81Zc",
+      "keyFile": "/Users/mete/near-private-procurement/contracts/registry/deploy/runtime/near-testnet/procurement-participants/p2.json"
+    },
+    {
+      "accountId": "p3.veil-reg-e138f5c88250f821.testnet",
+      "publicKey": "ed25519:3NEudmzKmAMK1xGtNZNAruFZnHDjnbNVqqNFuwv2picY",
+      "network": "testnet",
+      "transactionHash": "4Q5k8Ao1XjGw1FT6um4WexL2ue13xmN5itxMSaiu1ZCW",
+      "keyFile": "/Users/mete/near-private-procurement/contracts/registry/deploy/runtime/near-testnet/procurement-participants/p3.json"
+    }
+  ]
+}

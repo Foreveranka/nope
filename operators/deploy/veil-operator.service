@@ -1,0 +1,36 @@
+[Unit]
+Description=Veil operator admission and health control service (MPC launch blocked)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=veil-operator
+Group=veil-operator
+WorkingDirectory=/opt/veil-procurement
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 -m operators.node serve --config /etc/veil-operator/node.json --health-port 9080
+StateDirectory=veil-operator
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+ReadOnlyPaths=/opt/veil-procurement /etc/veil-operator
+ReadWritePaths=/var/lib/veil-operator
+TasksMax=32
+LimitNOFILE=512
+
+[Install]
+WantedBy=multi-user.target

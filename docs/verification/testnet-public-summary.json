@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "network": "testnet",
+  "completed": true,
+  "jobId": "3",
+  "checksPassed": 16,
+  "independentOperators": false,
+  "transactions": [
+    {
+      "label": "İş kaydı",
+      "hash": "AC3k2wAdm5ADwhT7vniXCH8XDAN6fkNd8pSdN6omU5Tz"
+    },
+    {
+      "label": "Sağlayıcı taahhüdü",
+      "hash": "HKGMEf4WauaEypx8jkLRB7AjDHujRtbyGUy3ihz4ZwxF"
+    },
+    {
+      "label": "Sağlayıcı taahhüdü",
+      "hash": "Au1XscKGnrAP732JmHWCrTdWvpXTJDFn3Ah2kpud8JMC"
+    },
+    {
+      "label": "Sağlayıcı taahhüdü",
+      "hash": "Cpcu91qVvLyMshMGge9fWyzrY89JJdNCn4gBEamFkPnL"
+    },
+    {
+      "label": "Tekliflerin kapanışı",
+      "hash": "4GaSc8g18WGPdx9HJga366uAj1ngCfnCBpeozUMKvhh4"
+    },
+    {
+      "label": "Seçilen sağlayıcı",
+      "hash": "NTRgzeMvnsECpG8n6vXLWNGUPnc6C27XCNqbE5SvBd2"
+    },
+    {
+      "label": "Sonuç makbuzu",
+      "hash": "HcdxqMLuMGcCEyEwSgVuFu1FyHX6wNTze3Fr7Pyf9hFh"
+    },
+    {
+      "label": "Müşteri kabulü",
+      "hash": "GFwSeVRpefE4vqB6bT5mHuCKQnd32j1foV7aMNiXd6Yr"
+    }
+  ],
+  "payment": {
+    "verified": false
+  }
+}
