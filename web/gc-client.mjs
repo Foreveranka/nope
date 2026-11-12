@@ -1,4 +1,4 @@
-import { PROFILE, MAX_ROWS, buildCircuit, cryptoProvider, permutation, toBase64, fromBase64, deriveGateKey, gateContext, validateOutputLabels } from './gc-core.mjs';
+import { PROFILE, MAX_ROWS, buildCircuit, cryptoProvider, permutation, toBase64, fromBase64, deriveGateKey, gateContext, validateOutputLabels, validateRequest } from './gc-core.mjs';
 
 /** Fresh independent labels for every wire, with opposite random permutation bits.
  * No global delta, free XOR, half gates, or output mapping in the request.
@@ -44,9 +44,22 @@ export async function createGarbledJob(values) {
     outputPairs.push(circuit.outputs.map(wire=>pairs[wire].map(toBase64)));
   }
   const request = {profile:PROFILE,nonce,rowCount:input.length,rows};
-  // Only output pairs survive in this closure. Do not export them for tests.
-  const rowCount = input.length;
-  return {request,decode(outputLabels) {
+  return decoder({nonce,rowCount:input.length,outputPairs,request});
+}
+
+const decoderAAD = new TextEncoder().encode(PROFILE + "/sealed-decoder/v1");
+function decoder({nonce,rowCount,outputPairs,request}) {
+  // Keep an immutable snapshot: callers cannot change the request sealed later.
+  request = JSON.parse(JSON.stringify(request));
+  const freeze = value => { if (value && typeof value === "object") { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
+  freeze(request);
+  return {request, async sealDecoder(key) {
+    decoderKey(key);
+    const crypto = cryptoProvider(), iv = crypto.getRandomValues(new Uint8Array(12));
+    const plaintext = new TextEncoder().encode(JSON.stringify({nonce,rowCount,outputPairs,request}));
+    const bytes = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv,additionalData:decoderAAD},key,plaintext));
+    return {iv:toBase64(iv),ciphertext:encodeBytes(bytes)};
+  },decode(outputLabels) {
     validateOutputLabels(outputLabels,rowCount);
     return outputLabels.map((row,r)=>row.reduce((value,label,i)=> {
       // Strict canonical encoding checked above; equality verifies membership,
@@ -57,4 +70,40 @@ export async function createGarbledJob(values) {
       return value | (bit << i);
     },0));
   }};
+}
+
+// Chunked encoding avoids argument-stack limits for the largest 32-row request.
+function encodeBytes(bytes) {
+  let binary = '';
+  for (let i=0;i<bytes.length;i+=8192) binary += String.fromCharCode(...bytes.subarray(i,i+8192));
+  return btoa(binary);
+}
+function decoderKey(key) {
+  if (key?.type !== 'secret' || key.algorithm?.name !== 'AES-GCM' || key.algorithm.length !== 256 || key.extractable !== false || !['encrypt','decrypt'].every(use=>key.usages.includes(use))) throw new Error('Nonextractable AES-256-GCM decoder key required.');
+}
+/** Restore only authenticated local decoder ciphertext; never exports its pairs.
+ * Membership checks authenticate labels to wires, not evaluator execution.
+ */
+export async function restoreGarbledJob(sealed,key) {
+  decoderKey(key);
+  if (!sealed || Object.keys(sealed).sort().join(',') !== 'ciphertext,iv' || typeof sealed.ciphertext !== 'string' || sealed.ciphertext.length > 3000000) throw new Error('Invalid sealed decoder.');
+  const length = atob(sealed.ciphertext).length;
+  const ciphertext = fromBase64(sealed.ciphertext,length);
+  const plaintext = await cryptoProvider().subtle.decrypt({name:'AES-GCM',iv:fromBase64(sealed.iv,12),additionalData:decoderAAD},key,ciphertext);
+  const state = JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plaintext));
+  if (!state || Object.keys(state).sort().join(',') !== 'nonce,outputPairs,request,rowCount') throw new Error('Invalid decoder fields.');
+  validateRequest(state.request);
+  if (state.nonce !== state.request.nonce || state.rowCount !== state.request.rowCount) throw new Error('Invalid decoder request binding.');
+  if (!Array.isArray(state.outputPairs) || state.outputPairs.length !== state.rowCount) throw new Error('Invalid output pair row count.');
+  const seen = new Set();
+  for (const row of state.outputPairs) {
+    if (!Array.isArray(row) || row.length !== 8) throw new Error('Invalid output pair wire count.');
+    for (const pair of row) {
+      if (!Array.isArray(pair) || pair.length !== 2) throw new Error('Invalid output pair shape.');
+      const labels = pair.map(label=>fromBase64(label));
+      if (permutation(labels[0]) === permutation(labels[1])) throw new Error('Invalid output pair permutation.');
+      for (const label of pair) { if (seen.has(label)) throw new Error('Duplicate output label.'); seen.add(label); }
+    }
+  }
+  return decoder(state);
 }

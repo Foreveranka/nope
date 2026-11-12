@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, createDecipheriv } from 'node:crypto';
-import { createGarbledJob } from './gc-client.mjs';
+import { createGarbledJob, restoreGarbledJob } from './gc-client.mjs';
 import { PROFILE, buildCircuit, GATES_PER_ROW, canonicalRequest, canonicalOutput, hashRequest, hashOutput, hashProgram, programSha256, validateRequest, fromBase64, toBase64, deriveGateKey, gateContext } from './gc-core.mjs';
 
 // Independent Node evaluator: no client secrets or production KDF/decryption helpers.
@@ -33,7 +33,7 @@ test('all 256 byte inputs: real garbling and independent AES-GCM evaluation',asy
     const values=Array.from({length:32},(_,i)=>start+i);
     const job=await createGarbledJob(values);
     assert.deepEqual(job.decode(evaluate(job.request)),values.map(clean));
-    assert.deepEqual(Object.keys(job).sort(),['decode','request']);
+    assert.deepEqual(Object.keys(job).sort(),['decode','request','sealDecoder']);
     assert.deepEqual(Object.keys(job.request).sort(),['nonce','profile','rowCount','rows']);
     assert.equal(job.request.profile,PROFILE);
     for(const row of job.request.rows) {
@@ -143,5 +143,42 @@ test('instrumented CSPRNG confirms independent per-wire pairs and random IV call
     }
   } finally {
     if(descriptor) Object.defineProperty(globalThis,'crypto',descriptor); else delete globalThis.crypto;
+  }
+});
+
+test('sealed decoder survives restoration without plaintext exports; wrong keys and tampering fail',async()=> {
+  const key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  const other=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  const original=await createGarbledJob([255,101,42]);
+  const sealed=await original.sealDecoder(key), outputs=evaluate(original.request);
+  assert.deepEqual(Object.keys(sealed).sort(),['ciphertext','iv']);
+  assert.doesNotMatch(JSON.stringify(sealed),/outputPairs|nonce|rowCount|values/);
+  const restored=await restoreGarbledJob(copy(sealed),key);
+  assert.deepEqual(restored.request,original.request);
+  assert.deepEqual(restored.decode(outputs),[0,100,42]);
+  assert.ok(Object.isFrozen(restored.request.rows[0].tables[0]));
+  assert.deepEqual((await restoreGarbledJob(await restored.sealDecoder(key),key)).decode(outputs),[0,100,42]);
+  await assert.rejects(restoreGarbledJob(sealed,other));
+  for (const field of ['iv','ciphertext']) {
+    const bad=copy(sealed), b=Buffer.from(bad[field],'base64');b[0]^=1;bad[field]=b.toString('base64');
+    await assert.rejects(restoreGarbledJob(bad,key));
+  }
+  const exportable=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']);
+  await assert.rejects(original.sealDecoder(exportable),/Nonextractable/);
+});
+
+test('authenticated but malformed decoder rejects request bindings, gates and output pairs',async()=> {
+  const key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  const original=await createGarbledJob([42]), sealed=await original.sealDecoder(key);
+  const additionalData=new TextEncoder().encode(PROFILE+'/sealed-decoder/v1');
+  const state=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:Buffer.from(sealed.iv,'base64'),additionalData},key,Buffer.from(sealed.ciphertext,'base64'))));
+  assert.deepEqual(Object.keys(state).sort(),['nonce','outputPairs','request','rowCount']);
+  assert.doesNotMatch(JSON.stringify(state),/"values"/);
+  const mutations=[s=>s.nonce='00'.repeat(16),s=>s.rowCount=2,s=>s.request.rows[0].tables.pop(),s=>s.outputPairs=[],s=>s.outputPairs[0].pop(),s=>s.outputPairs[0][0].push(s.outputPairs[0][0][0]),s=>s.outputPairs[0][0][1]=s.outputPairs[0][0][0],s=>s.outputPairs[0][0][0]='bad',s=>s.values=[42],s=>s.request.nonce='invalid'];
+  for(const mutate of mutations) {
+    const bad=copy(state);mutate(bad);
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext=await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData},key,new TextEncoder().encode(JSON.stringify(bad)));
+    await assert.rejects(restoreGarbledJob({iv:toBase64(iv),ciphertext:Buffer.from(ciphertext).toString('base64')},key));
   }
 });
