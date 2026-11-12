@@ -518,12 +518,12 @@ def create_server(host="127.0.0.1", port=8765, runtime_dir=None, pipeline=None, 
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Loopback-only Veil Procurement local client companion")
+    parser = argparse.ArgumentParser(description="Loopback-only NOPE local client companion")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--runtime-dir", type=Path, default=ROOT / "runtime")
     args = parser.parse_args()
     server = create_server(port=args.port, runtime_dir=args.runtime_dir)
-    print("Veil local client companion: {} (no live payments)".format(server.origin), flush=True)
+    print("NOPE local client companion: {} (no live payments)".format(server.origin), flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

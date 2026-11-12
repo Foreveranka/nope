@@ -22,7 +22,7 @@ def package(destination):
         name=str(file.relative_to(ROOT));data=file.read_bytes()
         contents[name]=data;manifest[name]=hashlib.sha256(data).hexdigest()
     contents['FILES-SHA256.json']=(json.dumps(manifest,indent=2)+'\n').encode()
-    contents['START-HERE.txt']=b'''Veil customer companion (invitation-only encrypted-compute pilot)
+    contents['START-HERE.txt']=b'''NOPE customer companion (invitation-only encrypted-compute pilot)
 1. Install Python 3.9-3.12 on macOS or Linux x86_64.
 2. Open a terminal in this directory and run: sh install-client.sh
 3. Run: .venv/bin/python scripts/client-launch.py
@@ -41,7 +41,7 @@ the terminal before retrieving the result. The app does not persist plaintext.
     destination=Path(destination);destination.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(destination,'w',compression=zipfile.ZIP_DEFLATED) as archive:
         for name,data in sorted(contents.items()):
-            info=zipfile.ZipInfo('veil-client/'+name,(1980,1,1,0,0,0))
+            info=zipfile.ZipInfo('nope-client/'+name,(1980,1,1,0,0,0))
             info.create_system=3;info.external_attr=(0o100755 if name=='install-client.sh' else 0o100644)<<16
             info.compress_type=zipfile.ZIP_DEFLATED;archive.writestr(info,data)
     print(json.dumps({'files':len(contents),'bytes':destination.stat().st_size,'sha256':hashlib.sha256(destination.read_bytes()).hexdigest()}))

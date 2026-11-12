@@ -1,8 +1,10 @@
-# Veil Procurement
+# NOPE — Network of Private Execution
 
 NEAR üzerinde gizli tekliflerle iş satın alma ve müşteri verisini açık hâliyle yürütücüye vermeden hesaplatma projesinin uygulaması.
 
 Uygulama dört sayısal kaydı gerçek Concrete FHE ile işler. Kayıt kimliklerinin tekrarlarını işaretler, eksik değer kodunu sıfıra çevirir ve 100 üstü değerleri sınırlar. Python istemci açık veriyi ve secret key'i kendi belleğinde tutar; ayrı evaluator şifreli isteği işler. Yerel akışa ek olarak davetle erişilen Vercel hesaplama yolu vardır. Bu sürüm genel amaçlı veri temizleme veya tamamlanmış ticari ödeme ürünü değildir.
+
+Marka adı NOPE olarak güncellendi. Mevcut GitHub/Vercel adresleri ve `VEIL_*` yapılandırma adları bağlantı uyumluluğu için korunur. Yeni indirme adı `nope-client.zip`; eski indirme bağlantısı da çalışır.
 
 ## Davetli bulut istemcisi
 

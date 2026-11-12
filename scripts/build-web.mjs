@@ -23,5 +23,7 @@ result.rejected_registry_actions = evidence.rejected_registry_actions.map(({comm
 const run = { id: 'verified-local-run', status: 'completed', events: evidence.public_events || [], result };
 await fs.writeFile(path.join(target, 'demo-evidence.json'), JSON.stringify({ run }, null, 2));
 await fs.writeFile(path.join(target, 'deployment.json'), JSON.stringify({ mode: 'hosted-evidence', summaryUrl: '/demo-evidence.json' }));
-execFileSync('python3', [path.join(root,'scripts/package-client.py'), path.join(target,'veil-client.zip')], {stdio:'inherit'});
+execFileSync('python3', [path.join(root,'scripts/package-client.py'), path.join(target,'nope-client.zip')], {stdio:'inherit'});
+// Preserve existing download links while publishing the new brand.
+await fs.copyFile(path.join(target,'nope-client.zip'), path.join(target,'veil-client.zip'));
 console.log(`Built ${files.length} static assets, invitation-only companion package, and recorded LOCAL evidence. Cloud API is packaged separately; payments remain disabled.`);

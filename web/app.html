@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0c10">
-  <title>Çalışma alanı — Veil</title>
+  <title>Çalışma alanı — NOPE</title>
   <link rel="stylesheet" href="/styles.css">
   <script type="module" src="/app.js"></script>
 </head>
 <body class="workspace">
   <a class="skip-link" href="#main">İçeriğe geç</a>
   <header class="site-header page-width">
-    <a class="brand" href="/" aria-label="Veil ana sayfa"><span class="brand-mark" aria-hidden="true">v</span><span>veil<span class="brand-sub">PROCUREMENT</span></span></a>
+    <a class="brand" href="/" aria-label="NOPE ana sayfa"><span class="brand-mark" aria-hidden="true">N</span><span>NOPE<span class="brand-sub">PRIVATE EXECUTION</span></span></a>
     <nav aria-label="Çalışma alanı menüsü">
       <a href="/">Proje hakkında</a>
       <a class="demo-link" href="/demo">Tedarik akışı</a>
@@ -21,7 +21,7 @@
   </header>
   <main id="main" class="page-width app-main">
     <div class="workspace-heading">
-      <div><p class="eyebrow">Veil / Şifreli hesaplama</p><h1>Çalışma alanı</h1></div>
+      <div><p class="eyebrow">NOPE / Şifreli hesaplama</p><h1>Çalışma alanı</h1></div>
       <div class="connection-block"><span id="connection" class="status-pill">Yerel istemci kontrol ediliyor</span><button id="refresh" class="text-link" type="button">Bağlantıyı yenile <span aria-hidden="true">↻</span></button></div>
     </div>
     <div class="notice"><span class="notice-icon" aria-hidden="true">i</span><p><strong>Sentetik pilot · Sabit 4 kayıt profili.</strong> Açık veri ve gizli anahtar yerelde kalır. Davet erişimiyle bulutta şifreli değerlendirme yapılabilir; sonuç yerelde açılır ve kontrol edilir.</p></div>
@@ -31,7 +31,7 @@
           <p class="eyebrow">YEREL İSTEMCİ / KURULUM</p>
           <h2 id="hosted-app-heading">Yerel istemciyle başlayın.</h2>
           <p class="panel-description">Dört sentetik kaydı bilgisayarınızda hazırlayın. Yerel veya bulutta şifreli değerlendirmeyi istemciden seçin.</p>
-          <a class="button button-dark" href="/veil-client.zip">İstemciyi indir <span aria-hidden="true">↓</span></a>
+          <a class="button button-dark" href="/nope-client.zip">İstemciyi indir <span aria-hidden="true">↓</span></a>
           <ol class="setup-steps">
             <li class="setup-step"><span class="setup-icon" aria-hidden="true">01</span><div><h3>Kurun</h3><p>ZIP’i açın. İstemci klasöründe çalıştırın:</p><pre class="code-block"><code>./install-client.sh</code></pre></div></li>
             <li class="setup-step"><span class="setup-icon" aria-hidden="true">02</span><div><h3>Başlatın</h3><pre class="code-block"><code>.venv/bin/python scripts/client-launch.py</code></pre><p>Bulut erişiminiz varsa davet kodunu yerel başlatıcının istemine girin.</p></div></li>
@@ -72,7 +72,7 @@
       <section class="panel result-panel" aria-labelledby="result-heading"><div class="panel-heading"><div><p class="eyebrow">03 / KARŞILAŞTIR</p><h2 id="result-heading">Önce ve sonra</h2></div><span id="verified-badge" class="quiet-badge">Sonuç bekleniyor</span></div><div id="result-empty" class="empty-state"><span class="empty-symbol" aria-hidden="true">⇄</span><h3>Karşılaştırma için bir işlem başlatın.</h3><p>Girdi ve sonucu satır satır karşılaştırın, yinelenen kayıtları görün.</p></div><div id="result-content" hidden><p id="result-note" class="panel-description"></p><div class="table-wrap"><table class="result-table"><caption class="sr-only">Sunucudan dönen kayıtların girdi ve sonuç karşılaştırması</caption><thead><tr><th scope="col">KAYIT</th><th scope="col">KİMLİK</th><th scope="col">GİRDİ</th><th scope="col">SONUÇ</th><th scope="col">YİNELENEN</th></tr></thead><tbody id="result-rows"></tbody></table></div></div></section>
       <section class="panel history-panel" aria-labelledby="history-heading"><div class="panel-heading"><div><p class="eyebrow">İŞLEM DEFTERİ</p><h2 id="history-heading">Geçmiş</h2></div><span id="history-count" class="quiet-badge">—</span></div><p class="microcopy history-note">Sonuçlar istemci belleğinde tutulur. Yeniden başlatmada bulunmayabilir.</p><div id="job-history" class="job-history"><p class="panel-description">İşlem geçmişi yükleniyor.</p></div></section>
     </div>
-    <footer class="app-footer"><span>Veil Procurement · Sentetik pilot</span><span>Profil: <code>clean-4-records-v1</code></span><button id="footer-audit" class="text-link" type="button">Sınırları incele ↗</button></footer>
+    <footer class="app-footer"><span>NOPE · Sentetik pilot</span><span>Profil: <code>clean-4-records-v1</code></span><button id="footer-audit" class="text-link" type="button">Sınırları incele ↗</button></footer>
   </main>
   <dialog id="audit-dialog" aria-labelledby="audit-title"><div class="drawer-heading"><div><p class="eyebrow">SİSTEMİ YAKINDAN TANIYIN</p><h2 id="audit-title">Yetenekler & denetim</h2></div><button id="close-audit" class="icon-button" type="button" aria-label="Denetim panelini kapat">×</button></div><div class="drawer-body"><section><h3>Güvenin sınırı</h3><p>Tarayıcı ve yerel Concrete Python istemcisi açık veriyi görür. Gizli anahtar yerel istemci belleğindedir. Yerel değerlendirici süreç, aynı kullanıcı yetkilerinden yalıtılmış bir güvenlik alanı değildir. Bulut modunda yalnızca şifreli girdi, değerlendirme anahtarları ve bağlı manifestler uzak değerlendiriciye gider; açık girdi ve gizli anahtar yerelde kalır.</p><p>Bu pilot tamamlanmış bir tedarik veya kapalı teklifli ihale hizmeti sunmaz. Gerçek ödeme ve zincir üzerinde FHE yoktur. NEAR testnet kayıt defteri, şifreli değerlendirme ve MPC ayrı bileşenlerdir. Testnet kaydı hesaplamayı çalıştırmaz; yerel süreçler bağımsız taraflar sayılmaz. “Referansla eşleşti”, yerel kontrol sonucudur; bağımsız kriptografik ispat veya donanım tasdiki değildir. Tarayıcı içinde FHE çalışmaz.</p></section><section><h3>Sunucunun bildirdiği yetenekler</h3><p id="capability-version" class="microcopy"></p><div id="capabilities"><p>Yetenek bilgisi henüz alınmadı.</p></div></section><section><h3>Seçili işlemin denetim izi</h3><p id="audit-job-name" class="microcopy">Henüz bir işlem seçilmedi.</p><ol id="audit-events" class="audit-events"></ol><h4>Ölçülen metrikler</h4><dl id="audit-metrics" class="audit-data"></dl><h4>Artefakt özetleri</h4><dl id="audit-hashes" class="audit-data"></dl><p class="microcopy">Özetler artefakt kimliğini izlemeye yarar. Tek başına hesap doğruluğu, uzaktan tasdik veya ödeme kanıtı değildir.</p></section></div><div class="drawer-footer"><span class="small-dot" aria-hidden="true"></span> Gerçek durumu API bildirir. Eksik bilgi uydurulmaz.</div></dialog>
   <noscript><div class="noscript-notice">İşlem çalışma alanı JavaScript gerektirir. <a href="/">Proje açıklamasına dönün.</a></div></noscript>

@@ -22,7 +22,7 @@ def main():
             parser.error('Invalid invitation file.')
         token=json.loads(p.read_text())['token']
     else:
-        token=getpass.getpass('Veil access invitation (hidden): ').strip()
+        token=getpass.getpass('NOPE access invitation (hidden): ').strip()
     if not isinstance(token,str) or not re.fullmatch(r'[A-Za-z0-9_-]{43,128}',token):
         parser.error('Invalid invitation format.')
     os.environ['VEIL_CLOUD_URL']='https://veil-procurement.vercel.app'
@@ -30,7 +30,7 @@ def main():
     sys.path.insert(0,str(ROOT))
     from service.server import create_server
     server=create_server(port=args.port,runtime_dir=ROOT/'runtime')
-    print('Veil companion: '+server.origin+'/app',flush=True)
+    print('NOPE companion: '+server.origin+'/app',flush=True)
     print('Your input and decryption key remain on this computer. Keep this window open.',flush=True)
     if not args.no_browser: webbrowser.open(server.origin+'/app')
     try: server.serve_forever()
