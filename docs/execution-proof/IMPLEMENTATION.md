@@ -254,7 +254,7 @@ input has been used or uploaded. Test helpers and generated private fixture file
 are excluded from the deployment asset manifest.
 
 Measured current dependencies229MiB + tracked public SRS36MiB + browser assets49MiB
-(and the preserved, unused old public cache52MiB),
+(plus an unused old public cache52MiB at measurement time, removed after final validation),
 well under the2GiB added-footprint cap. Local disk remained approximately5.6GiB
 free, above the3GiB floor. Whole plan cost scales per row: the current circuit
 proves one typed cell and its ordered recipe, with no aggregation. Only measured

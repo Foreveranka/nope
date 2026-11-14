@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-11-14T04:04:02.054Z",
+  "jobId": "558a4098ab50abba0501d4cd32760cd3",
+  "chain": {
+    "network": "testnet",
+    "contractId": "nope-work-da4cbb1e.testnet",
+    "codeHash": "94XLBcytUKaL19QBzQqKFKsDvNZipcn5yvEUFEuumsPm",
+    "blockHash": "BBFrb43dFJYhcZaRsxMeCKy3Kvcc6Kh3NDuQvjfYErC9",
+    "inputSha256": "86ef9d0fcf741c41f1d67d99949fdadcd5b5811b213068f18562429f41b841e9",
+    "programSha256": "cdd0f9b5df1a4fdbd15c1829535d75f8d69aa752bd68fb2b2963ef13abc46278",
+    "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+    "outputSha256": "300b1293f013acd99d2cb6c43108b3cffb1140191b262c3717507dc5da81aadd",
+    "version": 1,
+    "bindingHash": "c614f0ee05b26287341d3b3ac67ad16d0819da0fbb8f48f9f936424e7e2e6dc3",
+    "escrowState": "Paid"
+  },
+  "actualSNARKVerification": true,
+  "buyerWitnessUsed": false,
+  "rows": 6
+}

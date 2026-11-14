@@ -1,12 +1,49 @@
 # NOPE — Network of Private Execution
 
-NEAR üzerinde gizli tekliflerle iş satın alma ve müşteri verisini açık hâliyle yürütücüye vermeden hesaplatma projesinin uygulaması.
+Müşteri verisini ajana veya hizmet sağlayıcıya açık hâliyle vermeden, gizli tekliflerle sınırlı veri temizleme işleri yaptıran NEAR testnet uygulaması.
 
-Uygulama dört sayısal kaydı gerçek Concrete FHE ile işler. Kayıt kimliklerinin tekrarlarını işaretler, eksik değer kodunu sıfıra çevirir ve 100 üstü değerleri sınırlar. Python istemci açık veriyi ve secret key'i kendi belleğinde tutar; ayrı evaluator şifreli isteği işler. Yerel akışa ek olarak davetle erişilen Vercel hesaplama yolu vardır. Bu sürüm genel amaçlı veri temizleme veya tamamlanmış ticari ödeme ürünü değildir.
+[Projeyi aç](https://veil-procurement.vercel.app) · [Çalışma alanı](https://veil-procurement.vercel.app/workspace) · [Gerçek işin sonuç kanıtını doğrula](https://veil-procurement.vercel.app/verify?id=558a4098ab50abba0501d4cd32760cd3)
 
-Marka adı NOPE olarak güncellendi. Mevcut GitHub/Vercel adresleri ve `VEIL_*` yapılandırma adları bağlantı uyumluluğu için korunur. Yeni indirme adı `nope-client.zip`; eski indirme bağlantısı da çalışır.
+## Güncel tarayıcı akışı
 
-## CSV dosyasıyla kullanım
+1. Müşteri CSV’yi kendi tarayıcısında açar. Yerel LLM yalnız herkese açık hedefi ve `C1/C2` gibi anonim sütun türlerini alır. Dosya, özgün başlıklar, örnek satırlar ve gizli anahtarlar modele verilmez. Müşteri önerilen planı ve yerel önce/sonra görünümünü onaylar.
+2. Tarayıcı gerçek tek kullanımlık garbled circuit’i ve v4 için gizli eşleme taahhütlerini hazırlar. Orijinal dosya, çözücü ve kanıt tanığı yerel şifreli kasada kalır. Kurulum veya müşteri companion uygulaması gerekmez.
+3. Sağlayıcılar şifreli teklif gönderir. Müşteri kapanıştan sonra teklifleri kendi cihazında açar ve sağlayıcı seçer. Diğer teklif verenler rakip teklifleri açamaz. Seçilen sağlayıcı ve tutar testnet escrow için herkese açık olur.
+4. Sonlu sponsor testNEAR havuzundan fon kesinleşince sağlayıcı gerçek şifreli hesabı tetikler. Teslimin sürümü/özeti NEAR’a kaydedilir. Müşteri sonucu uygulama içinde açıp denetler; CSV indirmek isteğe bağlıdır.
+5. Yeni v4 ajan işinde müşteri tarayıcısı gerçek Noir/UltraHonk sonuç kanıtlarını üretir. Tarayıcı ve sunucu tüm hücreleri ayrı doğrular. Eksik, bozuk veya önceki teslimin kanıtı kabulü/ödemeyi açmaz. Sayfa yenilenince kanıt yeniden doğrulanır.
+6. Müşteri açıkça kabul edince testnet native transferi ve başarılı callback kesinleşir. Sessizlik ödeme başlatmaz. Süre sonrası iade sponsor havuzuna döner. Mainnet veya gerçek para kullanılmaz.
+
+`/verify?id=…` yalnız herkese açık şifreli kayıt, gerçek kanıt ve sabitlenmiş sözleşmenin kesinleşmiş RPC kaydıyla bağımsız doğrulama yapar; müşteri CSV’sini, çözücüsünü veya gizli eşlemeyi almaz. Testnet sözleşmesi `nope-work-da4cbb1e.testnet`tir. Bu uygulama, eski `/market` demo sözleşmelerinden ayrıdır.
+
+## Kapsam ve ispat sınırı
+
+Desteklenen araçlar sayı için boş değer doldurma/aralığa sınırlama; ASCII metin için baş/son boşluk silme, küçük/büyük harf ve rakam maskelemedir. En fazla4 sütun,32 sayısal satır,8 metin satırı,16 bayt metin hücresi ve40 işlenen hücre kanıtı desteklenir; ayrıca devre/istek sınırları uygulanır. Diğer sütunlar yerelde korunur. Bu, keyfî belgeler üzerinde genel gizli AI değildir. Yerel küçük modelin doğal dil yorumu yanılabilir; plan/sonuç önizlemesini onaylamak zorunludur.
+
+Sonuç SNARK’ı, önceden sabitlenen dürüst müşteri eşlemesi altında teslim edilen etiketlerin onaylı işlemin doğru sonucunu temsil ettiğini ispatlar. Özgün CSV kaynağını, AES yürütme izini, sağlayıcının fiziksel hesabını veya LLM niyet yorumunu ispatlamaz. Sözleşme taahhüt ve teslimi bağlar; SNARK doğrulayıcısı tarayıcı/sunucudadır. RPC, frontend ve backend yetkilendirme güven sınırları devam eder. Bağımsız operatör ağı ve otomatik uyuşmazlık çözümü henüz yoktur.
+
+## Doğrulama ve geliştirme
+
+Gerçek Chrome yerel ajan → v4 şifreli teslim → altı gerçek satır kanıtı → bağımsız doğrulama → gerçek testnet ödeme akışını geçti. Canlı Vercel HTTP akışı ve canlı genel doğrulayıcı da ayrıca sınandı. Ödeme için ayrı salt-okunur Python gözlemcisi tek native Transfer ve doğru callback’i kontrol eder. Test çiftleri bu gerçek kayıtlarla karıştırılmaz.
+
+- [Gerçek Chrome kaydı](docs/execution-proof/browser-local.json), [canlı HTTP kaydı](docs/execution-proof/http-testnet-production.json), [bağımsız zincir gözlemi](docs/execution-proof/independent-chain-production.json).
+- [Güncel entegrasyon ve güven sınırları](docs/execution-proof/INTEGRATION.md), [kriptografik protokol](docs/execution-proof/PROTOCOL.md), [gerçek SDK ve maliyetler](docs/execution-proof/IMPLEMENTATION.md).
+
+```sh
+npm ci
+npm ci --prefix planner-runtime --ignore-scripts
+npm ci --prefix proof-runtime --ignore-scripts
+npm test
+npm run test:proof
+npm run build
+```
+
+GitHub main, mevcut özel Vercel projesine otomatik dağıtılır. Marka NOPE’dir; eski GitHub/Vercel adresleri ve yapılandırma adları uyumluluk için korunur. Ortam değerleri, hesap anahtarları, yerel veri kasaları ve `runtime/` Git/dağıtım paketine alınmaz.
+
+---
+
+Aşağıdaki yollar önceki sabit GC/Concrete FHE/MPC deneyleridir. Güncel tarayıcı akışı ve v4 sonuç kanıtı yukarıda anlatılır; eski sınırlar güncel akışın tamamını tanımlamaz.
+
+## Önceki sabit CSV yolu
 
 [CSV çalışma alanı](https://veil-procurement.vercel.app/csv) kurulum veya davet
 kodu istemeden tarayıcıda gizli etiketler üretir; Vercel şifreli devreyi
@@ -15,9 +52,9 @@ kullanır; Concrete FHE değildir. 1–32 satır; seçilen sayısal sütunda bo�
 100 üstü→100; diğer hücreler ve sıra korunur. Tek kullanımlık devre, AES-GCM
 etiketleri ve sonuç eşlemesi istemciye aittir. [Protokol ve sınırlar](docs/BROWSER-CSV-GC.md).
 
-[Kanıt doğrulama](https://veil-procurement.vercel.app/verify) şifreli devreyi
+Genel [doğrulayıcının](https://veil-procurement.vercel.app/verify) “Önceki sürümler” bölümü bu eski şifreli devreyi
 tekrar çalıştırabilir ve ayrı testnet kaydı varsa manifest hash'ini karşılaştırır.
-ZK veya genel gizlilik ispatı değildir. Eski Concrete yolu isteğe bağlı müşteri
+Bu eski pakette ZK yoktur; yeni v4 sonuç SNARK’ından ayrıdır. Eski Concrete yolu isteğe bağlı müşteri
 istemcisinin `/csv-local` sayfasında korunur.
 
 ## Tek akışlı Privacy demosu
@@ -44,7 +81,7 @@ otomatik yürütmez. `/demo` altındaki eski yerel ödeme fixture'ı ayrı tutul
 
 ## Davetli bulut istemcisi
 
-[Canlı site](https://veil-procurement.vercel.app) tanıtım sayfasından `/app` bölümüne, oradan istemci indirmesine yönlendirir. İndirilen pakette `sh install-client.sh`, ardından `.venv/bin/python scripts/client-launch.py` çalıştırılır. Davet kodu terminalde gizli olarak girilir; yerel uygulamada bulut hesabı seçilir. Açık kayıtlar tarayıcıdan yalnız `127.0.0.1` istemcisine gider; Vercel'e şifreli girdiler, değerlendirme anahtarları ve hash manifestleri yüklenir. Şifre çözme anahtarı bilgisayardan çıkmaz. Sonuç alınmadan istemci kapatılırsa bellekteki anahtar kaybolur.
+Önceki davetli FHE yolu `/app` bölümünde istemci indirmesi kullanır; güncel `/workspace` akışı kurulum gerektirmez. İndirilen pakette `sh install-client.sh`, ardından `.venv/bin/python scripts/client-launch.py` çalıştırılır. Davet kodu terminalde gizli olarak girilir; yerel uygulamada bulut hesabı seçilir. Açık kayıtlar tarayıcıdan yalnız `127.0.0.1` istemcisine gider; Vercel'e şifreli girdiler, değerlendirme anahtarları ve hash manifestleri yüklenir. Şifre çözme anahtarı bilgisayardan çıkmaz. Sonuç alınmadan istemci kapatılırsa bellekteki anahtar kaybolur.
 
 Bu yol sabit dört-kayıt devresiyle sınırlıdır. Canlı ödeme veya bağımsız MPC operatörü içermez. Kurulum, davetler, tek kullanımlık iş kotası ve bilinmeyen sonuçların ele alınması: `docs/CLOUD-OPERATIONS.md`. Gerçek testlerin güncel sonucu: `docs/BUILD-STATUS.md`.
 

@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-11-14T04:04:05Z",
+  "origin": "https://veil-procurement.vercel.app",
+  "commit": "361389ccda816b716ef8f7ff8dfbf7b164317141",
+  "deploymentId": "dpl_5a9gwq19U1WnL6dFwaQF87UrSk9e",
+  "actualChrome": true,
+  "jobId": "558a4098ab50abba0501d4cd32760cd3",
+  "publicViewerStatus": "Bağımsız sonuç kanıtı ve kesinleşmiş zincir bağı doğrulandı. CSV veya gizli eşleme açılmadı.",
+  "rows": 6,
+  "buyerWitnessUsed": false,
+  "chainSnapshotState": "Delivered",
+  "laterPaidStateIndependentlyObserved": "independent-chain-production.json",
+  "sourceModelInferenceInThisTest": false,
+  "browserProofGenerationInThisTest": false,
+  "actualBrowserSNARKVerification": true,
+  "actualExternalTestnetRPCBinding": true,
+  "apiProofRuntimeAndPayoutTest": "http-testnet-production.json",
+  "errorScan": {
+    "deploymentScoped": true,
+    "window": "10m",
+    "level": "error",
+    "records": 0
+  },
+  "limits": [
+    "Public RPC trust, not a light client.",
+    "Typed result semantics under precommitted mappings; not AES execution provenance.",
+    "Browser/server SNARK verification; no on-chain SNARK verifier."
+  ]
+}

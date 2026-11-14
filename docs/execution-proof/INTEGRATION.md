@@ -31,3 +31,7 @@ The browser requires no installer, hosted prover, paid API or third-party runtim
 ## Validation
 
 The root suite passed409 tests, including an actual mixed numeric/text SNARK workspace test with explicitly mocked storage/payment fixtures. It checks proof gates and revision/replay rejection; it is not real-chain evidence. Three focused independent-public-verifier tests pass with explicit RPC fixtures. SDK tests additionally exercise actual independent-process proof verification and constraint failures. Read the actual browser and testnet evidence JSON files for checks that truly ran outside fixtures.
+
+## Actual completed deployment checks
+
+Commit361389c deployed READY as dpl_5a9gwq19U1WnL6dFwaQF87UrSk9e. Actual production HTTP job558a4098ab50abba0501d4cd32760cd3 completed sealed offer, FINAL hold, real GC evaluation, local decode, six actual SNARKs, server verification, acceptance and FINAL native payout. The proposal was reused from a prior actual model run; this HTTP test did not perform browser inference. An actual production Chrome public verifier independently checked all six SNARKs and real RPC bindings without buyer witness. The separate Python observer checked the completed native transfer/callback and Paid state. These are real checks, not RPC/payment fixtures. See the production JSON records; the source-identical documentation follow-up does not require spending more test tokens.
