@@ -43,8 +43,8 @@
         },
         {
           "id": "planner",
-          "title": "Modèle de planification local",
-          "text": "Le modèle qui s’exécute dans le navigateur ne voit que votre objectif public et les types de colonnes anonymes. Il ne voit pas les lignes privées. Il propose un plan à partir des outils pris en charge ; sa proposition n’est pas une garantie de correction. Vous approuvez vous-même le plan après avoir vérifié l’aperçu.",
+          "title": "Planification locale et modèles de règles vérifiés",
+          "text": "Choisissez un modèle de facture ou de trésorerie pour les calculs chiffrés sur plusieurs champs. Ce modèle est un programme déterministe, pas une inférence LLM. Le mode IA local séparé propose des plans de nettoyage à partir de l’objectif public et de types anonymes. Aucune voie n’envoie les lignes privées à un modèle.",
           "code": "",
           "href": ""
         },
@@ -64,8 +64,8 @@
         },
         {
           "id": "proof",
-          "title": "Preuve du résultat dans le navigateur et sur le serveur",
-          "text": "L’appareil du client génère un véritable SNARK Noir/UltraHonk avec le témoin privé qu’il conserve. Le navigateur et le serveur vérifient séparément les preuves de toutes les cellules. La preuve vérifie le résultat de la transformation approuvée selon les correspondances du client engagées à l’avance ; elle ne prouve ni la provenance du CSV d’origine ni une trace d’exécution AES.",
+          "title": "Preuves de résultat dans le navigateur et l’API",
+          "text": "Le client produit une véritable preuve Noir/UltraHonk avec le témoin privé conservé sur son appareil. v5 prouve chaque enregistrement multichamp ; v4, les cellules traitées. Navigateur et API vérifient la preuve courante avec la version épinglée correspondante. La préparation initiale honnête est supposée ; la provenance du CSV et une trace d’exécution AES ne sont pas prouvées.",
           "code": "",
           "href": ""
         },
@@ -86,8 +86,8 @@
       "items": [
         {
           "id": "plan",
-          "title": "Planifier",
-          "text": "En tant que client, choisissez un CSV, les colonnes à traiter et leurs types. N’inscrivez aucune donnée personnelle dans l’objectif public. Le modèle produit un plan de transformation limité à partir de champs anonymes tels que C2.",
+          "title": "Choisir la tâche et associer les champs privés",
+          "text": "Pour les règles de facture ou de trésorerie, associez chaque rôle à une colonne CSV sur votre appareil. Seuls les alias anonymes et le programme de règles public sont publiés. Le nettoyage de texte utilise le mode IA local séparé. Vérifiez le programme et l’aperçu avant validation.",
           "code": "",
           "href": ""
         },
@@ -172,9 +172,9 @@
       "items": [
         {
           "id": "worked",
-          "title": "Deux colonnes, deux règles explicites",
-          "text": "Dans le texte, supprimez uniquement les espaces ASCII aux extrémités, convertissez en majuscules et remplacez les chiffres par des astérisques. Pour les nombres, remplacez les valeurs manquantes par 10, puis ramenez-les dans l’intervalle 10–80. La valeur 200 devient 80 ; 42, déjà dans l’intervalle, reste inchangé.",
-          "code": "C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42",
+          "title": "Audit privé de facture",
+          "text": "Exemple synthétique : quantité 3 × prix unitaire 12 500 = montant attendu 37 500. Un montant facturé de 40 000 donne une surfacturation de 2 500 ; le budget de 50 000 est respecté, mais la correspondance exacte est fausse. Les montants sont des unités monétaires minimales entières. L’évaluateur reçoit des étiquettes chiffrées ; le client ouvre les quatre résultats localement.",
+          "code": "Expected: 3 × 12500 = 37500\nExcess billing: max(40000 − 37500, 0) = 2500\nBudget: 40000 <= 50000 → 1\nExact match: 40000 == 37500 → 0",
           "href": ""
         }
       ]
@@ -187,9 +187,9 @@
       "items": [
         {
           "id": "csv",
-          "title": "CSV synthétique prêt à l’emploi",
-          "text": "La première colonne identifie l’enregistrement, la deuxième contient du texte et la troisième des nombres. Après avoir sélectionné le fichier, vérifiez les types de C2 et C3. Cet exemple de trois lignes ne contient aucune donnée réelle de client.",
-          "code": "record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n",
+          "title": "CSV synthétique de facture",
+          "text": "Dans le mode de règles sur plusieurs champs, associez quantity, unit_cents, billed_cents et budget_cents dans cet ordre. private_note reste inchangé sur votre appareil. Cet exemple tient dans le budget actuel du circuit.",
+          "code": "quantity,unit_cents,billed_cents,budget_cents,private_note\n3,12500,40000,50000,synthetic-private-note\n",
           "href": ""
         },
         {
@@ -216,8 +216,8 @@
       "items": [
         {
           "id": "numeric",
-          "title": "Outils numériques",
-          "text": "Le remplissage des valeurs manquantes et le bornage dans un intervalle sont pris en charge. Les valeurs numériques réelles sont des entiers de 0–254 ; 255 indique une valeur manquante. Les transformations de nombres décimaux ou de taille illimitée ne sont pas disponibles.",
+          "title": "Règles numériques sur plusieurs champs — v5",
+          "text": "Jusqu’à huit champs privés non signés de 32 bits alimentent des opérations arithmétiques, des comparaisons et des sélections conditionnelles. Valeurs : 0..4 294 967 295 ; les montants utilisent des unités monétaires minimales entières. La multiplication exacte mul16 exige deux opérandes entre 0 et 65 535. Le modèle contrôle le montant attendu, la surfacturation, le budget et la correspondance exacte.",
           "code": "",
           "href": ""
         },
@@ -230,15 +230,15 @@
         },
         {
           "id": "size",
-          "title": "Des tâches petites et bornées",
-          "text": "Jusqu’à quatre colonnes sélectionnées sont prises en charge, avec 32 lignes pour les colonnes numériques et huit pour les colonnes de texte. Le total des preuves de cellule ne peut pas dépasser 40. Les tailles du circuit, de la requête et de l’ensemble de preuves sont aussi contrôlées séparément ; quatre colonnes numériques de 32 lignes ne conviennent pas.",
+          "title": "Tâches limitées par le circuit",
+          "text": "v5 accepte 1–8 champs, 1–8 instructions et 1–4 résultats dérivés. Une requête doit rester sous 10 000 portes et sous 3 MiB avec la réserve d’enveloppe. Le modèle actuel de facture accepte cinq lignes ; celui de trésorerie, onze. Aucune ligne n’est supprimée silencieusement. Le nettoyeur v4 séparé conserve ses limites de cellules et d’ASCII. Les valeurs numériques v4 restent dans 0..254, avec au maximum 40 cellules traitées.",
           "code": "",
           "href": ""
         },
         {
           "id": "scope",
-          "title": "Aucun accès libre du modèle aux données privées",
-          "text": "Ce produit exécute des plans composés d’outils limités ; il ne fournit pas de conversation d’intelligence artificielle arbitraire sur le CSV privé. Il ne garantit ni une infrastructure de prestataires indépendants ni des décisions juridiques automatiques. La génération de preuves utilise les ressources de l’appareil ; aucun délai n’est garanti.",
+          "title": "Pas de modèle de langage chiffré général",
+          "text": "Il s’agit de calculs structurés bornés, pas d’analyse arbitraire de PDF, de traitement sémantique de documents ni d’inférence LLM chiffrée générale. Les noms et longues notes UTF-8 restent inchangés dans le CSV local ; le moteur numérique n’interprète pas ces champs.",
           "code": "",
           "href": ""
         }

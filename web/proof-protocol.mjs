@@ -1,0 +1,20 @@
+/** Exact version dispatch. Never reinterpret a historical proof under a new policy. */
+import * as v4 from './proof-plan-core.mjs';
+import * as v5 from './record-proof-core.mjs';
+export {PROFILE,SCHEME,PROOF_PLAN_LIMITS} from './proof-plan-core.mjs';
+export const RECORD_PROFILE=v5.PROFILE,RECORD_SCHEME=v5.SCHEME;
+export const isProofProfile=p=>p===v4.PROFILE||p===v5.PROFILE;
+export const schemeForProfile=p=>p===v5.PROFILE?v5.SCHEME:p===v4.PROFILE?v4.SCHEME:null;
+const impl=r=>r?.profile===v5.PROFILE?v5:v4;
+export const validateProofPlanRequest=r=>impl(r).validateProofPlanRequest(r);
+export const validateProofPlanContext=(r,e)=>impl(r).validateProofPlanContext(r,e);
+export const canonicalProofPlanRequest=r=>impl(r).canonicalProofPlanRequest(r);
+export const hashProofPlanRequest=r=>impl(r).hashProofPlanRequest(r);
+export const hashProofManifest=r=>impl(r).hashProofManifest(r);
+export const hashProofPlanProgram=p=>(Object.hasOwn(p||{},'inputs')?v5:v4).hashProofPlanProgram(p);
+export const verifyProofPlanBindings=r=>impl(r).verifyProofPlanBindings(r);
+export const wrapProofPlanResult=(r,x)=>impl(r).wrapProofPlanResult(r,x);
+export const makeProofStatements=(r,d,b)=>impl(r).makeProofStatements(r,d,b);
+export const proofRuntime=r=>impl(r).proofRuntime();
+export const verifyProofPlanBundle=a=>impl(a.request).verifyProofPlanBundle(a);
+export const MAX_PROOF_BUNDLE_BYTES=Math.min(v4.MAX_PROOF_BUNDLE_BYTES,v5.MAX_PROOF_BUNDLE_BYTES);

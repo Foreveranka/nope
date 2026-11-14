@@ -43,8 +43,8 @@
         },
         {
           "id": "planner",
-          "title": "Yerel planlayıcı model",
-          "text": "Tarayıcıda çalışan model yalnızca herkese açık hedefini ve anonim sütun türlerini görür. Özel satırları görmez. Desteklenen araçlardan bir plan önerir; modelin önerisi doğruluk garantisi değildir. Önizlemeyi kontrol ederek planı sen onaylarsın.",
+          "title": "Yerel planlama ve denetlenmiş kural şablonları",
+          "text": "Çok alanlı şifreli hesap için fatura veya nakit akışı şablonunu seçin. Şablon belirli bir programdır; LLM çıkarımı değildir. Ayrı yerel AI modu, açık hedef ve anonim türlerden desteklenen metin/sayı temizleme planı önerir. İki yolda da gizli satırlar modele gönderilmez.",
           "code": "",
           "href": ""
         },
@@ -64,8 +64,8 @@
         },
         {
           "id": "proof",
-          "title": "Tarayıcı ve sunucuda sonuç kanıtı",
-          "text": "Müşteri cihazı, sakladığı özel tanıkla gerçek bir Noir/UltraHonk SNARK üretir. Tarayıcı ve sunucu bütün hücre kanıtlarını ayrı ayrı doğrular. Kanıt, onaylanan dönüşümün önceden bağlanan istemci eşlemeleri altındaki sonucunu doğrular; özgün CSV'nin kaynağını veya AES yürütme izini kanıtlamaz.",
+          "title": "Tarayıcı ve API içinde sonuç kanıtı",
+          "text": "Müşteri, cihazında tuttuğu gizli tanıkla gerçek Noir/UltraHonk sonuç kanıtı üretir. v5 her çok alanlı kaydı, v4 işlenen hücreleri kanıtlar. Tarayıcı ve API, doğru sabitlenmiş sürümle güncel kanıtı doğrular. Başlangıçtaki devre hazırlığının dürüst olduğu varsayılır; Bu kanıt özgün CSV kaynağını veya AES yürütme izini kanıtlamaz.",
           "code": "",
           "href": ""
         },
@@ -86,8 +86,8 @@
       "items": [
         {
           "id": "plan",
-          "title": "Planla",
-          "text": "Müşteri olarak CSV seç, işlenecek sütunları ve türlerini belirle. Herkese açık hedefe kişisel veri yazma. Model, C2 gibi anonim alanlardan sınırlı bir dönüşüm planı çıkarır.",
+          "title": "İşi seçin, gizli alanları eşleştirin",
+          "text": "Fatura veya nakit akışı kuralında her alanın rolünü kendi cihazınızda bir CSV sütunuyla eşleştirin. Yalnızca anonim takma adlar ve açık kural programı yayımlanır. Metin temizleme için ayrı yerel AI modu vardır. Onaylamadan önce programı ve yerel önizlemeyi inceleyin.",
           "code": "",
           "href": ""
         },
@@ -172,9 +172,9 @@
       "items": [
         {
           "id": "worked",
-          "title": "İki sütun, iki açık kural",
-          "text": "Metinde yalnızca ASCII boşluklarını uçlardan kaldır, büyük harfe çevir ve rakamları yıldızla değiştir. Sayıda eksikleri 10 ile doldur, ardından 10–80 aralığına sınırla. 200 değeri 80 olur; zaten aralıktaki 42 değişmez.",
-          "code": "C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42",
+          "title": "Gizli fatura denetimi",
+          "text": "Sentetik örnek: miktar 3 × birim fiyat 12.500 = beklenen tutar 37.500. Faturalanan 40.000 için fazla faturalama 2.500 çıkar; 50.000 bütçe limiti aşılmaz ancak tam eşleşme yoktur. Tüm tutarlar en küçük para birimiyle tam sayıdır. Yürütücü bu değerleri değil şifreli etiketleri alır; müşteri dört türetilmiş sonucu kendi cihazında açar.",
+          "code": "Expected: 3 × 12500 = 37500\nExcess billing: max(40000 − 37500, 0) = 2500\nBudget: 40000 <= 50000 → 1\nExact match: 40000 == 37500 → 0",
           "href": ""
         }
       ]
@@ -187,9 +187,9 @@
       "items": [
         {
           "id": "csv",
-          "title": "Hazır sentetik CSV",
-          "text": "İlk sütun kayıt, ikinci sütun metin, üçüncü sütun sayıdır. Dosyayı seçtikten sonra C2 ve C3 türlerini kontrol et. Bu üç satırlık örnek gerçek müşteri verisi içermez.",
-          "code": "record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n",
+          "title": "Sentetik fatura CSV örneği",
+          "text": "Çok alanlı kurallar modunda miktar, unit_cents, billed_cents ve budget_cents alanlarını bu sırayla eşleştirin. private_note sütunu cihazınızda değişmeden kalır. Bu küçük örnek mevcut devre bütçesine sığar.",
+          "code": "quantity,unit_cents,billed_cents,budget_cents,private_note\n3,12500,40000,50000,synthetic-private-note\n",
           "href": ""
         },
         {
@@ -216,8 +216,8 @@
       "items": [
         {
           "id": "numeric",
-          "title": "Sayı araçları",
-          "text": "Eksik doldurma ve aralık sınırlama desteklenir. Gerçek sayısal değerler 0–254 arası tam sayılardır; 255 eksik değer işaretidir. Ondalık veya sınırsız büyüklükte sayı dönüşümü yoktur.",
+          "title": "Çok alanlı sayısal kurallar — v5",
+          "text": "En fazla sekiz gizli işaretsiz 32-bit alan; aritmetik, karşılaştırma ve koşullu seçim zincirinde birlikte işlenir. Değerler 0..4.294.967.295 aralığındadır; para tam sayı en küçük para birimiyle tutulur. Kesin mul16 çarpımında iki girdi de 0..65.535 olmalıdır. Fatura şablonu beklenen tutarı, fazla faturalamayı, bütçe uygunluğunu ve tam eşleşmeyi denetler.",
           "code": "",
           "href": ""
         },
@@ -230,15 +230,15 @@
         },
         {
           "id": "size",
-          "title": "Küçük ve sınırlandırılmış işler",
-          "text": "En fazla dört seçili sütun; sayısal sütunda 32, metin sütununda sekiz satır desteklenir. Toplam hücre kanıtı 40'ı aşamaz. Devre, istek ve kanıt paketi boyutu ayrıca denetlenir; dört sayısal sütunda 32 satır uygun değildir.",
+          "title": "Devreyle sınırlanan iş boyutu",
+          "text": "v5 motoru 1–8 alan, 1–8 adım ve 1–4 türetilmiş çıktı destekler. İstek 10.000 kapı ve zarf payıyla birlikte 3 MiB sınırının altında kalmalıdır. Mevcut fatura şablonu beş, nakit akışı şablonu on bir satır alır. Satırlar sessizce atılmaz. Ayrı v4 temizleyicinin önceki hücre/ASCII sınırları sürer. v4 sayıları 0..254 aralığındadır; işlenen hücre sayısı 40'ı aşamaz.",
           "code": "",
           "href": ""
         },
         {
           "id": "scope",
-          "title": "Özel veriye serbest model erişimi yok",
-          "text": "Bu ürün sınırlı araç planlarını yürütür; özel CSV üzerinde keyfi bir yapay zekâ sohbeti çalıştırmaz. Bağımsız sağlayıcı altyapısı veya otomatik hukuki karar güvencesi sunmaz. Kanıt üretimi cihaz kaynaklarını kullanır; süre garantisi yoktur.",
+          "title": "Genel amaçlı şifreli dil modeli değildir",
+          "text": "Bunlar sınırlı yapısal hesaplardır; keyfî PDF anlama, anlamsal belge işleme veya genel şifreli LLM çıkarımı sunulmaz. İsimler ve uzun UTF-8 notlar yerel CSV içinde değişmeden korunabilir; sayısal kural motoru bu alanları yorumlamaz.",
           "code": "",
           "href": ""
         }

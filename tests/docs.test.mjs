@@ -5,6 +5,8 @@ import {validateDocs, fetchDocs, loadDocsLocale, renderDocs, startDocs, MAX_DOCS
 import {setLanguage, getLanguage} from '../web/i18n.mjs';
 import {estimateProofPlan} from '../web/proof-plan-core.mjs';
 import {referenceApply} from '../web/recipe-core.mjs';
+import {recordTemplate} from '../web/record-plan.mjs';
+import {referenceRecord,estimateRecordPlan} from '../web/record-core.mjs';
 
 const source = JSON.parse(await fs.readFile(new URL('../web/docs-locales/tr.json', import.meta.url), 'utf8'));
 const catalog = (language, title = `${language} documentation`) => ({...structuredClone(source), locale:language, page:{title,intro:`${language} introduction`}});
@@ -66,7 +68,7 @@ test('Turkish documentation is complete, bounded, and explicitly describes the p
   assert.ok(Buffer.byteLength(prose) < MAX_DOCS_BYTES);
 });
 
-test('the documented mixed example has the stated results and fits actual compiler and proof budgets', () => {
+test('the legacy mixed cleaner and current documented record example fit their actual compiler/proof budgets', async () => {
   const text = {type:'text',steps:[{op:'trim'},{op:'uppercase'},{op:'redactDigits'}]};
   const number = {type:'number',steps:[{op:'fill',value:10},{op:'clamp',min:10,max:80}]};
   assert.deepEqual(referenceApply(['  Acme42  ',' beta7 ','Gamma'],text),['ACME**','BETA*','GAMMA']);
@@ -75,7 +77,10 @@ test('the documented mixed example has the stated results and fits actual compil
   assert.equal(estimate.rowProofCount,6);
   assert.ok(estimate.gateCount < 10000);
   assert.ok(estimate.estimatedProofBundleBytes < estimate.maxProofBundleBytes);
-  assert.equal(source.sections.find(s => s.id === 'templates').items[0].code,'record,supplier,score\nR01,"  Acme42  ",\nR02," beta7 ",200\nR03,Gamma,42\n');
+  assert.equal(source.sections.find(s => s.id === 'templates').items[0].code,'quantity,unit_cents,billed_cents,budget_cents,private_note\n3,12500,40000,50000,synthetic-private-note\n');
+  const aliases=['C1','C2','C3','C4'],task={version:2,goal:'Synthetic invoice audit',columns:aliases.map(id=>({id,type:'uint32'}))};
+  const {plan}=await recordTemplate(task,'invoice',aliases);assert.deepEqual(referenceRecord([3,12500,40000,50000],plan),[37500,2500,1,0]);
+  assert.equal(estimateRecordPlan(plan,5).gateCount,9435);assert.throws(()=>estimateRecordPlan(plan,6));
 });
 
 test('missing or malformed selected translations fall back to a validated English catalog; failures are never cached', async () => {

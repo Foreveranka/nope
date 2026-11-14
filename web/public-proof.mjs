@@ -1,5 +1,7 @@
+import {isProofProfile,RECORD_PROFILE} from './proof-protocol.mjs';
+import {hashRecordPlan,hashRecordOutput} from './record-core.mjs';
 /** Independent public transcript/chain checks. This module never accepts a witness. */
-import {PROFILE,canonicalProofPlanRequest,hashProofPlanProgram} from './proof-plan-core.mjs';
+import {PROFILE,canonicalProofPlanRequest,hashProofPlanProgram} from './proof-protocol.mjs';
 import {hashPlan,hashPlanOutput} from './plan-core.mjs';
 import {sha256} from './gc-core.mjs';
 import {WALLET_ESCROW_POLICY,HISTORICAL_WALLET_ESCROW_POLICIES} from './wallet-pins.mjs';
@@ -20,7 +22,7 @@ export async function boundedPublicJSON(response,maxBytes){
  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
 }
 export function validatePublicEvidence(e,expectedJobId){
- check(e?.version===1&&e.network==='testnet'&&hex(e.jobId,32)&&e.task?.profile===PROFILE,'Desteklenen sonuç kanıtı değil.');
+ check(e?.version===1&&e.network==='testnet'&&hex(e.jobId,32)&&isProofProfile(e.task?.profile),'Desteklenen sonuç kanıtı değil.');
  if(expectedJobId!==undefined)check(hex(expectedJobId,32)&&e.jobId===expectedJobId,'Dönen kanıt istenen işe ait değil.');
  const policy=chainPolicyFor(e.binding?.contractId);
  check(policy&&e.binding?.jobId===e.jobId&&e.task.proofManifest?.context.jobId===e.jobId&&
@@ -49,7 +51,7 @@ export async function verifyPublicChainBinding(e,{fetcher=globalThis.fetch}={}){
  check(view.block_hash===account.block_hash&&Array.isArray(view.result)&&view.result.length<=16384&&view.result.every(x=>Number.isInteger(x)&&x>=0&&x<256),'Kesinleşmiş sözleşme kaydı geçersiz.');
  const hold=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(view.result))),t=hold?.terms;
  if(policy.domain==='NOPE:WALLET-ESCROW:V2:testnet')check(policy.storageDepositYocto==='40960000000000000000000'&&hold?.storage_deposit_yocto===policy.storageDepositYocto,'Kalıcı kayıt depolama bedeli sabit politikayla eşleşmiyor.');
- const inputHash=await sha256(canonicalProofPlanRequest(e.task)),programHash=await hashProofPlanProgram(e.task.task.plan),planHash=await hashPlan(e.task.task.plan),outputHash=await hashPlanOutput(e.delivery.outputs);
+ const inputHash=await sha256(canonicalProofPlanRequest(e.task)),programHash=await hashProofPlanProgram(e.task.task.plan),planHash=await (e.task.profile===RECORD_PROFILE?hashRecordPlan:hashPlan)(e.task.task.plan),outputHash=await (e.task.profile===RECORD_PROFILE?hashRecordOutput:hashPlanOutput)(e.delivery.outputs);
  check(t&&t.job_id===e.jobId&&t.buyer_commitment===e.task.proofManifest.context.buyerCommitment&&t.provider===e.binding.provider&&t.amount===e.binding.amountYocto&&
   t.input_hash===inputHash&&t.program_hash===programHash&&t.plan_hash===planHash,'Zincirdeki ön taahhüt, şifreli girdi veya program farklı.');
  check(e.delivery.inputSha256===inputHash&&e.delivery.programSha256===programHash&&e.delivery.outputSha256===outputHash,'Teslim edilen şifreli veri değiştirilmiş.');

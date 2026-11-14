@@ -199,5 +199,21 @@
   "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗": "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗",
   "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ": "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ",
   "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.",
-  "TESTNET PİLOTU / CÜZDAN GEREKİR": "TESTNET PİLOTU / CÜZDAN GEREKİR"
+  "TESTNET PİLOTU / CÜZDAN GEREKİR": "TESTNET PİLOTU / CÜZDAN GEREKİR",
+  "Birden çok gizli alanı birlikte hesapla.": "Birden çok gizli alanı birlikte hesapla.",
+  "Fatura farkını bul, bütçeyi kontrol et.": "Fatura farkını bul, bütçeyi kontrol et.",
+  "CSV / GİZLİ FATURA DENETİMİ": "CSV / GİZLİ FATURA DENETİMİ",
+  "Çok alanlı gizli hesaplama — sentetik örnek": "Çok alanlı gizli hesaplama — sentetik örnek",
+  "İŞLEM": "İŞLEM",
+  "YEREL ÖRNEK": "YEREL ÖRNEK",
+  "BEKLENEN TUTAR": "BEKLENEN TUTAR",
+  "FAZLA FATURALAMA": "FAZLA FATURALAMA",
+  "BÜTÇE UYGUNLUĞU": "BÜTÇE UYGUNLUĞU",
+  "TAM EŞLEŞME": "TAM EŞLEŞME",
+  "EVET": "EVET",
+  "HAYIR": "HAYIR",
+  "TUTARLAR EN KÜÇÜK PARA BİRİMİYLE İŞLENİR. GERÇEK GİRDİ VE AÇIK SONUÇ YALNIZCA MÜŞTERİNİN CİHAZINDADIR.": "TUTARLAR EN KÜÇÜK PARA BİRİMİYLE İŞLENİR. GERÇEK GİRDİ VE AÇIK SONUÇ YALNIZCA MÜŞTERİNİN CİHAZINDADIR.",
+  "Fatura veya nakit akışı kuralını seç; gizli alanları kendi cihazında eşleştir. Birden çok alanı kullanan planı ve beklenen sonucu inceleyip onayla. Seçilen değerler şifreli devre girdilerine dönüşür. Kural şablonları denetlenmiş programlardır; serbest metin planlama ayrı yerel AI modundadır.": "Fatura veya nakit akışı kuralını seç; gizli alanları kendi cihazında eşleştir. Birden çok alanı kullanan planı ve beklenen sonucu inceleyip onayla. Seçilen değerler şifreli devre girdilerine dönüşür. Kural şablonları denetlenmiş programlardır; serbest metin planlama ayrı yerel AI modundadır.",
+  "GİZLİ 32-BİT ALANLAR · ÇOK ALANLI KURALLAR · BAĞIMSIZ SONUÇ KANITI · DEVRE SINIRLARI GEÇERLİ": "GİZLİ 32-BİT ALANLAR · ÇOK ALANLI KURALLAR · BAĞIMSIZ SONUÇ KANITI · DEVRE SINIRLARI GEÇERLİ",
+  "Şifreli kural motoru, birden çok gizli sayısal alan üzerinde aritmetik ve koşullu karar çalıştırır. Fatura ve nakit akışı için hazır kurallar, metin temizleme için ayrı yerel AI planlama vardır. Ham kayıtlar ve çözme eşlemesi müşteride kalır; genel amaçlı şifreli LLM çıkarımı sunulmaz.": "Şifreli kural motoru, birden çok gizli sayısal alan üzerinde aritmetik ve koşullu karar çalıştırır. Fatura ve nakit akışı için hazır kurallar, metin temizleme için ayrı yerel AI planlama vardır. Ham kayıtlar ve çözme eşlemesi müşteride kalır; genel amaçlı şifreli LLM çıkarımı sunulmaz."
 }

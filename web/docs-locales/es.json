@@ -43,8 +43,8 @@
         },
         {
           "id": "planner",
-          "title": "Modelo de planificación local",
-          "text": "El modelo que se ejecuta en el navegador solo ve tu objetivo público y los tipos de columnas anónimas. No ve las filas privadas. Propone un plan con las herramientas admitidas; su propuesta no garantiza la corrección. Tú apruebas el plan después de revisar la vista previa.",
+          "title": "Planificación local y plantillas de reglas revisadas",
+          "text": "Para cálculos cifrados con varios campos, elige una plantilla de facturas o flujo de caja. Es un programa determinista, no inferencia de un LLM. El modo de IA local separado propone planes de limpieza a partir del objetivo público y tipos anónimos. Ninguna ruta envía filas privadas al modelo.",
           "code": "",
           "href": ""
         },
@@ -64,8 +64,8 @@
         },
         {
           "id": "proof",
-          "title": "Prueba del resultado en el navegador y el servidor",
-          "text": "El dispositivo del cliente genera un SNARK real de Noir/UltraHonk con el testigo privado que conserva. El navegador y el servidor verifican por separado las pruebas de todas las celdas. La prueba verifica el resultado de la transformación aprobada bajo las correspondencias del cliente comprometidas previamente; no prueba el origen del CSV original ni una traza de ejecución AES.",
+          "title": "Pruebas de resultado en navegador y API",
+          "text": "El cliente genera una prueba real Noir/UltraHonk usando el testigo privado guardado en su dispositivo. v5 prueba cada registro de varios campos; v4, las celdas procesadas. Navegador y API verifican la prueba actual con la versión fijada correspondiente. Se presupone una preparación inicial honesta; no se demuestra el origen del CSV ni una traza de ejecución AES.",
           "code": "",
           "href": ""
         },
@@ -86,8 +86,8 @@
       "items": [
         {
           "id": "plan",
-          "title": "Planificar",
-          "text": "Como cliente, elige un CSV y define las columnas que se procesarán y sus tipos. No escribas datos personales en el objetivo público. El modelo elabora un plan de transformación limitado a partir de campos anónimos como C2.",
+          "title": "Elegir la tarea y asignar campos privados",
+          "text": "En las reglas de facturas o flujo de caja, asigna cada función a una columna CSV en tu dispositivo. Solo se publican los alias anónimos y el programa de reglas público. La limpieza de texto usa el modo de IA local separado. Revisa el programa y la vista previa antes de aprobar.",
           "code": "",
           "href": ""
         },
@@ -172,9 +172,9 @@
       "items": [
         {
           "id": "worked",
-          "title": "Dos columnas, dos reglas explícitas",
-          "text": "En el texto, elimina solo los espacios ASCII de los extremos, convierte a mayúsculas y sustituye los dígitos por asteriscos. En los números, rellena los valores ausentes con 10 y después limita al rango 10–80. El valor 200 pasa a 80; 42, que ya está dentro del rango, no cambia.",
-          "code": "C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42",
+          "title": "Auditoría privada de facturas",
+          "text": "Ejemplo sintético: cantidad 3 × precio unitario 12.500 = importe esperado 37.500. Facturar 40.000 produce un exceso de 2.500; se cumple el presupuesto de 50.000, pero no hay coincidencia exacta. Todos los importes son unidades monetarias mínimas enteras. El evaluador recibe etiquetas cifradas; el cliente abre los cuatro resultados localmente.",
+          "code": "Expected: 3 × 12500 = 37500\nExcess billing: max(40000 − 37500, 0) = 2500\nBudget: 40000 <= 50000 → 1\nExact match: 40000 == 37500 → 0",
           "href": ""
         }
       ]
@@ -187,9 +187,9 @@
       "items": [
         {
           "id": "csv",
-          "title": "CSV sintético listo para usar",
-          "text": "La primera columna identifica el registro, la segunda contiene texto y la tercera contiene números. Tras seleccionar el archivo, comprueba los tipos de C2 y C3. Este ejemplo de tres filas no contiene datos reales de clientes.",
-          "code": "record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n",
+          "title": "CSV sintético de factura",
+          "text": "En el modo de reglas con varios campos, asigna quantity, unit_cents, billed_cents y budget_cents en ese orden. private_note permanece sin cambios en tu dispositivo. Este ejemplo cabe en el presupuesto actual del circuito.",
+          "code": "quantity,unit_cents,billed_cents,budget_cents,private_note\n3,12500,40000,50000,synthetic-private-note\n",
           "href": ""
         },
         {
@@ -216,8 +216,8 @@
       "items": [
         {
           "id": "numeric",
-          "title": "Herramientas numéricas",
-          "text": "Se admiten el relleno de valores ausentes y la limitación a un rango. Los valores numéricos reales son enteros de 0–254; 255 indica un valor ausente. No se admiten transformaciones de números decimales ni de magnitud ilimitada.",
+          "title": "Reglas numéricas con varios campos — v5",
+          "text": "Hasta ocho campos privados sin signo de 32 bits alimentan operaciones aritméticas, comparaciones y selecciones condicionales. Valores: 0..4.294.967.295; el dinero usa unidades monetarias mínimas enteras. La multiplicación exacta mul16 requiere ambos operandos entre 0 y 65.535. La plantilla comprueba importe esperado, sobrefacturación, presupuesto y coincidencia exacta.",
           "code": "",
           "href": ""
         },
@@ -230,15 +230,15 @@
         },
         {
           "id": "size",
-          "title": "Tareas pequeñas y acotadas",
-          "text": "Se admiten hasta cuatro columnas seleccionadas, con 32 filas para columnas numéricas y ocho para columnas de texto. El total de pruebas de celda no puede superar 40. También se comprueban por separado los tamaños del circuito, la solicitud y el paquete de pruebas; cuatro columnas numéricas con 32 filas no son una combinación válida.",
+          "title": "Trabajos limitados por el circuito",
+          "text": "v5 admite 1–8 campos, 1–8 instrucciones y 1–4 resultados derivados. Cada solicitud debe caber en 10.000 puertas y menos de 3 MiB con reserva para el envoltorio. La plantilla actual de facturas admite cinco filas; flujo de caja, once. No se descartan filas silenciosamente. El limpiador v4 separado conserva sus límites de celdas y ASCII. Los valores numéricos v4 siguen en 0..254, con un máximo de 40 celdas procesadas.",
           "code": "",
           "href": ""
         },
         {
           "id": "scope",
-          "title": "El modelo no tiene acceso libre a los datos privados",
-          "text": "Este producto ejecuta planes con herramientas limitadas; no ofrece un chat de inteligencia artificial arbitrario sobre el CSV privado. No garantiza una infraestructura de proveedores independientes ni decisiones legales automáticas. La generación de pruebas usa los recursos del dispositivo; no se garantiza un tiempo de ejecución.",
+          "title": "No es un modelo de lenguaje cifrado general",
+          "text": "Son cálculos estructurados limitados, no comprensión arbitraria de PDF, procesamiento semántico de documentos ni inferencia LLM cifrada general. Nombres y notas UTF-8 largas pueden conservarse sin cambios en el CSV local; el motor numérico no interpreta esos campos.",
           "code": "",
           "href": ""
         }

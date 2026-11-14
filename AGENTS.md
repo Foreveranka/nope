@@ -1,3 +1,6 @@
+# Multi-field v5 extension (14 Nov 2026)
+The current app additionally supports versioned `nope-record-proof-gc-v5` tasks: `web/record-core.mjs` / `record-client.mjs` implement bounded multi-input u32 garbled rules; `record-plan.mjs` validates public tasks and buyer-local CSV mapping; `record-proof-core.mjs` / `record-proof-client.mjs` and `proof-runtime/record-*` implement the separate genuine Noir proof policy. `web/proof-protocol.mjs` / `proof-client.mjs` dispatch exact versions without changing historical v4 artifacts. Reviewed invoice/cash-flow templates are deterministic, not neural inference. General encrypted LLM/PDF semantics remain unsupported. Never publish a private decoder, witness, label-pair alternatives or selected clear values. Run record engine/proof/API tests when changing this path. See `docs/RECORD-RULES.md` and README limits.
+
 # NOPE — current application map
 
 The current application is the browser-based `/workspace` flow, not the original local Python prototype. Canonical hosted origin: `https://nope-workspace.vercel.app`. The prior origin stays available for pre-existing browser vaults; local CSVs, decoders and witnesses do not transfer between origins.

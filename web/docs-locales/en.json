@@ -43,8 +43,8 @@
         },
         {
           "id": "planner",
-          "title": "Local planning model",
-          "text": "The model runs in your browser and sees only your public goal and anonymous column types. It does not see private rows. It proposes a plan using supported tools; its proposal is not a correctness guarantee. You review the preview and approve the plan yourself.",
+          "title": "Local planning and reviewed rule templates",
+          "text": "Choose a reviewed invoice or cash-flow template for multi-field encrypted calculations. This template is a deterministic program, not LLM inference. The separate local AI mode proposes supported text/numeric cleaning plans from the public goal and anonymous types; neither path sends private rows to a model.",
           "code": "",
           "href": ""
         },
@@ -64,8 +64,8 @@
         },
         {
           "id": "proof",
-          "title": "Result proof in the browser and on the server",
-          "text": "The customer’s device generates an actual Noir/UltraHonk SNARK using its stored private witness. The browser and server each verify every cell proof. The proof verifies the approved transformation’s result under the client mappings committed to in advance; it does not establish the original CSV’s provenance or prove an AES execution trace.",
+          "title": "Result proofs in browser and API",
+          "text": "The customer generates a genuine Noir/UltraHonk result proof using the private witness retained on the device. v5 proves each multi-field record; v4 proves processed cells. Browser and API verify the current proof under the matching pinned version. Honest initial garbling is assumed; this is not a proof of CSV provenance or an AES execution trace.",
           "code": "",
           "href": ""
         },
@@ -86,8 +86,8 @@
       "items": [
         {
           "id": "plan",
-          "title": "Plan",
-          "text": "As a customer, select a CSV and choose the columns to process and their types. Do not put personal data in the public goal. The model uses anonymous fields such as C2 to propose a bounded transformation plan.",
+          "title": "Choose a task and map private fields",
+          "text": "For invoice or cash-flow rules, map each role to a CSV column on your device. Only anonymous aliases and the public rule program are published. For text cleaning, use the separate local AI mode. Review the actual program and preview before approval.",
           "code": "",
           "href": ""
         },
@@ -172,9 +172,9 @@
       "items": [
         {
           "id": "worked",
-          "title": "Two columns, two explicit rules",
-          "text": "For text, remove only leading and trailing ASCII spaces, convert to uppercase and replace digits with asterisks. For numbers, fill missing values with 10, then clamp to the 10–80 range. The value 200 becomes 80; 42 is already in range and stays unchanged.",
-          "code": "C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42",
+          "title": "A private invoice audit",
+          "text": "Synthetic example: quantity 3 × unit price 12,500 = expected amount 37,500. Billed amount 40,000 gives excess billing 2,500; a budget of 50,000 passes the budget check, while exact-match is false. All monetary values are integer minor units. The evaluator receives encrypted labels, not these values; the customer opens the four derived results locally.",
+          "code": "Expected: 3 × 12500 = 37500\nExcess billing: max(40000 − 37500, 0) = 2500\nBudget: 40000 <= 50000 → 1\nExact match: 40000 == 37500 → 0",
           "href": ""
         }
       ]
@@ -187,9 +187,9 @@
       "items": [
         {
           "id": "csv",
-          "title": "Ready-to-use synthetic CSV",
-          "text": "The first column identifies the record, the second contains text and the third contains numbers. After selecting the file, check the types for C2 and C3. This three-row example contains no real customer data.",
-          "code": "record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n",
+          "title": "Synthetic invoice CSV",
+          "text": "Use the multi-field rules mode and map quantity, unit_cents, billed_cents and budget_cents in that order. The private_note field stays on your device unchanged. This small sample fits the current circuit budget.",
+          "code": "quantity,unit_cents,billed_cents,budget_cents,private_note\n3,12500,40000,50000,synthetic-private-note\n",
           "href": ""
         },
         {
@@ -216,8 +216,8 @@
       "items": [
         {
           "id": "numeric",
-          "title": "Numeric tools",
-          "text": "Missing-value filling and range clamping are supported. Actual numeric values are integers from 0–254; 255 marks a missing value. Decimal or unbounded numeric transformations are not supported.",
+          "title": "Multi-field numeric rules — v5",
+          "text": "Up to eight private unsigned 32-bit fields can feed a chain of arithmetic, comparisons and conditional selections. Values are 0..4,294,967,295; money uses integer minor units. Exact mul16 multiplication requires both operands to be 0..65,535. The reviewed invoice template checks expected amount, excess billing, budget compliance and exact match.",
           "code": "",
           "href": ""
         },
@@ -230,15 +230,15 @@
         },
         {
           "id": "size",
-          "title": "Small, bounded jobs",
-          "text": "Up to four selected columns are supported, with 32 rows for numeric columns and eight for text columns. The total number of cell proofs cannot exceed 40. Circuit, request and proof bundle sizes are checked separately; 32 rows across four numeric columns are not allowed.",
+          "title": "Circuit-bounded jobs",
+          "text": "The v5 rule engine supports 1–8 fields, 1–8 instructions and 1–4 derived outputs. A request must fit 10,000 gates and less than 3 MiB with envelope reserve. The current invoice template fits five rows; cash-flow fits eleven. No rows are silently dropped. The separate v4 cleaner retains its earlier cell/ASCII limits. v4 numeric values remain in 0..254, with at most 40 processed cells.",
           "code": "",
           "href": ""
         },
         {
           "id": "scope",
-          "title": "No unrestricted model access to private data",
-          "text": "This product executes bounded tool plans, not arbitrary AI chat over a private CSV. It does not provide independent provider infrastructure or guaranteed automatic legal decisions. Proof generation uses your device’s resources; completion time is not guaranteed.",
+          "title": "No general encrypted language model",
+          "text": "These are bounded structured computations, not arbitrary PDF understanding, semantic document processing or general encrypted LLM inference. Names and long UTF-8 notes may remain in the local CSV unchanged; the numeric rule engine does not interpret those fields.",
           "code": "",
           "href": ""
         }

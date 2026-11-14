@@ -199,7 +199,7 @@ test('actual encrypted v3 lifecycle: selected-provider-only execution, reload de
 });
 
 async function setupAgentUI(buyer){
- await buyer.app.start();assert.equal(buyer.get('planningMode').value,'agent');assert.deepEqual(buyer.get('planningMode').children.map(o=>o.value),['agent']);
+ await buyer.app.start();assert.equal(buyer.get('planningMode').value,'agent');assert.deepEqual(buyer.get('planningMode').children.map(o=>o.value),['agent','record']);
  await buyer.change('planningMode','agent');await buyer.upload(CSV);
  await buyer.change('agentColumn1','number');await buyer.change('agentColumn2','text');await buyer.change('agentGoal',TASK.goal);
  buyer.get('title').value='Synthetic agent cleanup';buyer.get('description').value='Separate public description';buyer.get('deadlineISO').value='2026-11-15T15:00';
@@ -242,7 +242,7 @@ test('goal/schema/file/mode changes invalidate agent approval and silent task ch
  await approve();await buyer.change('agentGoal',TASK.goal+' ');assert.equal(buyer.get('agentApprove').checked,false);assert.equal(buyer.all().find(e=>e.type==='submit').disabled,true);
  await approve();await buyer.change('agentColumn2','ignore');assert.equal(buyer.get('agentApprove').checked,false);await buyer.change('agentColumn2','text');
  await approve();await buyer.upload(CSV);assert.equal(buyer.get('agentApprove').checked,false);assert.equal(buyer.get('agentColumn1').value,'ignore');await buyer.change('agentColumn1','number');await buyer.change('agentColumn2','text');
- await approve();await buyer.change('planningMode','agent');assert.equal(buyer.get('agentApprove').checked,false);assert.deepEqual(buyer.get('planningMode').children.map(o=>o.value),['agent']);
+ await approve();await buyer.change('planningMode','agent');assert.equal(buyer.get('agentApprove').checked,false);assert.deepEqual(buyer.get('planningMode').children.map(o=>o.value),['agent','record']);
  await approve();buyer.get('agentGoal').value='Silently changed goal';await buyer.submit();assert.equal(buyer.calls.filter(c=>c.route==='/jobs'&&c.method==='POST').length,0);assert.match(buyer.message(),/plan|tanımı|sütun/i);
 });
 

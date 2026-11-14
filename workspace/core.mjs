@@ -1,8 +1,11 @@
+import {isProofProfile,RECORD_PROFILE} from '../web/proof-protocol.mjs';
+import {publicRecordTask,publicRecordTaskHash,acceptRecordProposal} from '../web/record-plan.mjs';
+import {normalizeRecordPlan,hashRecordPlan} from '../web/record-core.mjs';
 import {randomBytes,createHash,createPublicKey} from 'node:crypto';
 import {PROFILE} from '../web/gc-core.mjs';
 import {PROFILE as RECIPE_PROFILE} from '../web/recipe-core.mjs';
 import {PROFILE as PLAN_PROFILE,hashPlan} from '../web/plan-core.mjs';
-import {PROFILE as PROOF_PROFILE,validateProofPlanContext,canonicalProofPlanRequest} from '../web/proof-plan-core.mjs';
+import {PROFILE as PROOF_PROFILE,validateProofPlanContext,canonicalProofPlanRequest} from '../web/proof-protocol.mjs';
 import {verifyJobProof,matchesCurrentProof,proofPath,proofBundleHash,proofBindingForJob} from './proof.mjs';
 import {publicTask,publicTaskHash,acceptAgentProposal} from '../web/agent-plan.mjs';
 import {ROOT} from './blob.mjs';
@@ -49,7 +52,7 @@ async function bodyFor(req,max=1048576){
  try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>max){await reader.cancel();fail(413,'BODY_TOO_LARGE');}chunks.push(Buffer.from(value));}}finally{reader.releaseLock();}
  if(len!==null&&Number(len)!==size)fail(400,'INVALID_LENGTH');
  let body;try{body=strictJSON(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)));}catch{fail(size>1048576?413:400,size>1048576?'BODY_TOO_LARGE':'INVALID_JSON');}
- if(size>1048576&&![RECIPE_PROFILE,PLAN_PROFILE,PROOF_PROFILE].includes(body?.task?.profile))fail(413,'BODY_TOO_LARGE');
+ if(size>1048576&&![RECIPE_PROFILE,PLAN_PROFILE,PROOF_PROFILE,RECORD_PROFILE].includes(body?.task?.profile))fail(413,'BODY_TOO_LARGE');
  return body;
 }
 function publicKey(key){
@@ -167,7 +170,7 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
    const evidenceMatch=/^\/jobs\/([a-f0-9]{32})\/proof\/evidence$/.exec(route);
    if(req.method==='GET'&&evidenceMatch){
     const job=(await history(evidenceMatch[1])).at(-1)?.job;
-    if(!job||job.profile!==PROOF_PROFILE||!matchesCurrentProof(job))fail(404,'PROOF_NOT_FOUND');
+    if(!job||!isProofProfile(job.profile)||!matchesCurrentProof(job))fail(404,'PROOF_NOT_FOUND');
     const bundle=await savedProof(job),record=await store.read(`${ROOT}jobs/${job.id}/task.json`);
     if(!record||sha(canonicalProofPlanRequest(record.task))!==job.taskHash)fail(503,'TASK_INTEGRITY');
     return response({version:1,network:'testnet',jobId:job.id,task:record.task,delivery:job.delivery,binding:proofBindingForJob(job),proof:job.proof,bundle,...(walletPayment(job)?{walletBuyerAccount:job.buyerWallet.accountId}:{})});
@@ -191,15 +194,16 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
    }
    const b=req.method==='POST'?await bodyFor(req,route==='/jobs'?3*1024*1024:1048576):null;
    if(route==='/jobs'&&req.method==='POST'){
-    role(s,'buyer');if(walletEscrow)linked(s);if(walletRequired){linked(s);if(b?.profile!==PROOF_PROFILE)fail(400,'WALLET_PROOF_PROFILE_REQUIRED');}const planned=[PLAN_PROFILE,PROOF_PROFILE].includes(b?.profile);
+    role(s,'buyer');if(walletEscrow)linked(s);if(walletRequired){linked(s);if(!isProofProfile(b?.profile))fail(400,'WALLET_PROOF_PROFILE_REQUIRED');}const planned=[PLAN_PROFILE,PROOF_PROFILE,RECORD_PROFILE].includes(b?.profile);
     schema(b,['jobId','title','description','deadlineISO','profile','rowCount','task','buyerPublicKey',...(planned?['publicTask']:[])]);
-    if(!hex(b.jobId,32)||!text(b.title,100)||!text(b.description,1000,true)||![PROFILE,RECIPE_PROFILE,PLAN_PROFILE,PROOF_PROFILE].includes(b.profile)||!Number.isInteger(b.rowCount)||b.rowCount<1||b.rowCount>32||typeof b.deadlineISO!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(b.deadlineISO)||!Number.isFinite(Date.parse(b.deadlineISO)))fail(400,'INVALID_JOB');
-    const prepared=b.profile===PROOF_PROFILE?b.task?.task:b.task;
+    if(!hex(b.jobId,32)||!text(b.title,100)||!text(b.description,1000,true)||![PROFILE,RECIPE_PROFILE,PLAN_PROFILE,PROOF_PROFILE,RECORD_PROFILE].includes(b.profile)||!Number.isInteger(b.rowCount)||b.rowCount<1||b.rowCount>32||typeof b.deadlineISO!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(b.deadlineISO)||!Number.isFinite(Date.parse(b.deadlineISO)))fail(400,'INVALID_JOB');
+    const prepared=isProofProfile(b.profile)?b.task?.task:b.task;
     try{
      validateTask(b.task);
      if(b.task.profile===RECIPE_PROFILE&&b.task.programSha256!==await hashTaskProgram(b.task))throw Error('Program mismatch');
-     if(planned){const task=publicTask(b.publicTask);if(await publicTaskHash(task)!==prepared.plan.taskHash||prepared.planSha256!==await hashPlan(prepared.plan))throw Error('Plan mismatch');await acceptAgentProposal(task,prepared.plan);for(const item of prepared.tasks)if(item.request.programSha256!==await hashTaskProgram(item.request))throw Error('Program mismatch');}
-     if(b.profile===PROOF_PROFILE){
+     if(b.profile===RECORD_PROFILE){await acceptRecordProposal(b.publicTask,prepared.plan);if(prepared.planSha256!==await hashRecordPlan(prepared.plan))throw Error('Record plan mismatch');}
+     else if(planned){const task=publicTask(b.publicTask);if(await publicTaskHash(task)!==prepared.plan.taskHash||prepared.planSha256!==await hashPlan(prepared.plan))throw Error('Plan mismatch');await acceptAgentProposal(task,prepared.plan);for(const item of prepared.tasks)if(item.request.programSha256!==await hashTaskProgram(item.request))throw Error('Program mismatch');}
+     if(isProofProfile(b.profile)){
       if(!proofEscrow||b.task.proofManifest.context.buyerCommitment!==sha('NOPE:buyer:'+s.id)||b.task.proofManifest.context.contractId!==proofEscrow.contractId)throw Error('Proof context required');
       validateProofPlanContext(b.task,{jobId:b.jobId,buyerCommitment:sha('NOPE:buyer:'+s.id),contractId:proofEscrow.contractId});
      }
@@ -212,7 +216,7 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     const taskPath=`${ROOT}jobs/${b.jobId}/task.json`,taskRecord={buyerId:s.id,creationHash,task:b.task};
     if(!await store.create(taskPath,taskRecord)&&canonical(await store.read(taskPath))!==canonical(taskRecord))fail(409,'JOB_EXISTS');
     await store.create(`${ROOT}index/${b.jobId}.json`,{id:b.jobId});
-    const job={id:b.jobId,buyerId:s.id,buyerName:s.displayName,title:b.title,description:b.description,deadlineISO:b.deadlineISO,status:'OPEN',profile:b.profile,...(b.profile===RECIPE_PROFILE?{recipe:structuredClone(b.task.recipe)}:planned?{plan:structuredClone(prepared.plan),planSha256:prepared.planSha256,publicTask:publicTask(b.publicTask)}:{}),...(b.profile===PROOF_PROFILE?{proof:{status:'NOT_CREATED'}}:{}),rowCount:b.rowCount,createdAt:new Date(now()).toISOString(),buyerPublicKey:b.buyerPublicKey,offerCount:0,selectedOffer:null,delivery:null,...(walletEscrow?{buyerWallet:structuredClone(s.wallet)}:{}),payment:walletEscrow?{kind:WALLET_ESCROW_KIND,network:'testnet',contractId:walletEscrow.contractId,buyerAccount:s.wallet.accountId,status:'NOT_FUNDED'}:escrow?{kind:ESCROW_KIND,network:'testnet',contractId:escrow.contractId,status:'NOT_FUNDED'}:{status:'NOT_DUE'},revision:0,events:[],offers:[],decisions:[],creationHash,taskHash:await hashTask(b.task),programHash:await hashTaskProgram(b.task)};
+    const job={id:b.jobId,buyerId:s.id,buyerName:s.displayName,title:b.title,description:b.description,deadlineISO:b.deadlineISO,status:'OPEN',profile:b.profile,...(b.profile===RECIPE_PROFILE?{recipe:structuredClone(b.task.recipe)}:planned?{plan:structuredClone(prepared.plan),planSha256:prepared.planSha256,publicTask:b.profile===RECORD_PROFILE?publicRecordTask(b.publicTask):publicTask(b.publicTask)}:{}),...(isProofProfile(b.profile)?{proof:{status:'NOT_CREATED'}}:{}),rowCount:b.rowCount,createdAt:new Date(now()).toISOString(),buyerPublicKey:b.buyerPublicKey,offerCount:0,selectedOffer:null,delivery:null,...(walletEscrow?{buyerWallet:structuredClone(s.wallet)}:{}),payment:walletEscrow?{kind:WALLET_ESCROW_KIND,network:'testnet',contractId:walletEscrow.contractId,buyerAccount:s.wallet.accountId,status:'NOT_FUNDED'}:escrow?{kind:ESCROW_KIND,network:'testnet',contractId:escrow.contractId,status:'NOT_FUNDED'}:{status:'NOT_DUE'},revision:0,events:[],offers:[],decisions:[],creationHash,taskHash:await hashTask(b.task),programHash:await hashTaskProgram(b.task)};
     try{return response({job:view(await commit([],job,s.id),s)},201);}catch(e){if(e.code!=='REVISION_CONFLICT')throw e;const current=(await history(b.jobId)).at(-1)?.job;if(current?.buyerId===s.id&&current.creationHash===creationHash)return response({job:view(current,s)});throw e;}
    }
    const match=/^\/jobs\/([a-f0-9]{32})(?:\/(offers|close|award|task|execute|decision|proof|payment\/(?:verify|fund|record|release|refund|refresh|prepare|confirm)))?$/.exec(route);if(!match)fail(404,'ROUTE_NOT_FOUND');
@@ -247,13 +251,13 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     if(escrowPayment(j)&&(j.payment.status!=='HELD'||walletPayment(j)&&(j.payment.verified!==true||BigInt(now())*1000000n>=BigInt(j.payment.executionDeadlineNs))))fail(409,'ESCROW_FUNDING_REQUIRED');
     const t=await store.read(`${ROOT}jobs/${j.id}/task.json`);if(!t||await hashTask(t.task)!==j.taskHash)fail(503,'TASK_INTEGRITY');
     let result;try{result=await executeTask(t.task);}catch{fail(422,'EXECUTION_FAILED');}
-    const expectedNonce=t.task.profile===PROOF_PROFILE?t.task.task.nonce:t.task.nonce;
+    const expectedNonce=isProofProfile(t.task.profile)?t.task.task.nonce:t.task.nonce;
     if(result.profile!==j.profile||result.nonce!==expectedNonce||result.rowCount!==j.rowCount||result.inputSha256!==j.taskHash||result.programSha256!==j.programHash)fail(503,'EXECUTION_INTEGRITY');
-    j.delivery={...([RECIPE_PROFILE,PLAN_PROFILE,PROOF_PROFILE].includes(j.profile)?{profile:result.profile,nonce:result.nonce,rowCount:result.rowCount}:{}),outputs:result.outputs,inputSha256:result.inputSha256,outputSha256:result.outputSha256,programSha256:result.programSha256,version:(j.delivery?.version||0)+1,deliveredAt:new Date(now()).toISOString()};j.status='DELIVERED';
-    if(j.profile===PROOF_PROFILE)j.proof={status:'NOT_CREATED'};
+    j.delivery={...([RECIPE_PROFILE,PLAN_PROFILE,PROOF_PROFILE,RECORD_PROFILE].includes(j.profile)?{profile:result.profile,nonce:result.nonce,rowCount:result.rowCount}:{}),outputs:result.outputs,inputSha256:result.inputSha256,outputSha256:result.outputSha256,programSha256:result.programSha256,version:(j.delivery?.version||0)+1,deliveredAt:new Date(now()).toISOString()};j.status='DELIVERED';
+    if(isProofProfile(j.profile))j.proof={status:'NOT_CREATED'};
    }else if(action==='proof'){
     buyer(s,j);schema(b,['version','outputSha256','bundle']);state(j,['DELIVERED']);
-    if(j.profile!==PROOF_PROFILE||b.version!==j.delivery.version||b.outputSha256!==j.delivery.outputSha256)fail(409,'DELIVERY_MISMATCH');
+    if(!isProofProfile(j.profile)||b.version!==j.delivery.version||b.outputSha256!==j.delivery.outputSha256)fail(409,'DELIVERY_MISMATCH');
     const task=await storedTask(j);let facts;
     try{facts=await verifyJobProof({task,job:j,bundle:b.bundle});}catch{fail(422,'RESULT_PROOF_NOT_VERIFIED');}
     if(matchesCurrentProof(current)&&current.proof.bundleSha256===facts.bundleSha256)return response({job:view(current,s)});
@@ -265,15 +269,15 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     if(!['accept','revise'].includes(b.decision)||!Number.isInteger(b.version)||b.version!==j.delivery.version||b.outputSha256!==j.delivery.outputSha256)fail(409,'DELIVERY_MISMATCH');
     if(walletPayment(j)){await walletRefresh(j,s);if(BigInt(now())*1000000n>=BigInt(j.payment.reviewDeadlineNs))fail(409,'WALLET_REVIEW_DEADLINE');}
     if(escrowPayment(j)&&(j.payment.status!=='HELD'||j.payment.verified!==true||j.payment.recordedVersion!==j.delivery.version||j.payment.recordedOutputHash!==j.delivery.outputSha256))fail(409,'ESCROW_DELIVERY_RECORD_REQUIRED');
-    if(b.decision==='accept'&&j.profile===PROOF_PROFILE)await requireCurrentProof(j);
-    if(j.decisions.length>=20)fail(409,'REVISION_LIMIT');j.decisions.push({...b,...(b.decision==='accept'&&j.profile===PROOF_PROFILE?{proofSha256:j.proof.bundleSha256}:{}),at:new Date(now()).toISOString()});j.status=b.decision==='accept'?'ACCEPTED':'REVISION';if(b.decision==='accept')j.payment=escrowPayment(j)?{...j.payment,status:'RELEASE_READY'}:{status:'DUE',network:'testnet',kind:'DIRECT_TESTNET_TRANSFER'};
+    if(b.decision==='accept'&&isProofProfile(j.profile))await requireCurrentProof(j);
+    if(j.decisions.length>=20)fail(409,'REVISION_LIMIT');j.decisions.push({...b,...(b.decision==='accept'&&isProofProfile(j.profile)?{proofSha256:j.proof.bundleSha256}:{}),at:new Date(now()).toISOString()});j.status=b.decision==='accept'?'ACCEPTED':'REVISION';if(b.decision==='accept')j.payment=escrowPayment(j)?{...j.payment,status:'RELEASE_READY'}:{status:'DUE',network:'testnet',kind:'DIRECT_TESTNET_TRANSFER'};
    }else if(action==='payment/prepare'||action==='payment/confirm'||action==='payment/refresh'&&walletPayment(j)){
     if(!walletPayment(j)||!walletEscrow)fail(409,'WALLET_ESCROW_JOB_REQUIRED');
     const operation=action==='payment/refresh'?'refresh':b?.action;
     schema(b,action==='payment/refresh'?[]:action==='payment/prepare'?['action']:['action','transactionHash']);
     if(!['fund','record','release','refund','refresh'].includes(operation))fail(400,'WALLET_INVALID_ACTION');
     if(operation==='record'||operation==='refresh'){if(!owner(s,j))selected(s,j);}else buyer(s,j);
-    if(operation==='release'&&j.profile===PROOF_PROFILE){if(j.status!=='ACCEPTED'||j.decisions.at(-1)?.proofSha256!==j.proof?.bundleSha256)fail(409,'RESULT_PROOF_REQUIRED');await requireCurrentProof(j);}
+    if(operation==='release'&&isProofProfile(j.profile)){if(j.status!=='ACCEPTED'||j.decisions.at(-1)?.proofSha256!==j.proof?.bundleSha256)fail(409,'RESULT_PROOF_REQUIRED');await requireCurrentProof(j);}
     let intent;
     if(action==='payment/prepare'){const result=await walletEscrow.prepare(structuredClone(j),operation,s);walletFacts(j,result.payment);intent=result.intent;}
     else if(action==='payment/confirm')walletFacts(j,await walletEscrow.confirm(structuredClone(j),operation,b.transactionHash,s));
@@ -300,7 +304,7 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     if(operation==='release'){if(j.status==='PAID')return response({job:view(current,s)});state(j,['ACCEPTED']);}
     if(operation==='refund')state(j,['AWARDED','REVISION','DELIVERED','ACCEPTED']);
     if(!escrow||escrow.contractId!==j.payment.contractId)fail(503,'ESCROW_UNAVAILABLE');
-    if(operation==='release'&&j.profile===PROOF_PROFILE){
+    if(operation==='release'&&isProofProfile(j.profile)){
      if(j.decisions.at(-1)?.proofSha256!==j.proof?.bundleSha256)fail(409,'RESULT_PROOF_REQUIRED');
      await requireCurrentProof(j);
     }

@@ -2,7 +2,7 @@
 
 # NOPE — Network of Private Execution
 
-Hire an agent to transform a CSV without sending its private rows to the planning model or exposing them to the service provider. NOPE combines sealed price bids, encrypted execution, independently verifiable result proofs and customer-funded escrow on NEAR.
+Run private multi-field invoice/cash-flow rules, or hire an agent for bounded CSV cleaning, without exposing private rows to the planning model or service provider. NOPE combines sealed price bids, encrypted execution, independently verifiable result proofs and customer-funded escrow on NEAR.
 
 **NEAR Hackathon 2026 · Privacy & Private AI · Working testnet prototype**
 
@@ -114,12 +114,36 @@ This does **not** prove original CSV provenance, honest initial garbling/mapping
 
 ## Supported work and resource limits
 
+### Multi-field private rules — v5
+
+The new record engine computes across private fields rather than processing each column independently. A public, allowlisted straight-line plan accepts **1–8 unsigned 32-bit fields**, **1–8 instructions**, up to four public constants and **1–4 derived outputs**. Arithmetic, comparisons and conditional selection operate on encrypted wire labels. Original names, Unicode notes and unselected columns remain local; they are not silently interpreted by the numeric engine.
+
+- **Invoice audit:** quantity × unit price → expected amount; positive excess billing; billed amount ≤ private budget; exact-match flag. Example `[3,12500,40000,50000]` produces `[37500,2500,1,0]` without sending those four values to the evaluator.
+- **Cash-flow checks:** combine income, expenses, existing debt, proposed payment, credit limit and requested amount; return disposable funds, remaining payment capacity and separate limit/cash-flow flags. These are explicitly programmed checks, not a credit recommendation or an AI prediction.
+- `addSat` / `subSat` saturate at the unsigned 32-bit bounds. `mul16` is exact but requires both operands ≤65,535. Values are canonical nonnegative integers; monetary fields use **minor currency units**, never floating-point arithmetic. Missing, negative, decimal or out-of-domain values are refused before publication.
+- The reviewed invoice template currently fits **five records**; cash-flow fits **eleven**. Other plans have their own preflight budget, bounded by 16 records, **10,000 total gates** and less than **3 MiB** with the protocol envelope reserve. No truncation or plaintext fallback.
+- Each record has a genuine Noir/UltraHonk result proof under a **separate pinned v5 circuit/policy**, preserving historical v4 proofs. The record circuit has 95,436 measured gates (131,072 dyadic size) and uses the existing pinned public SRS.
+- These two reviewed templates are deterministic programs. The separate existing local-AI cleaner still performs real neural planning; selecting a rule template is not presented as model inference. An external agent may construct the bounded public DSL, subject to exact validation and customer approval.
+
+### Local-AI cleaner — v4
+
 - Numbers: missing-value fill and clamp; blank or integer `0..254`, with `255` reserved for missing values.
 - Text: trim, lowercase/uppercase and digit masking for printable ASCII, at most **16 bytes per cell**.
 - At most **4 selected columns**, **32 numeric rows**, **8 rows when text is processed**, and **40 processed cells**; circuit/request-size limits also apply.
-- Unselected columns are preserved locally. Rows are not silently truncated.
-- Arbitrary document understanding, translation, summarization, sorting, deduplication and general-purpose encrypted LLM inference are not implemented.
-- The small local model can misunderstand a goal, omit an operation or refuse a supported request. A proposal missing any selected column is rejected in full; this coverage check does not prove that every natural-language instruction was understood. Select only columns to process and review the actual before/after preview. Human plan/preview approval remains part of the workflow, not a correctness theorem.
+- Unselected columns are preserved locally. The small local model can misunderstand/refuse a goal. Missing selected columns reject the whole proposal; approval is not a theorem that the model understood natural language.
+
+**Not implemented:** arbitrary PDF understanding, semantic document reasoning, translation, summarization, general sorting/deduplication, or general-purpose encrypted LLM inference. The new structured rule engine does not remove the honest-garbler, frontend or RPC trust assumptions explained above.
+
+### Try the invoice task
+
+Choose **multi-field encrypted rules → invoice audit** in the new-job screen. Map `quantity`, `unit_cents`, `billed_cents`, `budget_cents` in that order, review the preview and approve it. The provider bids, executes and records delivery through the same marketplace; the buyer opens the result table, proves the current delivery and accepts before wallet release.
+
+```csv
+quantity,unit_cents,billed_cents,budget_cents,private_note
+3,12500,40000,50000,synthetic-private-note
+```
+
+The local note is preserved unchanged. The four appended results are `37500,2500,1,0`; those clear results remain on the buyer's device. Synthetic examples in this README are public illustrations, not customer data.
 
 ## Reproduce the checks and build
 
@@ -222,3 +246,10 @@ Libraries, templates, AI assistance, model weights, fonts and upstream wallet co
 Original NOPE code and documentation are licensed under the [MIT License](LICENSE). Third-party dependencies, model weights, fonts and vendored upstream code retain their own licenses/terms; the project license does not relicense them. See [third-party notices](THIRD_PARTY_NOTICES.md).
 
 Private keys, seeds, local vaults, `.env*`, invitations, recovery journals and `runtime/` are excluded from Git and the allowlisted deployment. Source updates on `main` trigger the NOPE Vercel deployment. A hackathon submission or social post is a separate action.
+
+
+## Multi-field v5 verification
+
+[Record engine and proof specification](docs/RECORD-RULES.md) documents the exact DSL, arithmetic domains, label/proof boundaries and version dispatch. `web/record-core.test.mjs`, `web/record-proof.test.mjs` and `workspace/record-workspace.test.mjs` exercise actual garbling/evaluation, genuine proof generation and negative cases, and the API lifecycle with explicitly simulated escrow transport.
+
+The [local-HTTP v5 invoice run](docs/verification/wallet-funded-http-local-record-invoice-v5-local.json) used real testnet wallet authentication, a sealed bid, buyer-funded V2 escrow, encrypted multi-field evaluation, a genuine record proof, explicit acceptance and **FINAL 0.001 testNEAR provider payout**. Its fresh unauthenticated verifier independently checked the proof and pinned Paid state. This is an authored template on a local HTTP API, not a production browser or neural-planning test.

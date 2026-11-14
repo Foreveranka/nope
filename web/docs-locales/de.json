@@ -43,8 +43,8 @@
         },
         {
           "id": "planner",
-          "title": "Lokales Planungsmodell",
-          "text": "Das Modell läuft in deinem Browser und sieht nur dein öffentliches Ziel und anonyme Spaltentypen. Private Zeilen sieht es nicht. Es schlägt einen Plan mit unterstützten Werkzeugen vor. Dieser Vorschlag garantiert keine Korrektheit. Du prüfst die Vorschau und gibst den Plan selbst frei.",
+          "title": "Lokale Planung und geprüfte Regelvorlagen",
+          "text": "Wählen Sie für verschlüsselte Berechnungen mit mehreren Feldern eine Rechnungs- oder Cashflow-Vorlage. Die Vorlage ist ein deterministisches Programm, keine LLM-Inferenz. Der separate lokale KI-Modus schlägt unterstützte Bereinigungspläne aus dem öffentlichen Ziel und anonymen Typen vor. Private Zeilen werden keinem Modell übermittelt.",
           "code": "",
           "href": ""
         },
@@ -64,8 +64,8 @@
         },
         {
           "id": "proof",
-          "title": "Ergebnisnachweis in Browser und Server",
-          "text": "Das Kundengerät erstellt mit den gespeicherten geheimen Nachweisdaten einen tatsächlichen Noir/UltraHonk SNARK. Browser und Server prüfen jeweils sämtliche Zellnachweise. Der Nachweis verifiziert das Ergebnis der freigegebenen Transformation unter den vorab festgelegten Client-Zuordnungen. Er belegt weder die Herkunft der ursprünglichen CSV noch eine AES-Ausführungsspur.",
+          "title": "Ergebnisbeweise in Browser und API",
+          "text": "Der Kunde erzeugt mit dem lokal gespeicherten geheimen Witness einen echten Noir/UltraHonk-Ergebnisbeweis. v5 beweist jeden Datensatz mit mehreren Feldern, v4 die verarbeiteten Zellen. Browser und API prüfen den aktuellen Beweis mit der passenden festgelegten Version. Ehrliche anfängliche Garbling-Vorbereitung wird vorausgesetzt; CSV-Herkunft und AES-Ausführungsspur werden nicht bewiesen.",
           "code": "",
           "href": ""
         },
@@ -86,8 +86,8 @@
       "items": [
         {
           "id": "plan",
-          "title": "Planen",
-          "text": "Wähle als Kunde eine CSV sowie die zu verarbeitenden Spalten und ihre Typen aus. Schreibe keine personenbezogenen Daten in das öffentliche Ziel. Das Modell erstellt anhand anonymer Felder wie C2 einen begrenzten Transformationsplan.",
+          "title": "Aufgabe wählen und private Felder zuordnen",
+          "text": "Ordnen Sie bei Rechnungs- oder Cashflow-Regeln jede Rolle auf Ihrem Gerät einer CSV-Spalte zu. Veröffentlicht werden nur anonyme Aliasse und das öffentliche Regelprogramm. Für Textbereinigung steht der separate lokale KI-Modus zur Verfügung. Prüfen Sie Programm und Vorschau vor der Freigabe.",
           "code": "",
           "href": ""
         },
@@ -172,9 +172,9 @@
       "items": [
         {
           "id": "worked",
-          "title": "Zwei Spalten, zwei klare Regeln",
-          "text": "Entferne im Text nur ASCII-Leerzeichen am Anfang und Ende, wandle ihn in Großbuchstaben um und ersetze Ziffern durch Sternchen. Fülle fehlende Zahlenwerte mit 10 und begrenze sie anschließend auf den Bereich 10–80. Aus 200 wird 80. Der Wert 42 liegt bereits im Bereich und bleibt unverändert.",
-          "code": "C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42",
+          "title": "Private Rechnungsprüfung",
+          "text": "Synthetisches Beispiel: Menge 3 × Stückpreis 12.500 = Sollbetrag 37.500. Ein Rechnungsbetrag von 40.000 ergibt eine Mehrberechnung von 2.500; das Budget von 50.000 wird eingehalten, aber es gibt keine exakte Übereinstimmung. Beträge sind ganze kleinste Währungseinheiten. Der Auswerter erhält verschlüsselte Labels; der Kunde öffnet die vier Ergebnisse lokal.",
+          "code": "Expected: 3 × 12500 = 37500\nExcess billing: max(40000 − 37500, 0) = 2500\nBudget: 40000 <= 50000 → 1\nExact match: 40000 == 37500 → 0",
           "href": ""
         }
       ]
@@ -187,9 +187,9 @@
       "items": [
         {
           "id": "csv",
-          "title": "Fertige synthetische CSV",
-          "text": "Die erste Spalte kennzeichnet den Datensatz, die zweite enthält Text und die dritte Zahlen. Prüfe nach der Dateiauswahl die Typen von C2 und C3. Dieses Beispiel mit drei Zeilen enthält keine echten Kundendaten.",
-          "code": "record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n",
+          "title": "Synthetische Rechnungs-CSV",
+          "text": "Ordnen Sie im Modus für mehrere Felder quantity, unit_cents, billed_cents und budget_cents in dieser Reihenfolge zu. private_note bleibt unverändert auf Ihrem Gerät. Das kleine Beispiel passt in das aktuelle Schaltkreisbudget.",
+          "code": "quantity,unit_cents,billed_cents,budget_cents,private_note\n3,12500,40000,50000,synthetic-private-note\n",
           "href": ""
         },
         {
@@ -216,8 +216,8 @@
       "items": [
         {
           "id": "numeric",
-          "title": "Werkzeuge für Zahlen",
-          "text": "Unterstützt werden das Füllen fehlender Werte und die Begrenzung auf einen Wertebereich. Tatsächliche Zahlenwerte sind ganze Zahlen von 0–254. 255 kennzeichnet einen fehlenden Wert. Dezimalzahlen und Transformationen beliebig großer Zahlen werden nicht unterstützt.",
+          "title": "Numerische Regeln mit mehreren Feldern — v5",
+          "text": "Bis zu acht private vorzeichenlose 32-Bit-Felder speisen arithmetische Operationen, Vergleiche und bedingte Auswahlen. Wertebereich: 0..4.294.967.295; Geldbeträge werden als ganze kleinste Währungseinheiten verarbeitet. Exaktes mul16 erfordert beide Operanden im Bereich 0..65.535. Die Rechnungsvorlage prüft Sollbetrag, Mehrberechnung, Budget und exakte Übereinstimmung.",
           "code": "",
           "href": ""
         },
@@ -230,15 +230,15 @@
         },
         {
           "id": "size",
-          "title": "Kleine, begrenzte Aufträge",
-          "text": "Unterstützt werden höchstens vier ausgewählte Spalten, mit 32 Zeilen für Zahlenspalten und acht für Textspalten. Insgesamt sind höchstens 40 Zellnachweise zulässig. Die Größen von Schaltkreis, Anfrage und Nachweispaket werden zusätzlich geprüft. 32 Zeilen in vier Zahlenspalten sind nicht zulässig.",
+          "title": "Durch den Schaltkreis begrenzte Aufgaben",
+          "text": "v5 unterstützt 1–8 Felder, 1–8 Anweisungen und 1–4 berechnete Ausgaben. Eine Anfrage muss unter 10.000 Gattern und einschließlich Hüllenreserve unter 3 MiB bleiben. Die aktuelle Rechnungsvorlage erlaubt fünf Zeilen, Cashflow elf. Keine Zeilen werden still verworfen. Für den separaten v4-Bereiniger gelten die bisherigen Zell- und ASCII-Grenzen. v4-Zahlen bleiben im Bereich 0..254, mit höchstens 40 verarbeiteten Zellen.",
           "code": "",
           "href": ""
         },
         {
           "id": "scope",
-          "title": "Kein uneingeschränkter Modellzugriff auf private Daten",
-          "text": "Dieses Produkt führt begrenzte Werkzeugpläne aus, keinen beliebigen KI-Chat über eine private CSV. Es bietet weder unabhängige Anbieterinfrastruktur noch eine Garantie für automatische rechtliche Entscheidungen. Die Nachweiserstellung nutzt die Ressourcen deines Geräts. Eine feste Dauer wird nicht garantiert.",
+          "title": "Kein allgemeines verschlüsseltes Sprachmodell",
+          "text": "Dies sind begrenzte strukturierte Berechnungen, keine beliebige PDF-Analyse, semantische Dokumentverarbeitung oder allgemeine verschlüsselte LLM-Inferenz. Namen und lange UTF-8-Notizen bleiben unverändert in der lokalen CSV; die numerische Regelmaschine interpretiert diese Felder nicht.",
           "code": "",
           "href": ""
         }

@@ -1,6 +1,6 @@
 /** Buyer-local proving / public-only verification. Never used as an LLM worker. */
-import {proveProofPlan} from './proof-plan-client.mjs';
-import {verifyProofPlanBundle} from './proof-plan-core.mjs';
+import {proveProofPlan} from './proof-client.mjs';
+import {verifyProofPlanBundle} from './proof-protocol.mjs';
 
 let busy=false;
 self.onmessage=async ({data})=>{

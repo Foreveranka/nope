@@ -1,3 +1,4 @@
+import {recordTemplate,privateRecordInputs,applyRecordOutput} from '../web/record-plan.mjs';
 /** Explicit actual TESTNET QA. Synthetic inputs only, never customer inputs.
  * run [--origin=http://127.0.0.1:8789] [--keys=<ignored identities.json>]
  * run --origin=https://nope-workspace.vercel.app --production-testnet=yes
@@ -24,15 +25,15 @@ import {WALLET_ESCROW_POLICY as POLICY} from '../workspace/wallet-config.mjs';
 import {createWalletRPC,walletIdentity,canonical,WORKSPACE_ORIGIN,LEGACY_WORKSPACE_ORIGIN} from '../workspace/wallet-auth.mjs';
 import {quoteCommitment} from '../workspace/core.mjs';
 import {acceptAgentProposal,privatePlanInputs,applyAgentOutput} from '../web/agent-plan.mjs';
-import {prepareProofPlan,decodeProofPlan,proveProofPlan} from '../web/proof-plan-client.mjs';
-import {verifyProofPlanBundle,proofRuntime} from '../web/proof-plan-core.mjs';
+import {prepareProofPlan,decodeProofPlan,proveProofPlan} from '../web/proof-client.mjs';
+import {verifyProofPlanBundle,proofRuntime} from '../web/proof-protocol.mjs';
 import {validatePublicEvidence,verifyPublicChainBinding} from '../web/public-proof.mjs';
 import {parseCSV} from '../web/csv-input.mjs';
 import {createVault} from '../web/workspace-vault.mjs';
 
 const ROOT=fileURLToPath(new URL('../',import.meta.url)),SELF=fileURLToPath(import.meta.url);
 const mode=process.argv[2],options=Object.create(null);
-const allowedOptions=new Set(['origin','keys','production-testnet','case','amount-yocto','job','buyer']);
+const allowedOptions=new Set(['origin','keys','production-testnet','case','amount-yocto','job','buyer','workload']);
 for(const arg of process.argv.slice(3)){
  assert.match(arg,/^--[a-z-]+=/,'Named options required');const i=arg.indexOf('='),name=arg.slice(2,i);
  assert.ok(allowedOptions.has(name),'Unknown CLI option');assert.ok(!Object.hasOwn(options,name),'Duplicate CLI option');options[name]=arg.slice(i+1);
@@ -43,7 +44,8 @@ const DEFAULT_AMOUNT='1000000000000000000000';
 function validateAmount(value){assert.ok(typeof value==='string'&&/^[1-9][0-9]{0,24}$/.exec(value)?.[0]===value&&BigInt(value)<=10n**24n,'Amount must be canonical 1..1e24 yoctoNEAR');return value;}
 const requestedAmount=validateAmount(options['amount-yocto']??DEFAULT_AMOUNT);
 assert.ok(requestedAmount===DEFAULT_AMOUNT||caseName!==null,'Nondefault amounts require an isolated --case');
-const caseArgs=caseName===null?[]:['--case='+caseName,'--amount-yocto='+requestedAmount];
+const workload=options.workload||'csv';assert.ok(['csv','record-invoice'].includes(workload),'Invalid workload');assert.ok(workload==='csv'||caseName!==null,'Record workload requires a distinct case');
+const caseArgs=[...(caseName===null?[]:['--case='+caseName,'--amount-yocto='+requestedAmount]),...(workload==='csv'?[]:['--workload='+workload])];
 const origin=options.origin||'http://127.0.0.1:8789',url=new URL(origin);
 const production=options['production-testnet']==='yes';
 assert.equal(url.origin,origin);assert.ok(['run','serve','verify-public'].includes(mode),'Explicit run required');
@@ -107,7 +109,7 @@ async function provePublic(){
  const chain=await verifyPublicChainBinding(e);assert.equal(chain.escrowState,'Paid');
  assert.equal(await verifyProofPlanBundle({request:e.task,delivery:e.delivery,binding:e.binding,bundle:e.bundle}),true);
  const result={jobId,buyerWitnessUsed:false,authenticatedSessionUsed:false,actualSNARKVerified:true,chain,rows:e.bundle.rows.length,publicEvidenceSha256:sha(canonical(e))};
- process.send?.({publicVerification:result});await(await proofRuntime()).dispose();
+ process.send?.({publicVerification:result});await(await proofRuntime(e.task)).dispose();
 }
 async function run(){
  privateDir(DIR);assert.equal(execFileSync('git',['check-ignore','--quiet',path.relative(ROOT,DIR)],{cwd:ROOT}).length,0,'Recovery directory must be ignored');
@@ -121,8 +123,8 @@ async function run(){
   const ids=Object.fromEntries(['buyer','provider'].map(role=>{const id=identities[role];assert.equal(id.network,'testnet');assert.ok(id.account_id.endsWith('.testnet'));assert.notEqual(id.account_id,POLICY.contractId);assert.equal(KeyPair.fromString(id.private_key).getPublicKey().toString(),id.public_key);return[role,id];}));
   delete identities.contract;assert.notEqual(ids.buyer.account_id,ids.provider.account_id);
   const rpc=createWalletRPC(POLICY),started=performance.now();stage='verify-keyless-pins';const initialPin=await pin(rpc);
-  if(fs.existsSync(STATE)){state=privateRead(STATE);assert.equal(state.origin,origin);assert.equal(state.contractId,POLICY.contractId);assert.equal(state.buyerAccount,ids.buyer.account_id);assert.equal(state.providerAccount,ids.provider.account_id);assert.equal(state.caseName??null,caseName);validateAmount(state.amountYocto);if(Object.hasOwn(options,'amount-yocto'))assert.equal(state.amountYocto,requestedAmount,'Existing journal amount is immutable');}
-  else{state={version:1,origin,contractId:POLICY.contractId,buyerAccount:ids.buyer.account_id,providerAccount:ids.provider.account_id,jobId:randomBytes(16).toString('hex'),amountYocto:requestedAmount,...(caseName===null?{}:{caseName}),salt:randomBytes(32).toString('hex'),checks:{},transactions:{},startedAt:new Date().toISOString()};save();}
+  if(fs.existsSync(STATE)){state=privateRead(STATE);assert.equal(state.workload||'csv',workload);assert.equal(state.origin,origin);assert.equal(state.contractId,POLICY.contractId);assert.equal(state.buyerAccount,ids.buyer.account_id);assert.equal(state.providerAccount,ids.provider.account_id);assert.equal(state.caseName??null,caseName);validateAmount(state.amountYocto);if(Object.hasOwn(options,'amount-yocto'))assert.equal(state.amountYocto,requestedAmount,'Existing journal amount is immutable');}
+  else{state={version:1,workload,origin,contractId:POLICY.contractId,buyerAccount:ids.buyer.account_id,providerAccount:ids.provider.account_id,jobId:randomBytes(16).toString('hex'),amountYocto:requestedAmount,...(caseName===null?{}:{caseName}),salt:randomBytes(32).toString('hex'),checks:{},transactions:{},startedAt:new Date().toISOString()};save();}
   checkCaseEvidence();
   if(!production)serverChild=await startServer();note(production?'actual-production-HTTP-ready':'actual-local-HTTP-ready',{origin,jobId:state.jobId});
   for(const role of ['buyer','provider']){
@@ -140,9 +142,10 @@ async function run(){
   if(!state.prepared){
    state.dataset=parseCSV('private_score,private_preserved\n,keep-synthetic-X\n');state.task={version:1,goal:'Fill C1 blanks with 7.',columns:[{id:'C1',type:'number'}]};
    state.plan=(await acceptAgentProposal(state.task,{steps:[{column:'C1',recipe:{type:'number',steps:[{op:'fill',value:7}]}}]})).plan;
-   state.prepared=await prepareProofPlan(privatePlanInputs(state.dataset,state.plan),state.plan,{jobId:state.jobId,buyerCommitment:sha('NOPE:buyer:'+state.buyer.session.id),contractId:POLICY.contractId});
+   if(workload==='record-invoice'){state.dataset=parseCSV('qty,unit_cents,billed_cents,budget_cents,private_note\n3,12500,40000,50000,synthetic-confidential-invoice-X\n');state.task={version:2,goal:'Privately audit quantity times unit price, excess billing, budget compliance and exact match.',columns:['C1','C2','C3','C4'].map(id=>({id,type:'uint32'}))};state.plan=(await recordTemplate(state.task,'invoice',['C1','C2','C3','C4'])).plan;}
+   state.prepared=await prepareProofPlan((workload==='record-invoice'?privateRecordInputs:privatePlanInputs)(state.dataset,state.plan),state.plan,{jobId:state.jobId,buyerCommitment:sha('NOPE:buyer:'+state.buyer.session.id),contractId:POLICY.contractId});
    const pair=generateKeyPairSync('rsa',{modulusLength:2048});state.privateRSA=pair.privateKey.export({type:'pkcs8',format:'pem'});state.publicRSA=pair.publicKey.export({format:'jwk'});
-   state.payload={jobId:state.jobId,title:'Actual wallet-funded HTTP proof QA',description:'Synthetic one-row numeric v4 result proof. Authored plan; no neural inference claim.',deadlineISO:new Date(Date.now()+3600000).toISOString(),profile:state.prepared.request.profile,rowCount:1,task:state.prepared.request,buyerPublicKey:state.publicRSA,publicTask:state.task};
+   state.payload={jobId:state.jobId,title:workload==='record-invoice'?'Private multi-field invoice audit QA':'Actual wallet-funded HTTP proof QA',description:workload==='record-invoice'?'Synthetic private 32-bit multi-field v5 invoice computation and actual result proof. Authored rule template, not neural inference.':'Synthetic one-row numeric v4 result proof. Authored plan; no neural inference claim.',deadlineISO:new Date(Date.now()+3600000).toISOString(),profile:state.prepared.request.profile,rowCount:1,task:state.prepared.request,buyerPublicKey:state.publicRSA,publicTask:state.task};
    const wire=JSON.stringify(state.payload);for(const forbidden of ['private_score','private_preserved','keep-synthetic-X','decoder','proofWitness','inputPairs','outputPairs','inputSalt','outputSalt'])assert.ok(!wire.includes(forbidden),'Private local material in job payload');save();
   }
   const base='jobs/'+state.jobId;let job;
@@ -194,7 +197,7 @@ async function run(){
    if(!state.checks.unfundedExecutionRejected){await assert.rejects(api(base+'/execute','provider',{}),error=>error.code==='API_409_ESCROW_FUNDING_REQUIRED');state.checks.unfundedExecutionRejected=true;save();}
    await walletAction('fund','buyer',j=>j.payment.status==='HELD'&&j.payment.verified===true);stage='actual-encrypted-execution';job=(await api(base+'/execute','provider',{})).job;
   }
-  if(job.delivery){stage='buyer-local-reference';const d=job.delivery,result=await decodeProofPlan({profile:d.profile,nonce:d.nonce,rowCount:d.rowCount,outputs:d.outputs,inputSha256:d.inputSha256,programSha256:d.programSha256,outputSha256:d.outputSha256},state.prepared.decoder);const csv=applyAgentOutput(state.dataset,state.plan,result);assert.deepEqual(result,{C1:[7]});assert.deepEqual(csv.rows,[['7','keep-synthetic-X']]);state.checks.localReferenceMatched=true;save();}
+  if(job.delivery){stage='buyer-local-reference';const d=job.delivery,result=await decodeProofPlan({profile:d.profile,nonce:d.nonce,rowCount:d.rowCount,outputs:d.outputs,inputSha256:d.inputSha256,programSha256:d.programSha256,outputSha256:d.outputSha256},state.prepared.decoder);const csv=(workload==='record-invoice'?applyRecordOutput:applyAgentOutput)(state.dataset,state.plan,result);if(workload==='record-invoice'){assert.deepEqual(result,[[37500,2500,1,0]]);assert.deepEqual(csv.rows,[['3','12500','40000','50000','synthetic-confidential-invoice-X','37500','2500','1','0']]);}else{assert.deepEqual(result,{C1:[7]});assert.deepEqual(csv.rows,[['7','keep-synthetic-X']]);}state.checks.localReferenceMatched=true;save();}
   if(job.status==='DELIVERED'){
    await walletAction('record','provider',j=>j.payment.status==='HELD'&&j.payment.verified===true&&j.payment.recordedVersion===j.delivery.version&&j.payment.recordedOutputHash===j.delivery.outputSha256);
    if(!state.checks.acceptanceRequiresActualProof){await assert.rejects(api(base+'/decision','buyer',{decision:'accept',version:job.delivery.version,outputSha256:job.delivery.outputSha256}),error=>error.code==='API_409_RESULT_PROOF_REQUIRED');state.checks.acceptanceRequiresActualProof=true;save();}
@@ -205,15 +208,15 @@ async function run(){
    assert.equal(job.proof.status,'VERIFIED');state.checks.actualSNARKServerVerified=true;save();stage='explicit-buyer-acceptance';job=(await api(base+'/decision','buyer',{decision:'accept',version:job.delivery.version,outputSha256:job.delivery.outputSha256})).job;assert.equal(job.status,'ACCEPTED');state.checks.explicitBuyerAcceptance=true;save();
   }
   if(job.status==='ACCEPTED')await walletAction('release','buyer',j=>j.status==='PAID'&&j.payment.status==='PAID'&&j.payment.verified===true);
-  assert.equal(job.status,'PAID');state.final=job;save();await(await proofRuntime()).dispose();
+  assert.equal(job.status,'PAID');state.final=job;save();await(await proofRuntime(state.prepared.request)).dispose();
   stage='independent-public-verification';
   const publicCheck=await new Promise((resolve,reject)=>{const child=fork(SELF,['verify-public','--origin='+origin,'--job='+state.jobId,'--buyer='+ids.buyer.account_id,...caseArgs,...(production?['--production-testnet=yes']:[])],{cwd:ROOT,env:{PATH:process.env.PATH,HOME:process.env.HOME},stdio:['ignore','pipe','pipe','ipc']});const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('PUBLIC_VERIFIER_TIMEOUT'));},180000);child.on('message',m=>{if(m?.publicVerification){clearTimeout(timer);resolve(m.publicVerification);}});child.once('error',reject);child.once('exit',code=>{clearTimeout(timer);if(code)reject(Error('PUBLIC_VERIFIER_FAILED'));});});
   state.checks.independentPublicSNARKAndChainVerified=true;save();
   for(const key of ['buyerNEP413Verified','providerNEP413Verified','sealedQuoteLocallyDecrypted','unfundedExecutionRejected','fundReceiptVerified','recordReceiptVerified','localReferenceMatched','acceptanceRequiresActualProof','actualSNARKLocallyVerified','actualSNARKServerVerified','explicitBuyerAcceptance','releaseReceiptVerified','independentPublicSNARKAndChainVerified'])assert.equal(state.checks[key],true,key);
-  const finalPin=await pin(rpc),evidence={...(caseName===null?{}:{caseName}),recordedAt:new Date().toISOString(),origin,network:'testnet',syntheticOnly:true,actualHTTP:true,actualExternalTestnet:true,browserTest:false,authoredPlan:true,neuralPlanning:false,contractId:POLICY.contractId,codeHash:POLICY.codeHash,requireKeyless:true,initialPin,finalPin,buyerAccount:ids.buyer.account_id,providerAccount:ids.provider.account_id,jobId:job.id,profile:job.profile,rowCount:job.rowCount,processedCells:1,status:job.status,amountYocto:state.amountYocto,storageDepositYocto:POLICY.storageDepositYocto,totalFundingYocto:(BigInt(state.amountYocto)+BigInt(POLICY.storageDepositYocto)).toString(),storageDepositRefundable:false,payment:job.payment,proof:job.proof,publicVerification:publicCheck,checks:state.checks,transactionHashes:Object.fromEntries(Object.entries(state.transactions).map(([action,j])=>[action,j.transactionHash])),proofClaim:'Typed result correctness relative to precommitted buyer mappings; not AES execution provenance, original CSV provenance, or on-chain SNARK verification.',elapsedMs:Math.round(performance.now()-started)};
+  const finalPin=await pin(rpc),evidence={...(caseName===null?{}:{caseName}),recordedAt:new Date().toISOString(),origin,network:'testnet',syntheticOnly:true,actualHTTP:true,actualExternalTestnet:true,browserTest:false,authoredPlan:true,neuralPlanning:false,contractId:POLICY.contractId,codeHash:POLICY.codeHash,requireKeyless:true,initialPin,finalPin,buyerAccount:ids.buyer.account_id,providerAccount:ids.provider.account_id,jobId:job.id,profile:job.profile,rowCount:job.rowCount,...(workload==='record-invoice'?{workload,privateInputFields:4,derivedOutputFields:4}:{processedCells:1}),status:job.status,amountYocto:state.amountYocto,storageDepositYocto:POLICY.storageDepositYocto,totalFundingYocto:(BigInt(state.amountYocto)+BigInt(POLICY.storageDepositYocto)).toString(),storageDepositRefundable:false,payment:job.payment,proof:job.proof,publicVerification:publicCheck,checks:state.checks,transactionHashes:Object.fromEntries(Object.entries(state.transactions).map(([action,j])=>[action,j.transactionHash])),proofClaim:'Typed result correctness relative to precommitted buyer mappings; not AES execution provenance, original CSV provenance, or on-chain SNARK verification.',elapsedMs:Math.round(performance.now()-started)};
   checkCaseEvidence();
   fs.mkdirSync(path.dirname(EVIDENCE),{recursive:true});fs.writeFileSync(EVIDENCE,JSON.stringify(evidence,null,2)+'\n');note('verified-actual-wallet-HTTP-cycle',{jobId:state.jobId,status:job.status,evidence:path.relative(ROOT,EVIDENCE)});
- }finally{serverChild?.kill('SIGTERM');try{await(await proofRuntime()).dispose().catch(()=>{});}finally{if(fd!==undefined){fs.closeSync(fd);fs.unlinkSync(lock);}fs.closeSync(leaseFd);fs.unlinkSync(LEASE);}}
+ }finally{serverChild?.kill('SIGTERM');try{await(await proofRuntime(state?.prepared?.request)).dispose().catch(()=>{});}finally{if(fd!==undefined){fs.closeSync(fd);fs.unlinkSync(lock);}fs.closeSync(leaseFd);fs.unlinkSync(LEASE);}}
 }
 try{
  if(mode==='serve'){

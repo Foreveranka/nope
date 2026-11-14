@@ -1,3 +1,5 @@
+import {PROFILE as RECORD_PROFILE,validateProofPlanRequest as validateRecordProof,hashProofPlanRequest as hashRecordProof,hashProofPlanProgram as hashRecordProofProgram,verifyProofPlanBindings as verifyRecordProof,wrapProofPlanResult as wrapRecordProof} from '../web/record-proof-core.mjs';
+import {evaluateRecordRequest} from '../api/record-gc.mjs';
 import handler from '../api/csv-gc.mjs';
 import recipeHandler from '../api/recipe-gc.mjs';
 import planHandler from '../api/plan-gc.mjs';
@@ -6,10 +8,11 @@ import {PROFILE,validateRequest,hashRequest,hashProgram} from '../web/gc-core.mj
 import {PROFILE as RECIPE_PROFILE,validateRecipeRequest,hashRecipeRequest,hashRecipeProgram} from '../web/recipe-core.mjs';
 import {PROFILE as PLAN_PROFILE,validatePlanRequest,hashPlan,hashPlanRequest,hashPlanProgram} from '../web/plan-core.mjs';
 import {PROFILE as PROOF_PROFILE,validateProofPlanRequest,hashProofPlanRequest,hashProofPlanProgram,
- verifyProofPlanBindings,wrapProofPlanResult} from '../web/proof-plan-core.mjs';
+ verifyProofPlanBindings,wrapProofPlanResult} from '../web/proof-protocol.mjs';
 // Only approved deterministic profiles can select an evaluator. User-supplied
 // programs, decoder fields and unknown versions are rejected by their validators.
 function protocol(task){
+ if(task?.profile===RECORD_PROFILE)return {validate:validateRecordProof,hash:hashRecordProof,program:()=>hashRecordProofProgram(task.task.plan)};
  if(task?.profile===PROFILE)return {validate:validateRequest,hash:hashRequest,program:()=>hashProgram(),handler};
  if(task?.profile===RECIPE_PROFILE)return {validate:validateRecipeRequest,hash:hashRecipeRequest,program:()=>hashRecipeProgram(task.recipe),handler:recipeHandler};
  if(task?.profile===PLAN_PROFILE)return {validate:validatePlanRequest,hash:hashPlanRequest,program:()=>hashPlanProgram(task.plan),handler:planHandler};
@@ -22,6 +25,7 @@ export const hashTaskProgram=task=>protocol(task).program();
 /** Pure in-process adaptation of the actual existing evaluator, without decoder data. */
 export async function executeTask(task){
  validateTask(task);
+ if(task.profile===RECORD_PROFILE){const request=await verifyRecordProof(task);return wrapRecordProof(request,await evaluateRecordRequest(request.task));}
  if(task.profile===PROOF_PROFILE){
   const request=await verifyProofPlanBindings(task);
   return wrapProofPlanResult(request,await evaluatePlanRequest(request.task));
