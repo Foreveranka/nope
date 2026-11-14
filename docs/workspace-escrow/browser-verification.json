@@ -1,0 +1,50 @@
+{
+  "recordedAt": "2026-11-14T03:05:21.390299+00:00",
+  "syntheticOnly": true,
+  "environment": "Actual Chrome localhost UI, browser-local pinned Qwen neural inference, private Blob, public NEAR testnet contract",
+  "jobId": "42526fa21053373dbcda664d9e272810",
+  "profile": "nope-csv-plan-gc-v3",
+  "contractId": "nope-work-da4cbb1e.testnet",
+  "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+  "inputSha256": "5b6d9a753f6ae4c10e8700e1b308e86bf564a97edbc36b267cc092a82238d6b9",
+  "programSha256": "ebb7a626bf9a130bdcfd4d75b0f71cbf2fa11b8b3c53c08e4b277c87421c9586",
+  "outputSha256": "35ec2b368d3589098615995ddbff0ffe323bcd473faecfb36394fdee8a8b442d",
+  "transactions": {
+    "fund": "G7JN3LMhAoV7KWrrYqgg6Vijpw9DUuBrDPATAQ4MWoZQ",
+    "record": "HFmPyc6jH2A6pTgQBn9mRma98R8DkKjFjoz5U2nMk8mu",
+    "release": "4J6ykcjwjMWxXSCe6mg6z7kRYFbE1U5z52xqZUS4xxKf"
+  },
+  "checks": {
+    "actualBrowserNeuralInference": true,
+    "publicBriefAndAnonymousSchemaOnly": true,
+    "localPreviewAndExplicitPlanApproval": true,
+    "buyerPublication": true,
+    "separateProviderSealedQuote": true,
+    "buyerLocalQuoteDecrypt": true,
+    "buyerAwardPublicDisclosureConsent": true,
+    "actualFinalizedHold": true,
+    "providerActualEncryptedExecution": true,
+    "providerNeverDisplayedPlaintext": true,
+    "exactDeliveryFinalizedOnChain": true,
+    "buyerReloadIndexedDBDecode": true,
+    "beforeAfterInApplication": true,
+    "buyerExplicitAcceptance": true,
+    "finalPaymentShownWithExplorerLinks": true
+  },
+  "observedOutput": {
+    "C2": [
+      "ACME",
+      "BETA42",
+      "GAMMA7"
+    ],
+    "C3": [
+      10,
+      80,
+      42
+    ]
+  },
+  "status": "PAID",
+  "mainnetOrRealMoney": false,
+  "independentComputationProof": false,
+  "limits": "Typed confidential tools only. DOM flow checked; no screenshot sent. Model semantic generality not established."
+}

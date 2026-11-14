@@ -1,0 +1,14 @@
+{
+  "network": "testnet",
+  "reviewedAt": "2026-11-14T02:37:44.703Z",
+  "artifactPath": "payments/testnet_escrow/target/wasm32-unknown-unknown/release/nope_workspace_escrow.wasm",
+  "bytes": 202524,
+  "wasmSha256": "77c4886d5db5d03782c9c4721222fba80a00f557d3e97819c86205fa295a6610",
+  "sources": {
+    "payments/workspace_escrow/Cargo.toml": "d6e3cfc3fcbb03738b2d524f8eff6534bf0c817195d409c3e35fed42600a1625",
+    "payments/workspace_escrow/Cargo.lock": "fda8443d879a6d3db20208bd59691b6f9d9932e7c44931447143cf01cfda5acb",
+    "payments/workspace_escrow/src/lib.rs": "9af743e3417210ac0207b012f76325c89062c955b5682158edc94b44495a531e"
+  },
+  "status": "Deployed to public testnet; actual two-role encrypted HTTP lifecycle and independent read-only native-transfer/callback verification passed. See http-testnet-local.json and independent-chain-local.json.",
+  "computationProof": false
+}

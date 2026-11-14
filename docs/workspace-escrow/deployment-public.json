@@ -1,0 +1,49 @@
+{
+  "network": "testnet",
+  "contractId": "nope-work-da4cbb1e.testnet",
+  "codeHash": "94XLBcytUKaL19QBzQqKFKsDvNZipcn5yvEUFEuumsPm",
+  "wasmSha256": "77c4886d5db5d03782c9c4721222fba80a00f557d3e97819c86205fa295a6610",
+  "bytes": 202524,
+  "minimumAccountBalanceYocto": "4000000000000000000000000",
+  "minimumRequiredYocto": "3040840000000000000000000",
+  "liveGasPriceYocto": "100000000",
+  "conservativeCallGasBudgetYocto": "15500000000000000000000",
+  "onlineInitialGasAllowanceYocto": "200000000000000000000000",
+  "alreadyDeployed": false,
+  "accountMissing": false,
+  "mutationPerformed": true,
+  "noParentWalletAccess": true,
+  "verifiedAt": "2026-11-14T02:45:42.001Z",
+  "actualExternalChain": true,
+  "config": {
+    "domain": "NOPE:WORKSPACE-ESCROW:V1:testnet",
+    "network": "testnet",
+    "contract_id": "nope-work-da4cbb1e.testnet",
+    "max_holds": 50,
+    "max_hold_amount": "10000000000000000000000",
+    "total_pool": "50000000000000000000000",
+    "available": "50000000000000000000000",
+    "held": "0",
+    "spent": "0",
+    "pending": "0",
+    "hold_count": 0,
+    "gas_reserve": "100000000000000000000000",
+    "storage_headroom_bytes": 65536,
+    "min_release_gas_tgas": 100,
+    "callback_gas_tgas": 20
+  },
+  "onlinePublicKey": "ed25519:CKhNcD4D2PMCiH4jkqCzWNFsbvESN9EFk6pG53QBbJxj",
+  "onlinePermission": {
+    "FunctionCall": {
+      "allowance": "200000000000000000000000",
+      "method_names": [
+        "fund",
+        "record_delivery",
+        "accept_and_release",
+        "refund"
+      ],
+      "receiver_id": "nope-work-da4cbb1e.testnet"
+    }
+  },
+  "deployTransactionHash": "ChYTWNZjYahTbW84VdbCKqR6UR2TsPcCEUbCxiwP5wKW"
+}

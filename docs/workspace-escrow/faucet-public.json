@@ -1,0 +1,11 @@
+{
+  "network": "testnet",
+  "contractId": "nope-work-da4cbb1e.testnet",
+  "publicKey": "ed25519:4kCNZXeXVCJzJMJb2Fd9ti9a52x8NxcxFe32827xz5BM",
+  "endpoint": "https://helper.nearprotocol.com/account",
+  "httpStatus": 200,
+  "accountConfirmed": true,
+  "confirmedBlockHash": "27NS5RdRnb1bCuWwm8YBsQLNfTBY8C64yGpVa2oXJmGj",
+  "faucetRequestSent": true,
+  "noParentWalletAccess": true
+}

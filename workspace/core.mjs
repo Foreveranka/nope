@@ -16,6 +16,9 @@ const path=(id,n)=>`${ROOT}jobs/${id}/${String(n).padStart(4,'0')}.json`;
 const text=(s,max,empty=false)=>typeof s==='string'&&s.length<=max&&(empty||s.trim().length>0)&&!/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(s);
 const amount=s=>typeof s==='string'&&/^[1-9][0-9]{0,26}$/.test(s)&&BigInt(s)>=10n**18n&&BigInt(s)<=100n*10n**24n;
 export const quoteCommitment=(jobId,providerId,amountYocto,salt)=>sha(JSON.stringify([jobId,providerId,amountYocto,salt]));
+export const ESCROW_KIND='SPONSORED_TESTNET_ESCROW';
+const escrowPayment=j=>j.payment?.kind===ESCROW_KIND;
+const escrowStatuses=new Set(['NOT_FUNDED','FUNDING_PENDING','HELD','RECORD_PENDING','RELEASE_READY','PAYOUT_PENDING','PAID','REFUND_PENDING','REFUNDED','ERROR','UNKNOWN']);
 const response=(data,status=200,extra={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',...extra}});
 // Reject ambiguous JSON duplicate keys and bound depth as well as bytes.
 export function strictJSON(source){
@@ -50,8 +53,9 @@ function envelope(e){
  if(Buffer.byteLength(JSON.stringify(e))>8192)fail(400,'INVALID_ENVELOPE');
 }
 /** No network fallback or in-memory production state. All mutable state uses immutable CAS slots. */
-export function createWorkspace({store,env=process.env,now=Date.now,verifyPayment=paymentVerifier()}={}){
+export function createWorkspace({store,env=process.env,now=Date.now,verifyPayment=paymentVerifier(),escrow=null}={}){
  if(!store||!['read','create','list'].every(k=>typeof store[k]==='function'))throw Error('Durable store required');
+ if(escrow&&(!testnetAccount(escrow.contractId)||typeof escrow.operate!=='function'||escrow.kind!==ESCROW_KIND))throw Error('Invalid testnet escrow service');
  async function history(id){const records=[];for(let n=0;n<256;n++){const r=await store.read(path(id,n));if(r===null)break;if(r?.job?.id!==id||r.job.revision!==n||r.previousHash!==(n?sha(canonical(records[n-1])):null))fail(503,'LEDGER_INTEGRITY');records.push(r);}return records;}
  async function commit(records,job,actorId){
   const at=new Date(now()).toISOString();job.updatedAt=at;job.events=[...(job.events||[]),{stage:job.status,status:job.status,at,actorId}];
@@ -129,10 +133,10 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     const taskPath=`${ROOT}jobs/${b.jobId}/task.json`,taskRecord={buyerId:s.id,creationHash,task:b.task};
     if(!await store.create(taskPath,taskRecord)&&canonical(await store.read(taskPath))!==canonical(taskRecord))fail(409,'JOB_EXISTS');
     await store.create(`${ROOT}index/${b.jobId}.json`,{id:b.jobId});
-    const job={id:b.jobId,buyerId:s.id,buyerName:s.displayName,title:b.title,description:b.description,deadlineISO:b.deadlineISO,status:'OPEN',profile:b.profile,...(b.profile===RECIPE_PROFILE?{recipe:structuredClone(b.task.recipe)}:b.profile===PLAN_PROFILE?{plan:structuredClone(b.task.plan),planSha256:b.task.planSha256,publicTask:publicTask(b.publicTask)}:{}),rowCount:b.rowCount,createdAt:new Date(now()).toISOString(),buyerPublicKey:b.buyerPublicKey,offerCount:0,selectedOffer:null,delivery:null,payment:{status:'NOT_DUE'},revision:0,events:[],offers:[],decisions:[],creationHash,taskHash:await hashTask(b.task),programHash:await hashTaskProgram(b.task)};
+    const job={id:b.jobId,buyerId:s.id,buyerName:s.displayName,title:b.title,description:b.description,deadlineISO:b.deadlineISO,status:'OPEN',profile:b.profile,...(b.profile===RECIPE_PROFILE?{recipe:structuredClone(b.task.recipe)}:b.profile===PLAN_PROFILE?{plan:structuredClone(b.task.plan),planSha256:b.task.planSha256,publicTask:publicTask(b.publicTask)}:{}),rowCount:b.rowCount,createdAt:new Date(now()).toISOString(),buyerPublicKey:b.buyerPublicKey,offerCount:0,selectedOffer:null,delivery:null,payment:escrow?{kind:ESCROW_KIND,network:'testnet',contractId:escrow.contractId,status:'NOT_FUNDED'}:{status:'NOT_DUE'},revision:0,events:[],offers:[],decisions:[],creationHash,taskHash:await hashTask(b.task),programHash:await hashTaskProgram(b.task)};
     try{return response({job:view(await commit([],job,s.id),s)},201);}catch(e){if(e.code!=='REVISION_CONFLICT')throw e;const current=(await history(b.jobId)).at(-1)?.job;if(current?.buyerId===s.id&&current.creationHash===creationHash)return response({job:view(current,s)});throw e;}
    }
-   const match=/^\/jobs\/([a-f0-9]{32})(?:\/(offers|close|award|task|execute|decision|payment\/verify))?$/.exec(route);if(!match)fail(404,'ROUTE_NOT_FOUND');
+   const match=/^\/jobs\/([a-f0-9]{32})(?:\/(offers|close|award|task|execute|decision|payment\/(?:verify|fund|record|release|refund|refresh)))?$/.exec(route);if(!match)fail(404,'ROUTE_NOT_FOUND');
    const records=await history(match[1]),current=records.at(-1)?.job;if(!current||s.role==='buyer'&&s.id!==current.buyerId)fail(404,'JOB_NOT_FOUND');const action=match[2];
    if(req.method==='GET'){
     if(!action)return response({job:view(current,s)});
@@ -150,10 +154,13 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     buyer(s,j);schema(b,[]);if(j.status!=='OPEN')return response({job:view(current,s)});j.status='CLOSED';
    }else if(action==='award'){
     buyer(s,j);schema(b,['offerId','amountYocto','salt']);state(j,['CLOSED']);if(!hex(b.offerId,32)||!amount(b.amountYocto)||!hex(b.salt,64))fail(400,'INVALID_AWARD');
+    if(escrowPayment(j)&&BigInt(b.amountYocto)>10n**22n)fail(400,'ESCROW_AMOUNT_LIMIT');
     const o=j.offers.find(o=>o.id===b.offerId);if(!o||quoteCommitment(j.id,o.providerId,b.amountYocto,b.salt)!==o.commitment)fail(400,'COMMITMENT_MISMATCH');
     j.selectedOffer={offerId:o.id,providerId:o.providerId,paymentAccount:o.paymentAccount,amountYocto:b.amountYocto};j.status='AWARDED';
+    if(escrowPayment(j))j.payment={...j.payment,awardedAtISO:new Date(now()).toISOString()};
    }else if(action==='execute'){
     selected(s,j);schema(b,[]);if(['DELIVERED','ACCEPTED','PAID'].includes(j.status)&&j.delivery)return response({job:view(current,s)});state(j,['AWARDED','REVISION']);
+    if(escrowPayment(j)&&j.payment.status!=='HELD')fail(409,'ESCROW_FUNDING_REQUIRED');
     const t=await store.read(`${ROOT}jobs/${j.id}/task.json`);if(!t||await hashTask(t.task)!==j.taskHash)fail(503,'TASK_INTEGRITY');
     let result;try{result=await executeTask(t.task);}catch{fail(422,'EXECUTION_FAILED');}
     if(result.profile!==j.profile||result.nonce!==t.task.nonce||result.rowCount!==j.rowCount||result.inputSha256!==j.taskHash||result.programSha256!==j.programHash)fail(503,'EXECUTION_INTEGRITY');
@@ -161,8 +168,10 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
    }else if(action==='decision'){
     buyer(s,j);schema(b,['decision','version','outputSha256']);state(j,['DELIVERED']);
     if(!['accept','revise'].includes(b.decision)||!Number.isInteger(b.version)||b.version!==j.delivery.version||b.outputSha256!==j.delivery.outputSha256)fail(409,'DELIVERY_MISMATCH');
-    if(j.decisions.length>=20)fail(409,'REVISION_LIMIT');j.decisions.push({...b,at:new Date(now()).toISOString()});j.status=b.decision==='accept'?'ACCEPTED':'REVISION';if(b.decision==='accept')j.payment={status:'DUE',network:'testnet',kind:'DIRECT_TESTNET_TRANSFER'};
+    if(escrowPayment(j)&&(j.payment.status!=='HELD'||j.payment.verified!==true||j.payment.recordedVersion!==j.delivery.version||j.payment.recordedOutputHash!==j.delivery.outputSha256))fail(409,'ESCROW_DELIVERY_RECORD_REQUIRED');
+    if(j.decisions.length>=20)fail(409,'REVISION_LIMIT');j.decisions.push({...b,at:new Date(now()).toISOString()});j.status=b.decision==='accept'?'ACCEPTED':'REVISION';if(b.decision==='accept')j.payment=escrowPayment(j)?{...j.payment,status:'RELEASE_READY'}:{status:'DUE',network:'testnet',kind:'DIRECT_TESTNET_TRANSFER'};
    }else if(action==='payment/verify'){
+    if(escrowPayment(j))fail(409,'ESCROW_DIRECT_TRANSFER_FORBIDDEN');
     buyer(s,j);schema(b,['transactionHash','buyerAccount']);if(!transactionHash(b.transactionHash)||!testnetAccount(b.buyerAccount))fail(400,'INVALID_PAYMENT');
     if(j.payment.status==='PAID'){if(j.payment.transactionHash===b.transactionHash&&j.payment.buyerAccount===b.buyerAccount)return response({job:view(current,s)});fail(409,'ALREADY_PAID');}state(j,['ACCEPTED']);
     let facts;try{facts=await verifyPayment({...b,job:j});}catch{fail(409,'PAYMENT_NOT_VERIFIED');}
@@ -170,6 +179,27 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     const claimPath=`${ROOT}transactions/${sha(b.transactionHash)}.json`,claim={jobId:j.id,buyerId:s.id,buyerAccount:b.buyerAccount};
     if(!await store.create(claimPath,claim)&&canonical(await store.read(claimPath))!==canonical(claim))fail(409,'TRANSACTION_ALREADY_USED');
     j.payment={...facts,verifiedAt:new Date(now()).toISOString()};j.status='PAID';
+   }else if(action.startsWith('payment/')){
+    schema(b,[]);if(!escrowPayment(j))fail(409,'ESCROW_JOB_REQUIRED');
+    const operation=action.slice('payment/'.length);
+    if(operation==='record'||operation==='refresh'){if(s.id!==j.buyerId)selected(s,j);}
+    else buyer(s,j);
+    if(operation==='refresh'&&!j.selectedOffer)return response({job:view(current,s)});
+    if(operation==='fund')state(j,['AWARDED']);
+    if(operation==='record')state(j,['DELIVERED']);
+    if(operation==='release'){if(j.status==='PAID')return response({job:view(current,s)});state(j,['ACCEPTED']);}
+    if(operation==='refund')state(j,['AWARDED','REVISION','DELIVERED','ACCEPTED']);
+    if(!escrow||escrow.contractId!==j.payment.contractId)fail(503,'ESCROW_UNAVAILABLE');
+    let facts;try{facts=await escrow.operate(structuredClone(j),operation);}catch{fail(503,'ESCROW_UNAVAILABLE');}
+    if(!facts||facts.kind!==ESCROW_KIND||facts.network!=='testnet'||facts.contractId!==j.payment.contractId||!escrowStatuses.has(facts.status))fail(503,'ESCROW_INTEGRITY');
+    if(['PAID','REFUNDED'].includes(j.payment.status)&&facts.status!==j.payment.status)fail(503,'ESCROW_FINAL_STATE_CHANGED');
+    if(facts.status==='PAID'&&(j.status!=='ACCEPTED'&&j.status!=='PAID'||facts.verified!==true||!transactionHash(facts.releaseTransactionHash)))fail(503,'ESCROW_INTEGRITY');
+    if(facts.status==='REFUNDED'&&(facts.verified!==true||!transactionHash(facts.refundTransactionHash)))fail(503,'ESCROW_INTEGRITY');
+    const payment={...facts,awardedAtISO:j.payment.awardedAtISO};
+    if(canonical(payment)===canonical(j.payment))return response({job:view(current,s)});
+    j.payment=payment;
+    if(facts.status==='PAID')j.status='PAID';
+    if(facts.status==='REFUNDED')j.status='REFUNDED';
    }
    return response({job:view(await commit(records,j,s.id),s)});
   }catch(e){const status=[400,401,403,404,405,409,413,415,422,429,503].includes(e.status)?e.status:503;return response({error:status===503?'Service temporarily unavailable.':'Request rejected.',code:e.code||'SERVICE_UNAVAILABLE'},status);}

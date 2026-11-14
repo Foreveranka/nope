@@ -1,0 +1,50 @@
+{
+  "recordedAt": "2026-11-14T02:58:47.669Z",
+  "origin": "http://127.0.0.1:8773",
+  "syntheticOnly": true,
+  "actualHTTP": true,
+  "actualExternalTestnet": true,
+  "nativeModelProposalReused": true,
+  "browserInference": false,
+  "jobId": "4581fd36104a2232f1c9f96f8aff76a8",
+  "profile": "nope-csv-plan-gc-v3",
+  "status": "PAID",
+  "payment": {
+    "kind": "SPONSORED_TESTNET_ESCROW",
+    "network": "testnet",
+    "contractId": "nope-work-da4cbb1e.testnet",
+    "bindingHash": "46e0a05578cabbe9171f8e22b43022f1dfc0c04c978ce30294325625d53f6706",
+    "awardedAtISO": "2026-11-14T02:58:06.192Z",
+    "executionDeadlineNs": "1794711486192000000",
+    "reviewDeadlineNs": "1794797886192000000",
+    "status": "PAID",
+    "verified": true,
+    "recordedVersion": 1,
+    "recordedOutputHash": "423f2ef3394a3389e3fad7e7a72962ccf479a588b2f6b2bfa0cf1e6b31db5be0",
+    "fundTransactionHash": "DsoqvCPSV4QbFFyknPC1H5e4VuPh714NsaykyQ8baT3G",
+    "recordTransactionHash": "9vRKEDGKh5ngqYtFG9DVJkAY5f5LtsJQC2g4Tzmq3P5C",
+    "releaseTransactionHash": "J77syejz7636hj4UtjSBbg7t6MFj2nLZFnxvvNySqZx2",
+    "operation": {
+      "action": "release",
+      "status": "FINAL",
+      "operationId": "51e7837c1cd0a2065e13209656d2e97963275d7836f0439799a2be5e9ef2aa31",
+      "transactionHash": "J77syejz7636hj4UtjSBbg7t6MFj2nLZFnxvvNySqZx2"
+    }
+  },
+  "inputSha256": "57935d056fc789c471032b6ca36c4a031db746565b471e86607fffb490cab760",
+  "outputSha256": "423f2ef3394a3389e3fad7e7a72962ccf479a588b2f6b2bfa0cf1e6b31db5be0",
+  "programSha256": "ebb7a626bf9a130bdcfd4d75b0f71cbf2fa11b8b3c53c08e4b277c87421c9586",
+  "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+  "checks": {
+    "sealedQuoteLocalDecrypt": true,
+    "actualEncryptedEvaluation": true,
+    "localReferenceMatched": true,
+    "finalizedFundingRequired": true,
+    "exactDeliveryRecorded": true,
+    "exactBuyerAcceptance": true,
+    "finalizedPayoutVerifiedByRelay": true,
+    "noFallbackOrReplacementTransaction": true
+  },
+  "elapsedMs": 57460,
+  "executionProof": false
+}

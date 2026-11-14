@@ -18,6 +18,35 @@ export function workspaceApiUrl(path) {
 }
 export const ROUTES = new Set(['/workspace', '/customer', '/provider', '/jobs/new', '/jobs', '/job', '/offer', '/delivery', '/payments', '/activity', '/settings']);
 const HASH = /^[a-f0-9]{64}$/;
+const TX_HASH = /^[1-9A-HJ-NP-Za-km-z]{43,44}$/;
+const ESCROW_KIND = 'SPONSORED_TESTNET_ESCROW';
+const MAX_SPONSORED_OFFER = 10n ** 22n; // 0.01 testNEAR; the contract's per-hold pilot cap.
+const RESUME_ACTIONS = new Set(['fund', 'record', 'release', 'refund']);
+const ESCROW_PENDING = new Set(['FUNDING_PENDING', 'RECORD_PENDING', 'PAYOUT_PENDING', 'REFUND_PENDING']);
+const escrowStatuses = { NOT_FUNDED: 'Henüz ayrılmadı', FUNDING_PENDING: 'Sponsor fonu ayrılıyor · kesinleşme bekleniyor', HELD: 'Sponsor fonu zincirde ayrıldı', RECORD_PENDING: 'Teslim kaydı kesinleşiyor', RELEASE_READY: 'Teslim zincirde kayıtlı', PAYOUT_PENDING: 'Ödeme kesinleşiyor', PAID: 'Zincirde ödeme doğrulandı', REFUND_PENDING: 'Sponsor havuzuna dönüş kesinleşiyor', REFUNDED: 'Ayrılan fon sponsor havuzuna döndü', ERROR: 'Ödeme işlemi tamamlanamadı · durumu kontrol edin', UNKNOWN: 'İşlemin sonucu belirsiz · yalnızca durum kontrolü' };
+const escrowJob = job => job?.payment?.kind === ESCROW_KIND;
+const escrowMetadata = job => escrowJob(job) && job.payment.network === 'testnet' && testnetAccount(job.payment.contractId) && HASH.test(job.payment.bindingHash) && Object.hasOwn(escrowStatuses, job.payment.status);
+function deadlineReached(value) { return typeof value === 'string' && /^[1-9]\d{0,19}$/.test(value) && BigInt(Date.now()) * 1_000_000n >= BigInt(value); }
+function deadlinePassed(value) { return deadlineReached(value) && BigInt(Date.now()) * 1_000_000n > BigInt(value); }
+function resumeActionFor(job) {
+  const payment = job?.payment, action = payment?.operation?.resumeAction;
+  if (!escrowMetadata(job) || !RESUME_ACTIONS.has(action) || payment.operation.action !== action ||
+      !ESCROW_PENDING.has(payment.status) || payment.operation.status !== 'PENDING') return null;
+  if (action === 'fund') return job.status === 'AWARDED' && !deadlineReached(payment.executionDeadlineNs) ? action : null;
+  if (action === 'refund') return ['AWARDED', 'DELIVERED', 'REVISION', 'ACCEPTED'].includes(job.status) && deadlinePassed(payment.reviewDeadlineNs) ? action : null;
+  if (!Number.isInteger(job.delivery?.version) || job.delivery.version < 1 || !HASH.test(job.delivery.outputSha256)) return null;
+  if (action === 'record') return job.status === 'DELIVERED' && !deadlineReached(payment.executionDeadlineNs) ? action : null;
+  return job.status === 'ACCEPTED' && !deadlineReached(payment.reviewDeadlineNs) &&
+    payment.recordedVersion === job.delivery.version && payment.recordedOutputHash === job.delivery.outputSha256 ? action : null;
+}
+export function escrowRecordedDelivery(job) {
+  return escrowMetadata(job) && job.payment.verified === true && ['HELD', 'RELEASE_READY'].includes(job.payment.status) && Number.isInteger(job.delivery?.version) && job.delivery.version > 0 &&
+    HASH.test(job.delivery.outputSha256) && job.payment.recordedVersion === job.delivery.version && job.payment.recordedOutputHash === job.delivery.outputSha256;
+}
+export function escrowExecutionAllowed(job) {
+  return !escrowJob(job) || escrowMetadata(job) && job.payment.verified === true && !deadlineReached(job.payment.executionDeadlineNs) &&
+    job.payment.status === 'HELD';
+}
 export function routeOf(href, origin = 'http://localhost') {
   const url = new URL(href, origin);
   if (url.origin !== new URL(origin).origin || !ROUTES.has(url.pathname)) return null;
@@ -96,19 +125,19 @@ function recipeText(recipe) {
 }
 export function decisionAllowed(job, verified, session) {
   return session?.role === 'buyer' && job?.buyerId === session.id && job.status === 'DELIVERED' && verified?.correct === true &&
-    verified.version === job.delivery?.version && verified.outputSha256 === job.delivery?.outputSha256 && HASH.test(verified.outputSha256);
+    verified.version === job.delivery?.version && verified.outputSha256 === job.delivery?.outputSha256 && HASH.test(verified.outputSha256) && (!escrowJob(job) || job.payment.status === 'HELD' && escrowRecordedDelivery(job) && !deadlineReached(job.payment.reviewDeadlineNs));
 }
 function localDate(date) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 class FriendlyError extends Error {}
 const fail = text => { throw new FriendlyError(text); };
-const statusText = { OPEN: 'Tekliflere açık', CLOSED: 'Teklifler kapandı', AWARDED: 'Sağlayıcı seçildi', DELIVERED: 'Teslim edildi', REVISION: 'Düzeltme istendi', ACCEPTED: 'Kabul edildi · ödeme bekliyor', PAID: 'Zincirde ödeme doğrulandı' };
+const statusText = { OPEN: 'Tekliflere açık', CLOSED: 'Teklifler kapandı', AWARDED: 'Sağlayıcı seçildi', DELIVERED: 'Teslim edildi', REVISION: 'Düzeltme istendi', ACCEPTED: 'Kabul edildi · ödeme bekliyor', PAID: 'Zincirde ödeme doğrulandı', REFUNDED: 'Ayrılan fon sponsor havuzuna döndü' };
 
 export function createWorkspace({ document: doc, window: win, fetch: fetcher = globalThis.fetch, storage = win.sessionStorage, vaultFactory = createVault, garble = prepareRecipe, garblePlan = preparePlan, agentWorkerFactory } = {}) {
   const $ = id => doc.getElementById(id);
   const root = $('workspace-root');
-  const state = { token: storage.getItem(TOKEN_KEY), session: null, vault: null, epoch: 0, busy: false, draft: null, uncertain: false, newDraftAllowed: false };
+  const state = { token: storage.getItem(TOKEN_KEY), session: null, vault: null, epoch: 0, busy: false, draft: null, uncertain: false, newDraftAllowed: false, escrowUncertain: new Set(), escrowPoll: null, escrowPollKey: '', escrowPollCount: 0 };
   function el(tag, text, cls) {
     const node = doc.createElement(tag);
     if (text !== undefined && text !== null) node.textContent = String(text);
@@ -502,6 +531,99 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     headers.forEach(h => { const th = el('th', h); th.scope = 'col'; hr.append(th); }); head.append(hr); node.append(head);
     const body = el('tbody'); rows.forEach(row => { const tr = el('tr'); row.forEach(cell => tr.append(el('td', cell))); body.append(tr); }); node.append(body); wrap.append(node); target.append(wrap);
   }
+  function clearEscrowPoll() {
+    if (state.escrowPoll !== null) { if (win.clearTimeout) win.clearTimeout(state.escrowPoll); else clearTimeout(state.escrowPoll); state.escrowPoll = null; }
+  }
+  function canRecordDelivery(job) {
+    return escrowMetadata(job) && job.payment.verified === true && job.status === 'DELIVERED' && job.delivery &&
+      job.payment.status === 'HELD' && !escrowRecordedDelivery(job) && !deadlineReached(job.payment.executionDeadlineNs);
+  }
+  function canRefund(job) {
+    return escrowMetadata(job) && job.payment.verified === true && ['AWARDED', 'DELIVERED', 'REVISION', 'ACCEPTED'].includes(job.status) &&
+      ['HELD', 'RELEASE_READY'].includes(job.payment.status) && deadlinePassed(job.payment.reviewDeadlineNs);
+  }
+  async function escrowOperation(job, action, { resume = false } = {}) {
+    if (action !== 'refresh') {
+      if (!escrowMetadata(job) || state.escrowUncertain.has(job.id)) fail('Önce escrow durumunu yenileyin. Belirsiz işlem için yeni gönderim yapılmaz.');
+      const allowed = resume ? resumeActionFor(job) === action && (isBuyer(job) || action === 'record' && isSelected(job)) :
+        action === 'fund' ? isBuyer(job) && job.status === 'AWARDED' && job.payment.status === 'NOT_FUNDED' && !deadlineReached(job.payment.executionDeadlineNs) :
+        action === 'record' ? (isBuyer(job) || isSelected(job)) && canRecordDelivery(job) :
+        action === 'release' ? isBuyer(job) && job.status === 'ACCEPTED' && job.payment.status === 'RELEASE_READY' && escrowRecordedDelivery(job) && !deadlineReached(job.payment.reviewDeadlineNs) :
+        action === 'refund' && isBuyer(job) && canRefund(job);
+      if (!allowed) fail('Bu ödeme işlemi güncel iş ve teslim durumunda kullanılamaz. Önce durumu yenileyin.');
+      state.escrowUncertain.add(job.id);
+    }
+    try {
+      const { job: updated } = await api('/jobs/' + encodeURIComponent(job.id) + '/payment/' + action, 'POST', {});
+      if (updated?.id !== job.id || !escrowJob(updated) || updated.payment.network !== 'testnet' || !Object.hasOwn(escrowStatuses, updated.payment.status)) throw Error('Unverified payment response');
+      if (['UNKNOWN', 'ERROR'].includes(updated.payment.status)) state.escrowUncertain.add(job.id); else state.escrowUncertain.delete(job.id);
+      return updated;
+    } catch (error) {
+      state.escrowUncertain.add(job.id);
+      await render();
+      if (error instanceof FriendlyError && [401, 403].includes(error.status)) throw error;
+      fail('Escrow işleminin sonucu doğrulanamadı. Yeni işlem göndermeden “Escrow durumunu yenile” ile aynı işlemin durumunu kontrol edin. Kabul edilmiş teslim korunur; ödeme tamamlandı sayılmaz.');
+    }
+  }
+  function scheduleEscrowRefresh(job, target) {
+    if (!ESCROW_PENDING.has(job.payment.status) || !win.setTimeout) return;
+    const key = `${job.id}:${job.payment.status}`;
+    if (state.escrowPollKey !== key) { state.escrowPollKey = key; state.escrowPollCount = 0; }
+    if (state.escrowPollCount >= 12) { paragraph('Otomatik kontrol durdu. Yeni gönderim yapmadan escrow durumunu elle yenileyebilirsiniz.', target); return; }
+    clearEscrowPoll(); const epoch = state.epoch;
+    const poll = () => {
+      state.escrowPoll = null;
+      if (epoch !== state.epoch || !state.session) return;
+      if (state.busy) { state.escrowPoll = win.setTimeout(poll, 2500); state.escrowPoll?.unref?.(); return; }
+      state.escrowPollCount++;
+      void run(async () => { await escrowOperation(job, 'refresh'); await render(); });
+    };
+    state.escrowPoll = win.setTimeout(poll, 2500); state.escrowPoll?.unref?.();
+  }
+  function escrowPanel(job, target = root) {
+    const panel = card('Sponsorlu testnet escrow', target), payment = job.payment;
+    paragraph('Bu deneme sonlu, önceden yüklenmiş testNEAR sponsor havuzunu kullanır. Sizden para veya cüzdan anahtarı alınmaz. Seçilen sağlayıcı ve fiyat zincirde herkese açıktır; sponsor bütçesi bitince yeni fon ayrılamaz.', panel);
+    const trusted = escrowMetadata(job) && (!['HELD', 'RELEASE_READY', 'PAID', 'REFUNDED'].includes(payment.status) || payment.verified === true) &&
+      (payment.status !== 'PAID' || job.status === 'PAID') && (payment.status !== 'REFUNDED' || job.status === 'REFUNDED'), uncertain = state.escrowUncertain.has(job.id);
+    paragraph(`Durum: ${trusted ? escrowStatuses[payment.status] : 'Bilinmeyen veya eksik testnet ödeme bilgisi · yalnızca durum kontrolü'}`, panel, trusted && payment.status === 'PAID' ? 'badge' : 'muted');
+    if (uncertain) paragraph('Önceki işlemin sonucu doğrulanmadı. Yeni fonlama, kayıt, ödeme veya iade göndermeden durumu yenileyin.', panel, 'danger');
+    if (job.selectedOffer) {
+      paragraph(`Herkese açık seçilen tutar: ${formatNearAmount(job.selectedOffer.amountYocto)} testNEAR`, panel);
+      paragraph(`Testnet alıcısı: ${job.selectedOffer.paymentAccount}`, panel);
+    }
+    if (trusted) {
+      paragraph(`Testnet sözleşmesi: ${payment.contractId} · bağ SHA-256: ${payment.bindingHash}`, panel);
+      if (Number.isInteger(payment.recordedVersion) && payment.recordedVersion > 0 && HASH.test(payment.recordedOutputHash)) paragraph(`Zincirde kesinleşmiş teslim: sürüm ${payment.recordedVersion} · şifreli çıktı SHA-256: ${payment.recordedOutputHash}`, panel);
+      for (const [key, label] of [['executionDeadlineNs', 'Yürütme sonu'], ['reviewDeadlineNs', 'İnceleme ve iade sınırı']]) {
+        if (typeof payment[key] === 'string' && /^[1-9]\d{0,19}$/.test(payment[key])) paragraph(`${label}: ${new Date(Number(BigInt(payment[key]) / 1_000_000n)).toLocaleString('tr-TR')}`, panel);
+      }
+      for (const [key, label] of [['fundTransactionHash', 'Fon ayırma'], ['recordTransactionHash', 'Teslim kaydı'], ['releaseTransactionHash', 'Serbest bırakma'], ['refundTransactionHash', 'Sponsor havuzuna dönüş']]) {
+        if (typeof payment[key] !== 'string' || !TX_HASH.test(payment[key])) continue;
+        const a = el('a', `${label} · testnet işlem kaydı`, 'btn secondary'); a.href = 'https://testnet.nearblocks.io/txns/' + payment[key]; a.target = '_blank'; a.rel = 'noopener noreferrer'; panel.append(a);
+      }
+    }
+    const act = (label, action) => button(label, async () => { await escrowOperation(job, action); await render(); }, panel, 'btn secondary');
+    if (isBuyer(job) || isSelected(job)) act('Escrow durumunu yenile', 'refresh');
+    if (trusted && !uncertain) {
+      if (isBuyer(job) && job.status === 'AWARDED' && payment.status === 'NOT_FUNDED' && !deadlineReached(payment.executionDeadlineNs)) act('Sponsor havuzundan fon ayır', 'fund');
+      if ((isBuyer(job) || isSelected(job)) && canRecordDelivery(job)) act('Son teslimi zincirde kaydet', 'record');
+      if (isBuyer(job) && job.status === 'ACCEPTED' && payment.status === 'RELEASE_READY' && escrowRecordedDelivery(job)) {
+        const release = act('Kabul edilen teslimin ödemesini serbest bırak', 'release'); release.disabled = deadlineReached(payment.reviewDeadlineNs);
+      }
+      if (isBuyer(job) && canRefund(job)) act('Süre doldu · ayrılan fonu sponsor havuzuna döndür', 'refund');
+      const resumeAction = resumeActionFor(job);
+      if (resumeAction && (isBuyer(job) || resumeAction === 'record' && isSelected(job))) {
+        paragraph('Sunucu bu işlemin henüz yayımlanmadığını doğruladı. Yalnızca aşağıdaki düğmeyle aynı mevcut imzalı işlem sürdürülebilir; otomatik tekrar gönderilmez.', panel);
+        button('Mevcut imzalı işlemi sürdür · ' + { fund: 'fon ayırma', record: 'teslim kaydı', release: 'ödeme', refund: 'sponsor havuzuna dönüş' }[resumeAction], async () => {
+          await escrowOperation(job, resumeAction, { resume: true }); await render();
+        }, panel, 'btn secondary');
+      }
+    }
+    if (job.status === 'DELIVERED' && !escrowRecordedDelivery(job)) paragraph('Son teslim sürümünün ve çıktı özetinin zincir kaydı kesinleşmeden kabul ve düzeltme kapalıdır. Sağlayıcı tamamlamadıysa müşteri de son teslimi kaydedebilir. Kayıt, teslimi kabul etmek değildir.', panel);
+    paragraph('Ödeme yalnızca son teslimin yerel kontrolü, müşterinin açık kabulü ve zincirde kesinleşen transferden sonra tamamlanır. Sessizlik ödeme başlatmaz. Süre sonrası iade ziyaretçiye değil sponsor havuzuna döner.', panel);
+    if (trusted && ['FUNDING_PENDING', 'RECORD_PENDING', 'PAYOUT_PENDING', 'REFUND_PENDING'].includes(payment.status)) scheduleEscrowRefresh(job, panel);
+    return panel;
+  }
   async function offers(job, target) {
     const panel = card('Şifreli teklifler', target);
     if (job.status === 'OPEN') { paragraph('Teklif içerikleri kapanıştan önce açılmaz. Son zamanda veya erken kapatma düğmesiyle kapatın.', panel); return; }
@@ -514,10 +636,15 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
         paragraph(`${formatNearAmount(quote.amountYocto)} testNEAR · ${quote.deliveryHours} saat`, row); paragraph(quote.note || 'Not eklenmedi.', row);
         paragraph(`Testnet alıcı hesabı: ${offer.paymentAccount}`, row);
         if (job.status === 'CLOSED') {
-          const consent = field(row, 'Seçtiğim teklif tutarının manuel testnet ödeme için açık olmasını onaylıyorum.', { type: 'checkbox', required: false });
+          const consent = field(row, escrowJob(job) ? 'Seçtiğim sağlayıcının ve teklif tutarının sponsorlu testnet escrow için zincirde herkese açık olmasını onaylıyorum.' : 'Seçtiğim teklif tutarının manuel testnet ödeme için açık olmasını onaylıyorum.', { type: 'checkbox', required: false });
           button('Bu sağlayıcıyı seç', async () => {
             if (!consent.checked) fail('Seçilen fiyatın açık hâle gelmesini onaylayın.');
-            await api('/jobs/' + encodeURIComponent(job.id) + '/award', 'POST', { offerId: offer.id, amountYocto: quote.amountYocto, salt: quote.salt }); await render(); message('Sağlayıcı seçildi. Bu seçim otomatik MPC sonucu değildir.');
+            const { job: awarded } = await api('/jobs/' + encodeURIComponent(job.id) + '/award', 'POST', { offerId: offer.id, amountYocto: quote.amountYocto, salt: quote.salt });
+            if (escrowJob(job) && awarded?.id === job.id && awarded.status === 'AWARDED' && awarded.payment?.status === 'NOT_FUNDED') {
+              const ready = escrowMetadata(awarded) ? awarded : await escrowOperation(awarded, 'refresh');
+              if (escrowMetadata(ready) && ready.payment.status === 'NOT_FUNDED') await escrowOperation(ready, 'fund');
+            }
+            await render(); message(escrowJob(job) ? 'Sağlayıcı seçildi. Sponsor fonunun zincirde kesinleşmesini bekleyin.' : 'Sağlayıcı seçildi. Bu seçim otomatik MPC sonucu değildir.');
           }, row);
         }
       } catch { paragraph('Teklif bu cihazdaki anahtarla açılamadı veya taahhüdü doğrulanamadı. Seçim kapalı.', row, 'danger'); }
@@ -550,6 +677,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       if (isSelected(job)) link('Şifreli işi yürüt / teslim', jobLink('/delivery', job.id), panel);
     }
     if (job.selectedOffer) { paragraph(`Seçilen tutar: ${formatNearAmount(job.selectedOffer.amountYocto)} testNEAR · ${job.selectedOffer.paymentAccount}`, panel); link('Ödeme ve makbuz', jobLink('/payments', job.id), panel); }
+    if (escrowJob(job) && (isBuyer(job) || isSelected(job)) && job.selectedOffer) escrowPanel(job);
     button('Durumu yenile', render, panel, 'btn secondary');
   }
   async function offerForm(job) {
@@ -557,21 +685,24 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     if (job.status !== 'OPEN' || job.ownOffer || new Date(job.deadlineISO).getTime() <= Date.now()) fail('Bu iş yeni teklif almıyor veya teklifiniz zaten kayıtlı.');
     if (!testnetAccount(state.session.paymentAccount)) fail('Geçerli bir testnet ödeme hesabına sahip sağlayıcı oturumu gerekli.');
     const panel = card('Teklifiniz yalnızca müşteriye açılır'); paragraph('Fiyat, teslim süresi ve not tarayıcıda müşterinin RSA anahtarıyla hibrit şifrelenir. Sunucuya açık fiyat gönderilmez. Müşteri kapanıştan sonra teklifleri kendi cihazında karşılaştırır; otomatik MPC seçimi yapılmaz.', panel);
+    if (escrowJob(job)) paragraph('Seçilirseniz sağlayıcı hesabınız ve teklif tutarınız sponsorlu testnet escrow için zincirde herkese açık olur. Bu deneme müşteri parası yerine sonlu sponsor testNEAR havuzunu kullanır. İş başına teklif üst sınırı 0.01 testNEAR’dır.', panel);
     if (job.recipe) paragraph('Herkese açık tarif: ' + recipeText(job.recipe), panel);
     publicPlanInfo(job, panel);
     const { node, submit } = form(panel, 'Şifrele ve teklif gönder', async () => {
       let amountYocto; try { amountYocto = parseNearAmount(amount.value).toString(); } catch { fail('Geçerli bir testNEAR tutarı girin (en fazla 24 ondalık).'); }
       if (BigInt(amountYocto) <= 0n) fail('Teklif tutarı sıfırdan büyük olmalı.');
+      if (escrowJob(job) && BigInt(amountYocto) > MAX_SPONSORED_OFFER) fail('Sponsorlu denemede teklif en fazla 0.01 testNEAR olabilir.');
       const hoursValue = Number(hours.value); if (!Number.isInteger(hoursValue) || hoursValue < 1 || hoursValue > 720) fail('Teslim süresi 1–720 tam saat olmalı.');
       const previous = await state.vault.loadJob(job.id) || {};
       const quote = previous.pendingOffer?.quote || { jobId: job.id, providerId: state.session.id, amountYocto, deliveryHours: hoursValue, note: note.value.trim(), salt: randomSalt() };
+      if (escrowJob(job) && BigInt(quote.amountYocto) > MAX_SPONSORED_OFFER) fail('Önceki teklif sponsorlu denemenin 0.01 testNEAR sınırını aşıyor; aynı eski teklif yeniden gönderilmedi.');
       const envelope = previous.pendingOffer?.envelope || await state.vault.encryptQuote(job.buyerPublicKey, quote);
       const commitment = await quoteCommitment(job.id, state.session.id, quote.amountYocto, quote.salt);
       await state.vault.saveJob(job.id, { ...previous, ownQuote: quote, pendingOffer: { quote, envelope } });
       await api('/jobs/' + encodeURIComponent(job.id) + '/offers', 'POST', { envelope, commitment });
       await state.vault.saveJob(job.id, { ...previous, ownQuote: quote }); win.history.pushState({}, '', jobLink('/job', job.id)); await render(); message('Şifreli teklif kaydedildi.');
     });
-    const amount = field(node, 'Teklif (testNEAR)', { name: 'amount', placeholder: '0.001' }); amount.inputMode = 'decimal';
+    const amount = field(node, escrowJob(job) ? 'Teklif (testNEAR; en fazla 0.01)' : 'Teklif (testNEAR)', { name: 'amount', placeholder: '0.001' }); amount.inputMode = 'decimal';
     const hours = field(node, 'Teslim süresi (saat)', { type: 'number', value: '1', name: 'deliveryHours' }); hours.min = '1'; hours.max = '720'; hours.step = '1';
     const note = field(node, 'Teklif notu (kişisel veri eklemeyin)', { type: 'textarea', required: false, maxLength: 500, name: 'note' }); node.append(submit);
     paragraph(`Ödeme hesabınız: ${state.session.paymentAccount} · yalnızca testnet`, panel);
@@ -584,13 +715,22 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       const panel = card('Şifreli yürütme'); paragraph('Yalnızca seçilen sağlayıcı bu işi yürütebilir. Sunucu şifreli devreyi işler; sağlayıcıya CSV veya çözülmüş değer gösterilmez.', panel);
       if (job.recipe) paragraph('Yürütülecek tarif: ' + recipeText(job.recipe), panel);
       publicPlanInfo(job, panel);
-      if (['AWARDED', 'REVISION'].includes(job.status)) button(job.status === 'REVISION' ? 'Düzeltmeyi yeniden yürüt' : 'Şifreli işi yürüt ve teslim et', async () => {
-        await api('/jobs/' + encodeURIComponent(job.id) + '/execute', 'POST', {}); await render(); message('Şifreli teslim oluşturuldu. Müşteri kendi cihazında doğrulayacak.');
-      }, panel);
+      if (escrowJob(job)) escrowPanel(job);
+      if (['AWARDED', 'REVISION'].includes(job.status)) {
+        const execute = button(job.status === 'REVISION' ? 'Düzeltmeyi yeniden yürüt' : 'Şifreli işi yürüt ve teslim et', async () => {
+          if (!escrowExecutionAllowed(job) || state.escrowUncertain.has(job.id)) fail('Yürütmeden önce sponsor fonunun zincirde kesinleşmesini bekleyip escrow durumunu yenileyin.');
+          const { job: executed } = await api('/jobs/' + encodeURIComponent(job.id) + '/execute', 'POST', {});
+          if (escrowJob(job) && executed?.id === job.id && canRecordDelivery(executed)) await escrowOperation(executed, 'record');
+          await render(); message('Şifreli teslim oluşturuldu. Müşteri kendi cihazında doğrulayacak; escrow varsa son teslimin zincir kaydı da kesinleşmelidir.');
+        }, panel);
+        execute.disabled = !escrowExecutionAllowed(job) || state.escrowUncertain.has(job.id);
+        if (execute.disabled) paragraph('Şifreli yürütme, sponsor fonu zincirde kesinleşene kadar kapalıdır. Yeni fon gönderimi yerine mevcut işlemin durumunu kontrol edin.', panel);
+      }
       if (job.delivery) paragraph(`Teslim sürümü ${job.delivery.version} · şifreli çıktı SHA-256: ${job.delivery.outputSha256}`, panel);
       return;
     }
     if (!isBuyer(job)) fail('Teslim yalnızca iş sahibi ve seçilen sağlayıcıya açıktır.');
+    if (escrowJob(job)) escrowPanel(job);
     if (!job.delivery) { paragraph('Henüz teslim yok.', root, 'empty'); return; }
     const panel = card('Bu cihazda doğrulama');
     paragraph('Sonuç etiketleri bu işin yerel çözücüsüyle açılır ve orijinal değerlerle karşılaştırılır. Bu kontrol yürütme kaynağı veya bağımsız operatör kanıtı değildir.', panel);
@@ -652,14 +792,38 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
         const a = el('a'); a.href = url; a.download = 'temizlenmis.csv'; a.click(); win.setTimeout(() => win.URL.revokeObjectURL(url), 1000); message('CSV indirme hazırlandı.');
       }, panel, 'btn secondary');
     }
-    if (decisionAllowed(job, verified, state.session)) button('Doğrulanan teslimi kabul et', async () => {
-      if (!decisionAllowed(job, verified, state.session)) fail('Yerel doğrulama olmadan kabul edilemez.');
-      await api('/jobs/' + encodeURIComponent(job.id) + '/decision', 'POST', { decision: 'accept', version: verified.version, outputSha256: verified.outputSha256 }); await render(); message('Teslim kabul edildi. Manuel testnet ödeme henüz yapılmadı.');
-    }, panel);
-    if (job.status === 'DELIVERED') button('Düzeltme iste', async () => { await api('/jobs/' + encodeURIComponent(job.id) + '/decision', 'POST', { decision: 'revise', version: job.delivery.version, outputSha256: job.delivery.outputSha256 }); await render(); message('Düzeltme istendi.'); }, panel, 'btn secondary');
+    const acceptReady = decisionAllowed(job, verified, state.session) && (!escrowJob(job) || !state.escrowUncertain.has(job.id));
+    if (acceptReady || escrowJob(job) && job.status === 'DELIVERED' && verified.correct) {
+      const accept = button('Doğrulanan teslimi kabul et', async () => {
+        if (!decisionAllowed(job, verified, state.session) || escrowJob(job) && state.escrowUncertain.has(job.id)) fail('Yerel doğrulama ve son teslimin kesinleşmiş zincir kaydı olmadan kabul edilemez.');
+        const { job: accepted } = await api('/jobs/' + encodeURIComponent(job.id) + '/decision', 'POST', { decision: 'accept', version: verified.version, outputSha256: verified.outputSha256 });
+        if (escrowJob(job)) {
+          if (accepted?.id !== job.id || accepted.status !== 'ACCEPTED' || !escrowRecordedDelivery(accepted)) { await render(); fail('Kabulün ve son teslim kaydının durumunu yenileyin. Yeni ödeme gönderilmedi.'); }
+          const released = await escrowOperation(accepted, 'release'), displayed = await render();
+          const current = displayed?.id === job.id ? displayed : released;
+          message(current.status === 'PAID' && current.payment?.status === 'PAID' && current.payment.verified === true ?
+            'Teslim kabul edildi. Testnet ödemesi zincirde kesinleşti.' : 'Teslim kabul edildi. Ödeme durumu zincirden kontrol ediliyor; kesinleşmeden tamamlandı sayılmaz.');
+        } else { await render(); message('Teslim kabul edildi. Manuel testnet ödeme henüz yapılmadı.'); }
+      }, panel);
+      accept.disabled = !acceptReady;
+    }
+    if (job.status === 'DELIVERED') {
+      const revisionReady = !escrowJob(job) || job.payment.status === 'HELD' && escrowRecordedDelivery(job) && !state.escrowUncertain.has(job.id);
+      const revise = button('Düzeltme iste', async () => {
+        if (!revisionReady) fail('Sürüm atlanmaması için önce son teslimin zincir kaydını kesinleştirin. Bu kayıt teslimi kabul etmek değildir.');
+        await api('/jobs/' + encodeURIComponent(job.id) + '/decision', 'POST', { decision: 'revise', version: job.delivery.version, outputSha256: job.delivery.outputSha256 }); await render(); message('Düzeltme istendi.');
+      }, panel, 'btn secondary');
+      revise.disabled = !revisionReady;
+    }
     if (['ACCEPTED', 'PAID'].includes(job.status)) link('Ödeme durumunu aç', jobLink('/payments', job.id), panel);
   }
   async function payments(job) {
+    if (escrowJob(job)) {
+      title('Sponsorlu testnet escrow', job.title);
+      if (!isBuyer(job) && !isSelected(job)) fail('Bu ödeme kaydına erişiminiz yok.');
+      escrowPanel(job); return;
+    }
+    if (job.payment?.kind && job.payment.kind !== 'DIRECT_TESTNET_TRANSFER') { title('Ödeme durumu', job.title); paragraph('Bu ödeme türü tanınmıyor. Yeni transfer göndermeden iş durumunu yenileyin.', root, 'danger'); return; }
     title('Manuel testnet ödeme', job.title); const panel = card('Doğrudan transfer · escrow değil');
     paragraph('Gerçek para veya kart kullanılmaz. Uygulama imza atmaz, para göndermez ve bakiye saklamaz. Testnet cüzdanınızda tek bir doğrudan NEAR transferi yapın; ardından makbuzu doğrulatın.', panel);
     if (!job.selectedOffer) { paragraph('Önce bir sağlayıcı seçilmeli.', panel); return; }
@@ -707,6 +871,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     win.history.pushState({}, '', '/workspace'); await render(); message('Oturum kapandı. Eski yerel kasa silinmedi; yeni oturum eski kimliğe erişim sağlamaz.');
   }
   async function render() {
+    clearEscrowPoll();
     const epoch = ++state.epoch; root.replaceChildren(); chrome(); message();
     const route = routeOf(win.location.href, win.location.origin);
     if (!route) { title('Sayfa bulunamadı'); link('Çalışma alanına dön', '/workspace'); return; }
@@ -720,6 +885,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
         if (route.path === '/offer') await offerForm(job);
         if (route.path === '/delivery') await delivery(job);
         if (route.path === '/payments') await payments(job);
+        return job;
       } else {
         root.replaceChildren();
         if (route.path === '/jobs/new') await newJob();

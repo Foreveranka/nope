@@ -1,0 +1,58 @@
+Captured completed-command output handoff — 14 November 2026
+Selected output copied from the completed tool executions in this task.
+Not a new run, raw sandbox node log, or public RPC/chain evidence.
+
+UNIT COMMAND
+sh payments/workspace_escrow/cargo-local.sh test --offline --locked
+
+running 14 tests
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+Doc-tests nope_workspace_escrow: 0 passed; 0 failed.
+
+LINT
+sh payments/workspace_escrow/cargo-local.sh clippy --offline --locked --all-targets -- -D warnings
+Checking nope-workspace-escrow v0.1.0
+Finished `dev` profile [unoptimized + debuginfo] target(s) in 2m 41s
+
+RELEASE BUILD
+RUSTFLAGS='--cfg near' sh payments/workspace_escrow/cargo-local.sh build --offline --locked --release --target wasm32-unknown-unknown
+Compiling nope-workspace-escrow v0.1.0
+Finished `release` profile [optimized] target(s) in 54.42s
+
+FORMAT CHECKS
+Root package fmt --check: exit 0.
+Sandbox package fmt --check: exit 0.
+
+FINAL PASSING LOCAL VM COMMAND
+NEAR_SANDBOX_BIN_PATH="$PWD/payments/testnet_escrow/target/debug/build/near-sandbox-799e5657ea686f2e/out/.near/near-sandbox-2.14.0/near-sandbox" TMPDIR="$PWD/payments/workspace_escrow/.toolchain/tmp" sh payments/workspace_escrow/cargo-local.sh test --offline --locked --manifest-path sandbox/Cargo.toml -- --nocapture
+
+Profile: actual local Wasm, 4 testNEAR initial account balance, 0.2 testNEAR
+FunctionCall allowance, four self methods, 100 Tgas release, 20 Tgas callback.
+Separate local 0.05 key explicitly tested as a negative allowance case.
+
+running 1 test
+LOCAL_VM gas_price=NearToken { inner: 100000000 }
+LOCAL_VM expected 0.05 allowance rejection: Error { repr: Custom { kind: Rpc(BroadcastTxFailure), error: ServerError(HandlerError(InvalidTransaction { context: InvalidAccessKeyError(NotEnoughAllowance { account_id: AccountId("workspace-escrow.testnet"), public_key: ed25519:4WkBnCHmrR4PY2zXGRfCStPZYs4vMte5VHfabrXYE6xE, allowance: NearToken { inner: 50000000000000000000000 }, cost: NearToken { inner: 100919450817521200000000 } }) })) } }
+LOCAL_VM_ONLY actual workspace escrow Wasm; FunctionCall-only self key; measured native payout; no replay; real failed Transfer callback; deadline internal refund. No public-chain proof.
+test actual_local_wasm_scoped_key_transfer_callback_failure_and_timeout_refund ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 14.66s
+
+ADDITIONAL LOCAL PROFILE CHECKS (NOT LIVE AVAILABILITY EVIDENCE)
+2.9 initial / 0.05 allowance: constructor/fund/record passed; release rejected:
+NotEnoughAllowance remaining 49078464346739500000000,
+required cost 100919450817521200000000 yoctoNEAR.
+
+2.9 initial / 0.2 primary allowance with separate local 0.05 negative key:
+correct 100 Tgas release reached contract and failed its balance guard:
+Error: Action #0: ExecutionError("Smart contract panicked: panicked at src/lib.rs:407:9:\nprefund storage, gas and sponsor pool separately")
+
+The VM fee envelope discrepancy was not isolated or calibrated to live RPC.
+MAIN must dynamically preflight live balance, allowance and bounded gas before
+any signing. Contract solvency guards and frozen Wasm remain unchanged.
+
+FROZEN ARTIFACT
+payments/testnet_escrow/target/wasm32-unknown-unknown/release/nope_workspace_escrow.wasm
+bytes=202524
+wasmSha256=77c4886d5db5d03782c9c4721222fba80a00f557d3e97819c86205fa295a6610
+NEAR codeHash=94XLBcytUKaL19QBzQqKFKsDvNZipcn5yvEUFEuumsPm
+src/lib.rs SHA256=9af743e3417210ac0207b012f76325c89062c955b5682158edc94b44495a531e

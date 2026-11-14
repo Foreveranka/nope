@@ -1,0 +1,75 @@
+{
+  "recordedAt": "2026-11-14T02:13:49.351Z",
+  "origin": "https://veil-procurement.vercel.app",
+  "syntheticOnly": true,
+  "realNativeModelProposal": true,
+  "browserInference": false,
+  "model": {
+    "id": "onnx-community/Qwen3-0.6B-ONNX-OPT",
+    "revision": "4799e655597b49210adb5c1ebe5b9d3bd04005a0"
+  },
+  "task": {
+    "version": 1,
+    "goal": "Trim C2 then uppercase C2. Fill missing C3 with 7 and clamp C3 between 10 and 80.",
+    "columns": [
+      {
+        "id": "C2",
+        "type": "text"
+      },
+      {
+        "id": "C3",
+        "type": "number"
+      }
+    ]
+  },
+  "plan": {
+    "version": 1,
+    "taskHash": "0232e6723fc7ca93e5ef8f2baa80e8b4c151fd0b598a8c90190e7be2bcb23afe",
+    "steps": [
+      {
+        "column": "C2",
+        "recipe": {
+          "type": "text",
+          "steps": [
+            {
+              "op": "trim"
+            },
+            {
+              "op": "uppercase"
+            }
+          ]
+        }
+      },
+      {
+        "column": "C3",
+        "recipe": {
+          "type": "number",
+          "steps": [
+            {
+              "op": "fill",
+              "value": 7
+            },
+            {
+              "op": "clamp",
+              "min": 10,
+              "max": 80
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+  "inputBytes": 1454978,
+  "elapsedMs": 5614,
+  "checks": {
+    "noPlaintextInRequest": true,
+    "actualHTTP": true,
+    "localDecode": true,
+    "fullCSVPreserved": true
+  },
+  "inputSha256": "bf9be5742b64939b26e12eb2fa9c120634138528d078795f2a0c32b61a716ced",
+  "outputSha256": "7ff5fbf541cdb7d37be9d9d82941378631449a0dd1114402bb3e7a921bc5864f",
+  "programSha256": "ebb7a626bf9a130bdcfd4d75b0f71cbf2fa11b8b3c53c08e4b277c87421c9586",
+  "executionProof": false
+}
