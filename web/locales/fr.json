@@ -986,5 +986,12 @@
   "Net nakit akışı = gelir − giderler; negatif fark sıfır gösterilir.": "Flux de trésorerie net = revenus − dépenses ; un écart négatif est affiché à zéro.",
   "Kullanılabilir tutar = net nakit akışı − mevcut borç ödemesi; negatif fark sıfır gösterilir.": "Montant disponible = flux de trésorerie net − remboursement de dette existante ; un écart négatif est affiché à zéro.",
   "Talep edilen tutarın kredi limitini aşıp aşmadığı kontrol edilir.": "Vérifie si le montant demandé dépasse la limite de crédit.",
-  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Capacité de paiement : les dépenses ne doivent pas dépasser les revenus, la dette existante doit être couverte par le flux net et le paiement proposé par le montant restant. Dans les résultats, 1 signifie oui et 0 signifie non."
+  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Capacité de paiement : les dépenses ne doivent pas dépasser les revenus, la dette existante doit être couverte par le flux net et le paiement proposé par le montant restant. Dans les résultats, 1 signifie oui et 0 signifie non.",
+  "SONUÇ": "RÉSULTAT",
+  "SONUÇ KANITINI İNCELE": "EXAMINER LA PREUVE DU RÉSULTAT",
+  "Sonuç kanıtı, önceden sabitlenen eşlemeye göre doğruluğu denetler. AES yürütme kaynağı veya bağımsız operatör ispatı değildir; mevcut sözleşme SNARK doğrulamaz.": "La preuve vérifie le résultat selon la correspondance fixée à l’avance. Elle ne prouve ni la provenance de l’exécution AES ni un opérateur indépendant ; le contrat actuel ne vérifie pas les SNARK.",
+  "Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı sonuç kanıtı gerekir. Eski sürüme geçilmedi.": "Une nouvelle tâche exige un portefeuille client vérifié et une preuve liée au même contrat. Aucune ancienne version n’a été sélectionnée.",
+  "Yeni işler sonuç kanıtı ve müşterinin kendi cüzdanından emanet yatırmasını gerektirir. Hazırlık veya cüzdan kullanılamıyorsa eski sürüme geçilmez.": "Les nouvelles tâches exigent des preuves et un dépôt depuis le portefeuille du client. L’absence de préparation ou de prise en charge du portefeuille ne déclenche jamais un ancien parcours.",
+  "Yerel sonuç, son teslimin zincir kaydı ve bağımsız sonuç kanıtı doğrulanmadan kabul edilemez.": "L’acceptation exige la vérification du résultat local, du dernier enregistrement de livraison sur la chaîne et de la preuve indépendante.",
+  "Şifreli teslim çözülüyor; eşleme ve giriş bağları denetleniyor…": "Déchiffrement de la livraison ; vérification de la correspondance et des liens d’entrée…"
 }

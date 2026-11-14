@@ -986,5 +986,12 @@
   "Net nakit akışı = gelir − giderler; negatif fark sıfır gösterilir.": "Netto-Cashflow = Einnahmen − Ausgaben; eine negative Differenz wird als null angezeigt.",
   "Kullanılabilir tutar = net nakit akışı − mevcut borç ödemesi; negatif fark sıfır gösterilir.": "Verfügbarer Betrag = Netto-Cashflow − bestehende Schuldentilgung; eine negative Differenz wird als null angezeigt.",
   "Talep edilen tutarın kredi limitini aşıp aşmadığı kontrol edilir.": "Prüft, ob der beantragte Betrag das Kreditlimit überschreitet.",
-  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Tragbarkeit: Ausgaben dürfen die Einnahmen nicht überschreiten, bestehende Schulden müssen durch den Netto-Cashflow gedeckt sein und die vorgeschlagene Zahlung durch den Restbetrag. In den Ergebnissen bedeutet 1 ja und 0 nein."
+  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Tragbarkeit: Ausgaben dürfen die Einnahmen nicht überschreiten, bestehende Schulden müssen durch den Netto-Cashflow gedeckt sein und die vorgeschlagene Zahlung durch den Restbetrag. In den Ergebnissen bedeutet 1 ja und 0 nein.",
+  "SONUÇ": "ERGEBNIS",
+  "SONUÇ KANITINI İNCELE": "ERGEBNISBEWEIS PRÜFEN",
+  "Sonuç kanıtı, önceden sabitlenen eşlemeye göre doğruluğu denetler. AES yürütme kaynağı veya bağımsız operatör ispatı değildir; mevcut sözleşme SNARK doğrulamaz.": "Der Ergebnisbeweis prüft die Korrektheit unter der vorher festgelegten Zuordnung. Er beweist weder die AES-Ausführungsherkunft noch einen unabhängigen Betreiber; der aktuelle Vertrag prüft keine SNARKs.",
+  "Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı sonuç kanıtı gerekir. Eski sürüme geçilmedi.": "Ein neuer Auftrag erfordert eine verifizierte Käufer-Wallet und einen an denselben Vertrag gebundenen Ergebnisbeweis. Keine ältere Version wurde gewählt.",
+  "Yeni işler sonuç kanıtı ve müşterinin kendi cüzdanından emanet yatırmasını gerektirir. Hazırlık veya cüzdan kullanılamıyorsa eski sürüme geçilmez.": "Neue Aufträge erfordern Ergebnisbeweise und eine Einzahlung aus der eigenen Käufer-Wallet. Fehlende Vorbereitung oder Wallet-Unterstützung führt nicht zu einem älteren Ablauf.",
+  "Yerel sonuç, son teslimin zincir kaydı ve bağımsız sonuç kanıtı doğrulanmadan kabul edilemez.": "Eine Annahme erfordert die Prüfung des lokalen Ergebnisses, des Onchain-Eintrags der letzten Lieferung und des unabhängigen Ergebnisbeweises.",
+  "Şifreli teslim çözülüyor; eşleme ve giriş bağları denetleniyor…": "Lieferung wird entschlüsselt; Zuordnung und Eingabebindungen werden geprüft…"
 }

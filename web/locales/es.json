@@ -986,5 +986,12 @@
   "Net nakit akışı = gelir − giderler; negatif fark sıfır gösterilir.": "Flujo de caja neto = ingresos − gastos; una diferencia negativa se muestra como cero.",
   "Kullanılabilir tutar = net nakit akışı − mevcut borç ödemesi; negatif fark sıfır gösterilir.": "Importe disponible = flujo de caja neto − pago de deuda existente; una diferencia negativa se muestra como cero.",
   "Talep edilen tutarın kredi limitini aşıp aşmadığı kontrol edilir.": "Se comprueba si el importe solicitado supera el límite de crédito.",
-  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Capacidad de pago: los gastos no deben superar los ingresos, la deuda existente debe caber en el flujo de caja neto y el pago propuesto en el importe restante. En los resultados, 1 significa sí y 0 significa no."
+  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Capacidad de pago: los gastos no deben superar los ingresos, la deuda existente debe caber en el flujo de caja neto y el pago propuesto en el importe restante. En los resultados, 1 significa sí y 0 significa no.",
+  "SONUÇ": "RESULTADO",
+  "SONUÇ KANITINI İNCELE": "EXAMINAR LA PRUEBA DEL RESULTADO",
+  "Sonuç kanıtı, önceden sabitlenen eşlemeye göre doğruluğu denetler. AES yürütme kaynağı veya bağımsız operatör ispatı değildir; mevcut sözleşme SNARK doğrulamaz.": "La prueba comprueba la corrección bajo la correspondencia fijada previamente. No demuestra el origen de la ejecución AES ni un operador independiente; el contrato actual no verifica SNARKs.",
+  "Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı sonuç kanıtı gerekir. Eski sürüme geçilmedi.": "Un trabajo nuevo requiere una cartera del cliente verificada y una prueba vinculada al mismo contrato. No se eligió una versión anterior.",
+  "Yeni işler sonuç kanıtı ve müşterinin kendi cüzdanından emanet yatırmasını gerektirir. Hazırlık veya cüzdan kullanılamıyorsa eski sürüme geçilmez.": "Los trabajos nuevos requieren pruebas y un depósito desde la propia cartera del cliente. Si falta preparación o soporte de cartera, no se usa un flujo anterior.",
+  "Yerel sonuç, son teslimin zincir kaydı ve bağımsız sonuç kanıtı doğrulanmadan kabul edilemez.": "La aceptación requiere verificar el resultado local, el registro en cadena de la última entrega y la prueba independiente.",
+  "Şifreli teslim çözülüyor; eşleme ve giriş bağları denetleniyor…": "Descifrando entrega; comprobando correspondencia y vínculos de entrada…"
 }

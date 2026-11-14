@@ -774,5 +774,9 @@
   "Net nakit akışı = gelir − giderler; negatif fark sıfır gösterilir.": "Net nakit akışı = gelir − giderler; negatif fark sıfır gösterilir.",
   "Kullanılabilir tutar = net nakit akışı − mevcut borç ödemesi; negatif fark sıfır gösterilir.": "Kullanılabilir tutar = net nakit akışı − mevcut borç ödemesi; negatif fark sıfır gösterilir.",
   "Talep edilen tutarın kredi limitini aşıp aşmadığı kontrol edilir.": "Talep edilen tutarın kredi limitini aşıp aşmadığı kontrol edilir.",
-  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir."
+  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.",
+  "Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı sonuç kanıtı gerekir. Eski sürüme geçilmedi.": "Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı sonuç kanıtı gerekir. Eski sürüme geçilmedi.",
+  "Yeni işler sonuç kanıtı ve müşterinin kendi cüzdanından emanet yatırmasını gerektirir. Hazırlık veya cüzdan kullanılamıyorsa eski sürüme geçilmez.": "Yeni işler sonuç kanıtı ve müşterinin kendi cüzdanından emanet yatırmasını gerektirir. Hazırlık veya cüzdan kullanılamıyorsa eski sürüme geçilmez.",
+  "Yerel sonuç, son teslimin zincir kaydı ve bağımsız sonuç kanıtı doğrulanmadan kabul edilemez.": "Yerel sonuç, son teslimin zincir kaydı ve bağımsız sonuç kanıtı doğrulanmadan kabul edilemez.",
+  "Şifreli teslim çözülüyor; eşleme ve giriş bağları denetleniyor…": "Şifreli teslim çözülüyor; eşleme ve giriş bağları denetleniyor…"
 }

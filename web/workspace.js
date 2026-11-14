@@ -544,7 +544,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
   async function newJob() {
     requireRole('buyer'); title(msg('Yeni şifreli iş'), msg('1. CSV seçin → 2. Yerel önizlemeyi kontrol edin → 3. Şifreleyip yayımlayın'));
     if (!walletConfigured() || !linkedWallet(state.session) || state.proofCapability?.enabled !== true || state.proofCapability.contractId !== walletPolicy?.contractId) {
-      walletPanel(); paragraph(msg('Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı v4 sonuç kanıtı gerekir. Eski sürüme geçilmedi.')); link(msg('Kimlik ve kasa'), '/settings'); return;
+      walletPanel(); paragraph(msg('Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı sonuç kanıtı gerekir. Eski sürüme geçilmedi.')); link(msg('Kimlik ve kasa'), '/settings'); return;
     }
     const panel = card(msg('CSV hazırlığı'));
     const proofEnabled = true;
@@ -552,7 +552,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     button(msg('Çok alanlı şifreli kuralları dene'), () => { mode.value = 'record'; updateMode(); }, panel, 'btn secondary');
     const recipeIntro = paragraph(msg('Seçilen sütuna uygulanacak tarifi belirleyin. Sayı: 1–32 satır, boş veya 0–254 tam sayı (255 boş hücre için ayrılmıştır). Metin: en fazla 8 satır ve hücre başına 16 bayt yazdırılabilir ASCII. Tarif herkese açıktır; CSV başlıkları, dosya adı ve değerler bu cihazda kalır.'), panel);
     const { node, submit } = form(panel, msg('Şifrele ve işi yayımla'), async () => {
-      if (!walletConfigured() || !linkedWallet(state.session) || !['agent','record'].includes(mode.value)) fail(msg('Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı v4 sonuç kanıtı gerekir. Eski sürüme geçilmedi.'));
+      if (!walletConfigured() || !linkedWallet(state.session) || !['agent','record'].includes(mode.value)) fail(msg('Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı sonuç kanıtı gerekir. Eski sürüme geçilmedi.'));
       if ((await unresolvedJobIds()).length && !state.newDraftAllowed) fail(msg('Önce belirsiz yayımlamayı kontrol edin veya uyarıyı onaylayarak ayrı bir yeni taslak başlatın.'));
       if (!dataset) fail(msg('Önce geçerli bir CSV seçin.'));
       const agentMode = mode.value === 'agent', recordMode = mode.value === 'record', revision = draftRevision, pageEpoch = state.epoch, source = dataset, approvedPlan = recordMode ? recordApproval : agentApproval;
@@ -857,7 +857,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       }, row);
       button(msg('Aynı kimlik ve içerikle güvenli tekrar dene'), async () => {
         if (!local?.payload) fail(msg('Yerel yayımlama kaydı eksik. Aynı iş kimliği ve mevcut kasa korunuyor; durumu kontrol edin.'));
-        if (!walletConfigured() || !linkedWallet(state.session) || !isProofProfile(local.payload.profile) || local.payload.task?.profile !== local.payload.profile || local.payload.task?.proofManifest?.context?.contractId !== walletPolicy.contractId || local.payload.task.proofManifest.context.buyerCommitment !== await sha256('NOPE:buyer:'+state.session.id)) fail(msg('Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı v4 sonuç kanıtı gerekir. Eski sürüme geçilmedi.'));
+        if (!walletConfigured() || !linkedWallet(state.session) || !isProofProfile(local.payload.profile) || local.payload.task?.profile !== local.payload.profile || local.payload.task?.proofManifest?.context?.contractId !== walletPolicy.contractId || local.payload.task.proofManifest.context.buyerCommitment !== await sha256('NOPE:buyer:'+state.session.id)) fail(msg('Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı sonuç kanıtı gerekir. Eski sürüme geçilmedi.'));
         try { const { job } = await api('/jobs', 'POST', local.payload); await finishPublish(job, local, jobId); }
         catch (err) { if (err.status === 400) fail(msg('Eski girişim doğrulanamadı; son zamanı geçmiş olabilir. Eski kayıt ve çözücü korunuyor. Durumu kontrol edebilir veya uyarıyı onaylayarak ayrı bir yeni taslak açabilirsiniz.')); throw err; }
       }, row, 'btn secondary');
@@ -1201,7 +1201,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     try {
       await deliveryStage(msg('Yerel kasa açılıyor; veri ve çözücü bu cihazda yükleniyor…'));
       local = await localVaultFor(job).loadJob(job.id); if (!local?.dataset || (isPlan ? !(isRecord ? local.recordApproval : local.agentApproval) || !local.values : !Array.isArray(local.values))) throw Error();
-      await deliveryStage(isRecord ? msg('Şifreli kayıt teslimi çözülüyor; alan eşlemeleri ve giriş bağları denetleniyor…') : isProof ? msg('Şifreli teslim çözülüyor; v4 eşleme ve giriş bağları denetleniyor…') : msg('Şifreli teslim bu cihazda çözülüyor…'));
+      await deliveryStage(isRecord ? msg('Şifreli kayıt teslimi çözülüyor; alan eşlemeleri ve giriş bağları denetleniyor…') : isProof ? msg('Şifreli teslim çözülüyor; eşleme ve giriş bağları denetleniyor…') : msg('Şifreli teslim bu cihazda çözülüyor…'));
       outputs = isProof ? await decodeProofPlan(encodedResult(job.delivery), local.proofDecoder) : await state.vault.decodeDelivery(job.id, isRecipe || isPlan ? job.delivery : job.delivery.outputs);
     }
     catch { clearDeliveryStage(); if (isProof) proofPanel(job, local, false); paragraph(msg('Bu cihazda orijinal CSV veya çözme anahtarı yok ya da teslim açılamıyor. Aynı tarayıcı ve cihazdaki kasayla yeniden açın. Oturum açmak anahtarları başka cihaza taşımaz; sonuç veya kabul oluşturulmadı.'), panel, 'danger'); return; }
@@ -1276,7 +1276,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const acceptReady = decisionAllowed(job, verified, state.session, state.proofVerifications.get(job.id)) && (!escrowJob(job) || !state.escrowUncertain.has(job.id));
     if (walletJob(job) && (acceptReady || job.status === 'DELIVERED' && verified.correct)) {
       const accept = button(msg('Doğrulanan teslimi kabul et'), async () => {
-        if (!decisionAllowed(job, verified, state.session, state.proofVerifications.get(job.id)) || escrowJob(job) && state.escrowUncertain.has(job.id)) fail(msg('Yerel sonuç, son teslimin zincir kaydı ve v4 için bağımsız sonuç kanıtı doğrulanmadan kabul edilemez.'));
+        if (!decisionAllowed(job, verified, state.session, state.proofVerifications.get(job.id)) || escrowJob(job) && state.escrowUncertain.has(job.id)) fail(msg('Yerel sonuç, son teslimin zincir kaydı ve bağımsız sonuç kanıtı doğrulanmadan kabul edilemez.'));
         if (isProofProfile(job.profile)) {
           const { job: latest } = await api('/jobs/' + encodeURIComponent(job.id));
           if (!decisionAllowed(latest, verified, state.session, state.proofVerifications.get(job.id))) { await render(); fail(msg('Güncel teslim veya kanıt kaydı değişti. Kabul etmeden önce kanıtı yeniden bağımsız doğrulayın.')); }

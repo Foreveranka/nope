@@ -986,5 +986,12 @@
   "Net nakit akışı = gelir − giderler; negatif fark sıfır gösterilir.": "Net cash flow = income − expenses; a negative difference is shown as zero.",
   "Kullanılabilir tutar = net nakit akışı − mevcut borç ödemesi; negatif fark sıfır gösterilir.": "Available amount = net cash flow − existing debt payment; a negative difference is shown as zero.",
   "Talep edilen tutarın kredi limitini aşıp aşmadığı kontrol edilir.": "Checks whether the requested amount exceeds the credit limit.",
-  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Affordability: expenses must not exceed income, existing debt must fit within net cash flow, and the proposed payment must fit within the remaining amount. In the results, 1 means yes and 0 means no."
+  "Ödeme uygunluğu: giderler geliri aşmamalı, mevcut borç net nakit akışına ve önerilen ödeme kalan tutara sığmalıdır. Sonuçlarda 1 evet, 0 hayır demektir.": "Affordability: expenses must not exceed income, existing debt must fit within net cash flow, and the proposed payment must fit within the remaining amount. In the results, 1 means yes and 0 means no.",
+  "SONUÇ": "RESULT",
+  "SONUÇ KANITINI İNCELE": "INSPECT THE RESULT PROOF",
+  "Sonuç kanıtı, önceden sabitlenen eşlemeye göre doğruluğu denetler. AES yürütme kaynağı veya bağımsız operatör ispatı değildir; mevcut sözleşme SNARK doğrulamaz.": "The result proof checks correctness under the mapping fixed in advance. It does not prove AES execution provenance or an independent operator; the current contract does not verify SNARKs.",
+  "Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı sonuç kanıtı gerekir. Eski sürüme geçilmedi.": "A new job requires a verified buyer wallet and a result proof bound to the same contract. No older version was selected.",
+  "Yeni işler sonuç kanıtı ve müşterinin kendi cüzdanından emanet yatırmasını gerektirir. Hazırlık veya cüzdan kullanılamıyorsa eski sürüme geçilmez.": "New jobs require result proofs and a deposit from the buyer’s own wallet. Unavailable preparation or wallet support never triggers an older flow.",
+  "Yerel sonuç, son teslimin zincir kaydı ve bağımsız sonuç kanıtı doğrulanmadan kabul edilemez.": "Acceptance requires verification of the local result, the latest delivery’s on-chain record and the independent result proof.",
+  "Şifreli teslim çözülüyor; eşleme ve giriş bağları denetleniyor…": "Decrypting delivery; checking mapping and input bindings…"
 }

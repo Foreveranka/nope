@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-14T16:16:44.212321+00:00",
+  "implementationCommit": "d12be7e57f301d0f6b54163ec8e555e214c17620",
+  "fullRegression": {
+    "tests": 530,
+    "passed": 530,
+    "failed": 0,
+    "durationMs": 101905.832708,
+    "logSha256": "ac2cb1e476319092542edd0bad851e71c234491c201ef44042b7cdc1c3fee436"
+  },
+  "build": {
+    "passed": true,
+    "staticAssets": 86,
+    "proofPublicAssetFiles": 18,
+    "proofPublicAssetBytes": 51259541
+  },
+  "recordProof": {
+    "scheme": "nope-record-noir-poseidon2-v1",
+    "policyHash": "ba19dcc612c2d5cb9418730d75eb3654172b1baa7c8cc2e544ddce2796251459",
+    "gates": 95436,
+    "dyadic": 131072,
+    "actualInvoiceProof": true,
+    "u32OverflowAndConditionalWitnessChecked": true,
+    "invalidOutputAndChangedContextRejected": true,
+    "privateMutableParameterSnapshotsChecked": true
+  },
+  "boundedIndependentSourceReview": {
+    "completed": true,
+    "additionalReleaseBlockersFound": false,
+    "fullSecurityAudit": false
+  },
+  "localActualChainEvidence": "wallet-funded-http-local-record-invoice-v5-local.json",
+  "hostedActualChainEvidence": "wallet-funded-http-production-record-invoice-v5-production.json",
+  "hostedJobId": "388ac007d73c3b2f983335dcbb80f158",
+  "hostedFullBrowserLifecycleTest": false,
+  "browserPublicVerification": {
+    "actualChrome": true,
+    "status": "independent result proof and finalized chain binding verified",
+    "jobId": "388ac007d73c3b2f983335dcbb80f158",
+    "escrowState": "Paid",
+    "proofRows": 1,
+    "blockHash": "3WisKXWxDAEC5KKcLz9Uv79MQjJ4nqaKXAxXV525x2pK",
+    "noBuyerCSVOrPrivateWitness": true
+  },
+  "generalEncryptedLLM": false,
+  "honestInitialGarblerAssumption": true,
+  "contractVerifiesSNARK": false,
+  "fiveLanguageKeys": 995,
+  "textFollowupTests": {
+    "passed": 30,
+    "failed": 0,
+    "scope": "localization, docs, record UI and existing AI planner UI"
+  },
+  "walletAndProofUIFollowupTests": {
+    "passed": 30,
+    "failed": 0,
+    "scope": "wallet, proof, language switching and route UI regressions"
+  }
+}
