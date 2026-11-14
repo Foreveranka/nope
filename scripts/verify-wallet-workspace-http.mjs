@@ -15,6 +15,7 @@ import {randomBytes,generateKeyPairSync,privateDecrypt,constants,createDecipheri
 import {KeyPair,KeyPairSigner,PublicKey,actions,createTransaction,baseDecode,baseEncode} from 'near-api-js';
 import {signMessage} from 'near-api-js/nep413';
 import {createWorkspaceHandler} from '../api/workspace.mjs';
+import {blobWorkspaceStore} from '../workspace/blob.mjs';
 import {WALLET_ESCROW_POLICY as POLICY} from '../workspace/wallet-config.mjs';
 import {createWalletRPC,walletIdentity,canonical} from '../workspace/wallet-auth.mjs';
 import {quoteCommitment} from '../workspace/core.mjs';
@@ -52,7 +53,14 @@ function save(){privateWrite(STATE,state);}
 function ledgerStore(){
  privateDir(LEDGER);
  const target=p=>{assert.match(p,/^nope-workspace-v1\/[a-z0-9/-]+\.json$/);return path.join(LEDGER,p);};
- return{async read(p){const file=target(p);return fs.existsSync(file)?privateRead(file):null;},async create(p,value){try{privateWrite(target(p),value,true);return true;}catch(error){if(error.code==='EEXIST')return false;throw error;}},async list({prefix,limit=20,cursor}){assert.equal(prefix,'nope-workspace-v1/index/');const dir=path.dirname(target(prefix+'a'.repeat(32)+'.json'));const names=fs.existsSync(dir)?fs.readdirSync(dir).filter(n=>/^[a-f0-9]{32}\.json$/.test(n)).sort():[],start=Number(cursor||0);assert.ok(Number.isSafeInteger(start)&&start>=0);return{pathnames:names.slice(start,start+limit).map(n=>prefix+n),cursor:start+limit<names.length?String(start+limit):null};}};
+ const raw={async read(p){const file=target(p);return fs.existsSync(file)?privateRead(file):null;},async create(p,value){try{privateWrite(target(p),value,true);return true;}catch(error){if(error.code==='EEXIST')return false;throw error;}},async list({prefix,limit=20,cursor}){assert.equal(prefix,'nope-workspace-v1/index/');const dir=path.dirname(target(prefix+'a'.repeat(32)+'.json'));const names=fs.existsSync(dir)?fs.readdirSync(dir).filter(n=>/^[a-f0-9]{32}\.json$/.test(n)).sort():[],start=Number(cursor||0);assert.ok(Number.isSafeInteger(start)&&start>=0);return{pathnames:names.slice(start,start+limit).map(n=>prefix+n),cursor:start+limit<names.length?String(start+limit):null};}};
+ // Exercise the production adapter's exact path/size/private-access guards.
+ // The transport alone is a local filesystem fixture; no Blob token is used.
+ return blobWorkspaceStore({}, {
+  async get(p,options){assert.equal(options.access,'private');assert.equal(options.useCache,false);const value=await raw.read(p);return value===null?null:{statusCode:200,stream:new Blob([JSON.stringify(value)]).stream()};},
+  async put(p,body,options){assert.equal(options.access,'private');assert.equal(options.allowOverwrite,false);if(!await raw.create(p,JSON.parse(body)))throw Error('Local immutable blob already exists');},
+  async list(options){const result=await raw.list(options);return{blobs:result.pathnames.map(pathname=>({pathname})),hasMore:result.cursor!==null,cursor:result.cursor};}
+ });
 }
 async function pin(rpc){
  assert.equal((await rpc('status',[])).chain_id,'testnet');

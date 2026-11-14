@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-14T05:59:25.548Z",
+  "recordedAt": "2026-11-14T06:15:46.962Z",
   "origin": "http://127.0.0.1:8789",
   "network": "testnet",
   "syntheticOnly": true,
@@ -12,14 +12,14 @@
   "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
   "requireKeyless": true,
   "initialPin": {
-    "blockHash": "DdawAtriiCBSzWAB9mgJFvUMncr7axoaLe3GQEYArNB2",
-    "blockHeight": 277617321,
+    "blockHash": "5KCtk8Bw8pJhK6UV8bfzbvtpVVzpnkxtujJ6DpbfyrRa",
+    "blockHeight": 277618924,
     "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
     "keys": []
   },
   "finalPin": {
-    "blockHash": "2cmjJC24QpkeQPToCeoKRhWB6JCFkiBM6YFLddoVLtio",
-    "blockHeight": 277617359,
+    "blockHash": "8XkRHTTWTxg1n1BYtgraXqfErZPrPWHS3qhM746aH9nE",
+    "blockHeight": 277618928,
     "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
     "keys": []
   },
@@ -87,7 +87,7 @@
       "network": "testnet",
       "contractId": "nope-wallet-44384e2f.testnet",
       "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
-      "blockHash": "7w1JyNUbCh3i5UZHg7ZW5fNbq1kwm88rpayJVX5ivpvs",
+      "blockHash": "AH4qafrHfLfddVYjjLtiSKLEEhLyzA2CGQJSaHPNNngb",
       "inputSha256": "d5d14b411260f79926a79b6103f72ab563cc467f8aa7f97cc725697149443080",
       "programSha256": "eb12de20666da60bdca87ff059c801bdcbac93e2ac7ee9b02babad4c4125629b",
       "planSha256": "69ad25da04702a4eba8f11d1a4339405e352835dbcca44cc867646304ebdc254",
@@ -120,5 +120,5 @@
     "release": "HumMGRQtJKdBJakb2N9W6FCMbLGAfAoxzrJP2rtckXhK"
   },
   "proofClaim": "Typed result correctness relative to precommitted buyer mappings; not AES execution provenance, original CSV provenance, or on-chain SNARK verification.",
-  "elapsedMs": 22368
+  "elapsedMs": 2586
 }
