@@ -1,0 +1,11 @@
+{
+  "name": "nope-public-task-planner-runtime",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "package": "node ../scripts/package-agent-model.mjs",
+    "test": "node --test *.test.mjs"
+  },
+  "dependencies": {"@huggingface/transformers": "4.3.2"},
+  "devDependencies": {"esbuild": "0.28.2"}
+}

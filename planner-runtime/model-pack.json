@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "id": "onnx-community/Qwen3-0.6B-ONNX-OPT",
+  "revision": "4799e655597b49210adb5c1ebe5b9d3bd04005a0",
+  "dtype": "q4",
+  "license": "Apache-2.0",
+  "runtime": {
+    "package": "@huggingface/transformers",
+    "version": "4.3.2"
+  },
+  "totalBytes": 412501229,
+  "files": [
+    {
+      "path": "config.json",
+      "bytes": 1770,
+      "sha256": "86c544072c56874ad015eb70647bba4a2df163f66968dfced8ea0ca387fcae16"
+    },
+    {
+      "path": "generation_config.json",
+      "bytes": 249,
+      "sha256": "7dfbda99ac3e2efae82d814cedf73f4a5f63eb46298d486b4ff779bab7ee496d"
+    },
+    {
+      "path": "tokenizer.json",
+      "bytes": 9117036,
+      "sha256": "40ae5d1ee027b985684a3bbeef4ee16b2b5697d1d90658bec5bc5d2a73018bd7"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "bytes": 5051,
+      "sha256": "04984a9d62f1a94b929fca5670c1ab4f66aa330877816038fa88a41a158bd4b6"
+    },
+    {
+      "path": "onnx/model_q4.onnx",
+      "bytes": 369635,
+      "sha256": "be5f0d8d03ac387bdd2d2582e4e114ca3c23a44b70bf03be609844542107745c"
+    },
+    {
+      "path": "onnx/model_q4.onnx_data",
+      "bytes": 403007488,
+      "sha256": "22f7763f31c1be426affc5b14cc37aa9c1c48e29d8ff043551a20606bd105e0f"
+    }
+  ]
+}
