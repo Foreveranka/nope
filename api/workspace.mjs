@@ -2,7 +2,7 @@ import {createWorkspace} from '../workspace/core.mjs';
 import {blobWorkspaceStore} from '../workspace/blob.mjs';
 const MAX=1024*1024;
 const reject=(status,code)=>{throw Object.assign(Error(code),{status,code});};
-function parsedBody(value){
+function parsedBody(value,MAX=1024*1024){
  let budget=MAX;const seen=new WeakSet();
  const consume=n=>{budget-=n;if(budget<0)reject(413,'BODY_TOO_LARGE');};
  function visit(v,d){
@@ -27,11 +27,12 @@ export function createWorkspaceHandler({env=process.env,store,handle}={}){
    if(url.pathname==='/api/workspace'){
     const routes=url.searchParams.getAll('route');if(routes.length!==1||!/^(?:session|jobs(?:\/[a-f0-9]{32}(?:\/(?:offers|close|award|task|execute|decision|payment\/verify))?)?)$/.test(routes[0]))reject(404,'ROUTE_NOT_FOUND');url.pathname='/api/workspace/'+routes[0];url.searchParams.delete('route');
    }
+   const MAX=url.pathname==='/api/workspace/jobs'?3*1024*1024:1024*1024;
    if(req.headers?.['content-encoding']&&req.headers['content-encoding']!=='identity')reject(415,'INVALID_ENCODING');
    const len=req.headers?.['content-length'];if(len!==undefined&&(typeof len!=='string'||!/^(0|[1-9][0-9]*)$/.test(len)))reject(400,'INVALID_LENGTH');if(len!==undefined&&Number(len)>MAX)reject(413,'BODY_TOO_LARGE');
    let bytes;
    const parsed=req.body!==undefined&&!Buffer.isBuffer(req.body)&&typeof req.body!=='string';
-   if(req.body!==undefined){if((typeof req.body==='string'&&Buffer.byteLength(req.body)>MAX)||(Buffer.isBuffer(req.body)&&req.body.length>MAX))reject(413,'BODY_TOO_LARGE');bytes=parsed?parsedBody(req.body):Buffer.from(req.body);if(bytes.length>MAX)reject(413,'BODY_TOO_LARGE');}
+   if(req.body!==undefined){if((typeof req.body==='string'&&Buffer.byteLength(req.body)>MAX)||(Buffer.isBuffer(req.body)&&req.body.length>MAX))reject(413,'BODY_TOO_LARGE');bytes=parsed?parsedBody(req.body,MAX):Buffer.from(req.body);if(bytes.length>MAX)reject(413,'BODY_TOO_LARGE');}
    else{const chunks=[];let size=0;for await(const c of req){const b=Buffer.from(c);size+=b.length;if(size>MAX)reject(413,'BODY_TOO_LARGE');chunks.push(b);}bytes=Buffer.concat(chunks);}
    if(!parsed&&len!==undefined&&Number(len)!==bytes.length)reject(400,'INVALID_LENGTH');
    const headers=new Headers();for(const [k,v]of Object.entries(req.headers||{}))if(v!==undefined){if(Array.isArray(v))reject(400,'INVALID_HEADERS');headers.set(k,v);}if(parsed)headers.delete('content-length');

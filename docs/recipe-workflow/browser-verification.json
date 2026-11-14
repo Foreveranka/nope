@@ -1,0 +1,45 @@
+{
+  "syntheticOnly": true,
+  "environment": "Chrome localhost UI + real private Vercel Blob + actual garbled evaluator",
+  "jobId": "0b748ee34320d8d667d997946df34d28",
+  "profile": "nope-csv-recipe-gc-v2",
+  "recipe": {
+    "type": "text",
+    "steps": [
+      {
+        "op": "trim"
+      },
+      {
+        "op": "lowercase"
+      },
+      {
+        "op": "redactDigits"
+      }
+    ]
+  },
+  "checks": {
+    "standaloneWorkerHTTP": true,
+    "buyerPublish": true,
+    "uncertainPublishSafeRetrySameId": true,
+    "providerPublicOnlyView": true,
+    "encryptedQuote": true,
+    "buyerLocalQuoteDecrypt": true,
+    "buyerAward": true,
+    "selectedProviderActualEvaluation": true,
+    "buyerReloadIndexedDBDecode": true,
+    "buyerBeforeAfter": true,
+    "buyerAcceptance": true
+  },
+  "output": [
+    "acme",
+    "beta**",
+    "gamma*"
+  ],
+  "inputSha256": "ae5f2c1cea8fa99dc10b41f4f21cfd2e770a576de672cec806e63e1e8074cc4c",
+  "outputSha256": "069f10253d4332c16f7416d1bbd746bf82cdf44600c67cafdeea4b12a4cdaad4",
+  "programSha256": "43126dc0961ff7d5efaf6d1cc2b9185e2ecb29b52c4be6a113f9cfd7d616de68",
+  "realPayment": false,
+  "escrow": false,
+  "executionProof": false,
+  "generalLLM": false
+}

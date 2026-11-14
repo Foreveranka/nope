@@ -20,6 +20,9 @@
     },
     "api/workspace.mjs": {
       "maxDuration": 60
+    },
+    "api/recipe-gc.mjs": {
+      "maxDuration": 60
     }
   },
   "rewrites": [

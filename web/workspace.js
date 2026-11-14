@@ -1,6 +1,8 @@
-import { MAX_BYTES, parseCSV, columnValues, verifyValues, exportCSV } from './csv-input.mjs';
-import { createGarbledJob } from './gc-client.mjs';
+import { MAX_BYTES, parseCSV, verifyValues, exportCSV } from './csv-input.mjs';
 import { hashRequest, hashOutput, hashProgram } from './gc-core.mjs';
+import { PROFILE as RECIPE_PROFILE, compileRecipe, referenceApply, estimateRecipe, hashRecipeRequest, hashRecipeOutput, hashRecipeProgram } from './recipe-core.mjs';
+import { prepareRecipe } from './recipe-client.mjs';
+import { parseRecipeColumn, applyRecipeOutput } from './recipe-csv.mjs';
 import { createVault, quoteCommitment, randomSalt, parseNearAmount, formatNearAmount } from './workspace-vault.mjs';
 
 export const TOKEN_KEY = 'nope.workspace.session.v1';
@@ -22,8 +24,20 @@ export function testnetAccount(value) {
   return typeof value === 'string' && (/^[a-f0-9]{64}$/.test(value) || (value.length >= 8 && value.length <= 64 && /^[a-z0-9]+(?:[-_][a-z0-9]+)*(?:\.[a-z0-9]+(?:[-_][a-z0-9]+)*)*\.testnet$/.test(value)));
 }
 export function createPayload({ jobId, title, description, deadlineISO, task, buyerPublicKey }) {
-  if (!/^[a-f0-9]{32}$/.test(jobId) || task?.profile !== PROFILE || !Number.isInteger(task.rowCount) || task.rowCount < 1 || task.rowCount > 32) throw new Error('Invalid prepared job');
-  return { jobId, title, description, deadlineISO, profile: PROFILE, rowCount: task.rowCount, task, buyerPublicKey };
+  if (!/^[a-f0-9]{32}$/.test(jobId) || ![PROFILE, RECIPE_PROFILE].includes(task?.profile) || !Number.isInteger(task.rowCount) || task.rowCount < 1 || task.rowCount > 32) throw new Error('Invalid prepared job');
+  if (task.profile === RECIPE_PROFILE) estimateRecipe(task.recipe, task.rowCount);
+  return { jobId, title, description, deadlineISO, profile: task.profile, rowCount: task.rowCount, task, buyerPublicKey };
+}
+const recipeTask = task => task?.profile === RECIPE_PROFILE;
+const taskInputHash = task => recipeTask(task) ? hashRecipeRequest(task) : hashRequest(task);
+const taskProgramHash = task => recipeTask(task) ? hashRecipeProgram(task.recipe) : hashProgram();
+function recipeText(recipe) {
+  const checked = compileRecipe(recipe).recipe;
+  return (checked.type === 'text' ? 'Metin' : 'Sayı') + ': ' + checked.steps.map(step => {
+    if (step.op === 'fill') return `boş → ${step.value}`;
+    if (step.op === 'clamp') return `aralık ${step.min}–${step.max}`;
+    return {trim:'baş/son boşlukları sil',lowercase:'küçük harf',uppercase:'büyük harf',redactDigits:'rakamları * yap'}[step.op];
+  }).join(' → ');
 }
 export function decisionAllowed(job, verified, session) {
   return session?.role === 'buyer' && job?.buyerId === session.id && job.status === 'DELIVERED' && verified?.correct === true &&
@@ -36,7 +50,7 @@ class FriendlyError extends Error {}
 const fail = text => { throw new FriendlyError(text); };
 const statusText = { OPEN: 'Tekliflere açık', CLOSED: 'Teklifler kapandı', AWARDED: 'Sağlayıcı seçildi', DELIVERED: 'Teslim edildi', REVISION: 'Düzeltme istendi', ACCEPTED: 'Kabul edildi · ödeme bekliyor', PAID: 'Zincirde ödeme doğrulandı' };
 
-export function createWorkspace({ document: doc, window: win, fetch: fetcher = globalThis.fetch, storage = win.sessionStorage, vaultFactory = createVault, garble = createGarbledJob } = {}) {
+export function createWorkspace({ document: doc, window: win, fetch: fetcher = globalThis.fetch, storage = win.sessionStorage, vaultFactory = createVault, garble = prepareRecipe } = {}) {
   const $ = id => doc.getElementById(id);
   const root = $('workspace-root');
   const state = { token: storage.getItem(TOKEN_KEY), session: null, vault: null, epoch: 0, busy: false, draft: null, uncertain: false, newDraftAllowed: false };
@@ -122,6 +136,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       const info = el('div', null, 'job-row-main'); row.append(info); info.append(el('h2', job.title));
       const badge = paragraph(statusText[job.status] || job.status, info, 'badge job-status'); badge.dataset.status = job.status;
       paragraph(`${job.rowCount} satır · Şifreli CSV görevi`, info);
+      if (job.recipe) paragraph(recipeText(job.recipe), info);
       if (job.deadlineISO) paragraph(`Teklif sonu: ${new Date(job.deadlineISO).toLocaleString('tr-TR')}`, info);
       link('İşi aç', jobLink('/job', job.id), row);
     }
@@ -169,19 +184,21 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
   async function newJob() {
     requireRole('buyer'); title('Yeni şifreli iş', '1. CSV seçin → 2. Yerel önizlemeyi kontrol edin → 3. Şifreleyip yayımlayın');
     const panel = card('CSV hazırlığı');
-    paragraph('Desteklenen kural: seçilen sütunda boş hücre → 0; 100 üzeri → 100. Diğer değerler değişmez. 1–32 satır, boş veya 0–254 tam sayı; 255 boş hücre için ayrılmıştır. CSV başlıkları, dosya adı ve değerler sunucuya gönderilmez.', panel);
+    paragraph('Seçilen sütuna uygulanacak tarifi belirleyin. Sayı: 1–32 satır, boş veya 0–254 tam sayı (255 boş hücre için ayrılmıştır). Metin: en fazla 8 satır ve hücre başına 16 bayt yazdırılabilir ASCII. Tarif herkese açıktır; CSV başlıkları, dosya adı ve değerler bu cihazda kalır.', panel);
     const { node, submit } = form(panel, 'Şifrele ve işi yayımla', async () => {
       if ((await unresolvedJobIds()).length && !state.newDraftAllowed) fail('Önce belirsiz yayımlamayı kontrol edin veya uyarıyı onaylayarak ayrı bir yeni taslak başlatın.');
       if (!dataset) fail('Önce geçerli bir CSV seçin.');
-      const values = columnValues(dataset, Number(column.value));
+      let recipe, values;
+      try { recipe = selectedRecipe(); values = parseRecipeColumn(dataset, Number(column.value), recipe); estimateRecipe(recipe, values.length); }
+      catch (error) { fail(error.message); }
       const deadline = new Date(deadlineInput.value);
       if (!Number.isFinite(deadline.getTime()) || deadline.getTime() <= Date.now()) fail('Teklif sonu gelecekte olmalı.');
       if (budget.value) { try { parseNearAmount(budget.value); } catch { fail('Gizli bütçe için geçerli bir testNEAR tutarı girin.'); } }
       message('Yerel şifreleme ve güvenli kasa kaydı hazırlanıyor…');
-      const jobId = randomSalt().slice(0, 32), gcjob = await garble(values);
+      const jobId = randomSalt().slice(0, 32), gcjob = await garble(values, recipe);
       const buyerPublicKey = await state.vault.buyerPublicKey();
       const payload = createPayload({ jobId, title: titleInput.value.trim(), description: description.value.trim(), deadlineISO: deadline.toISOString(), task: gcjob.request, buyerPublicKey });
-      const local = { dataset, column: Number(column.value), values, hiddenBudget: budget.value || null, payload, pending: true };
+      const local = { dataset, column: Number(column.value), values, recipe, hiddenBudget: budget.value || null, payload, pending: true };
       // Store and read back *both* local records before any network publication.
       await state.vault.saveJob(jobId, local); await state.vault.saveDecoder(jobId, gcjob);
       if (!(await state.vault.loadJob(jobId))) fail('Yerel kasa kaydı doğrulanamadı; iş yayımlanmadı.');
@@ -202,29 +219,79 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const budget = field(node, 'Gizli bütçe (isteğe bağlı testNEAR; yalnızca yerel kasa)', { required: false, name: 'hiddenBudget' });
     const deadlineInput = field(node, 'Teklif son zamanı', { type: 'datetime-local', value: localDate(new Date(Date.now() + 3600000)), name: 'deadlineISO' });
     const file = field(node, 'CSV dosyası — bu cihazda okunur', { type: 'file', required: false, name: 'csv' }); file.accept = '.csv,text/csv';
-    const columnWrap = el('label', null, 'field'); columnWrap.append(el('span', 'İşlenecek sayısal sütun')); const column = el('select'); column.name = 'column'; columnWrap.append(column); node.append(columnWrap);
+    function select(label, name, options) {
+      const wrap = el('label', null, 'field'); wrap.append(el('span', label)); const input = el('select'); input.name = name;
+      for (const [value, text] of options) { const option = el('option', text); option.value = value; input.append(option); }
+      wrap.append(input); node.append(wrap); return input;
+    }
+    const recipeType = select('Sütun türü', 'recipeType', [['number', 'Sayı'], ['text', 'Metin (ASCII)']]);
+    const fill = field(node, 'Boş sayıları doldur', { type: 'checkbox', required: false, name: 'recipeFill' }); fill.checked = true;
+    const fillValue = field(node, 'Boş hücre yerine (0–254)', { type: 'number', value: '0', name: 'recipeFillValue' }); fillValue.min = '0'; fillValue.max = '254'; fillValue.step = '1';
+    const clamp = field(node, 'Sayıları alt/üst sınıra çek', { type: 'checkbox', required: false, name: 'recipeClamp' }); clamp.checked = true;
+    const minValue = field(node, 'Alt sınır (0–254)', { type: 'number', value: '0', name: 'recipeMin' }); minValue.min = '0'; minValue.max = '254'; minValue.step = '1';
+    const maxValue = field(node, 'Üst sınır (0–254)', { type: 'number', value: '100', name: 'recipeMax' }); maxValue.min = '0'; maxValue.max = '254'; maxValue.step = '1';
+    const trim = field(node, 'Metnin başındaki/sonundaki ASCII boşlukları sil', { type: 'checkbox', required: false, name: 'recipeTrim' }); trim.checked = true;
+    const letterCase = select('Harf dönüşümü', 'recipeCase', [['lowercase', 'Küçük harf'], ['uppercase', 'Büyük harf'], ['none', 'Değiştirme']]);
+    const redact = field(node, 'ASCII rakamları * ile değiştir', { type: 'checkbox', required: false, name: 'recipeRedactDigits' }); redact.checked = false;
+    const column = select('İşlenecek sütun', 'column', []);
     const preview = el('div', null, 'stack'); node.append(preview); let dataset = null;
+    function selectedRecipe() {
+      const integer = input => { if (!/^(0|[1-9]\d{0,2})$/.test(input.value) || Number(input.value) > 254) throw Error('Tarif sayıları 0–254 tam sayı olmalı.'); return Number(input.value); };
+      const steps = recipeType.value === 'number' ? [fill.checked && {op:'fill',value:integer(fillValue)}, clamp.checked && {op:'clamp',min:integer(minValue),max:integer(maxValue)}].filter(Boolean) :
+        [trim.checked && {op:'trim'}, letterCase.value !== 'none' && {op:letterCase.value}, redact.checked && {op:'redactDigits'}].filter(Boolean);
+      const recipe = {type:recipeType.value,steps}; compileRecipe(recipe); return recipe;
+    }
+    function updateRecipeFields() {
+      const numeric = recipeType.value === 'number';
+      function enabled(input, active) {
+        if (state.busy) { input.dataset.wasDisabled = String(!active); input.disabled = true; }
+        else input.disabled = !active;
+      }
+      for (const input of [fill,fillValue,clamp,minValue,maxValue]) {
+        const active = numeric && ([fill,clamp].includes(input) || (input === fillValue ? fill.checked : clamp.checked));
+        input.parentElement.hidden = !numeric; input.required = active && ![fill,clamp].includes(input); enabled(input,active);
+      }
+      for (const input of [trim,letterCase,redact]) { input.parentElement.hidden = numeric; enabled(input,!numeric); }
+    }
+    function refreshColumns() {
+      if (!dataset) return;
+      const previous = column.value, valid = new Set(); let first = -1;
+      column.replaceChildren();
+      dataset.headers.forEach((header, i) => {
+        const option = el('option', header); option.value = String(i);
+        try { parseRecipeColumn(dataset, i, selectedRecipe()); valid.add(String(i)); if (first < 0) first = i; }
+        catch { option.disabled = true; option.textContent = header + ' — desteklenmeyen sütun / tarif'; }
+        column.append(option);
+      });
+      column.value = valid.has(previous) ? previous : String(first < 0 ? 0 : first);
+    }
     const showPreview = () => {
       preview.replaceChildren(); submit.disabled = true;
-      try { const values = columnValues(dataset, Number(column.value));
+      if (state.busy) submit.dataset.wasDisabled = 'true';
+      updateRecipeFields(); if (!dataset) return;
+      try { const recipe = selectedRecipe(), values = parseRecipeColumn(dataset, Number(column.value), recipe); estimateRecipe(recipe, values.length);
+        const expected = referenceApply(values, recipe);
+        paragraph('Herkese açık tarif: ' + recipeText(recipe), preview);
         paragraph(`${values.length} satır · yerel ÖNCE önizlemesi`, preview);
-        table(['Satır', 'Önce', 'Beklenen sonra'], values.map((v, i) => [i + 1, v === 255 ? '(boş)' : v, v === 255 ? 0 : Math.min(v, 100)]), preview);
+        table(['Satır', 'Önce', 'Beklenen sonra'], values.map((v, i) => [i + 1, v === 255 || v === '' ? '(boş)' : v, expected[i] === 255 || expected[i] === '' ? '(boş)' : expected[i]]), preview);
         submit.disabled = false; if (state.busy) submit.dataset.wasDisabled = 'false';
-      } catch { paragraph('Bu sütun desteklenen sayısal biçimde değil. Başka bir sütun seçin.', preview); }
+      } catch (error) { paragraph(error.message || 'Sütun ve tarif sınırlarını kontrol edin.', preview, 'danger'); }
     };
     column.addEventListener('change', showPreview);
+    for (const input of [recipeType,fill,fillValue,clamp,minValue,maxValue,trim,letterCase,redact]) {
+      const update = () => { refreshColumns(); showPreview(); };
+      input.addEventListener('change', update); if (input.type === 'number') input.addEventListener('input', update);
+    }
     file.addEventListener('change', () => run(async () => {
       dataset = null; submit.disabled = true; column.replaceChildren(); preview.replaceChildren();
       const chosen = file.files[0]; if (!chosen) return;
       if (chosen.size > MAX_BYTES) fail('Dosya en fazla 64 KiB olabilir.');
       try { dataset = parseCSV(new TextDecoder('utf-8', { fatal: true }).decode(await chosen.arrayBuffer())); }
       catch { fail('CSV okunamadı. Başlık, 1–32 satır, UTF-8 ve desteklenen hücre biçimini kontrol edin.'); }
-      let first = -1;
-      dataset.headers.forEach((header, i) => { const o = el('option', header); o.value = String(i);
-        try { columnValues(dataset, i); if (first < 0) first = i; } catch { o.disabled = true; o.textContent = header + ' — desteklenmeyen sütun (sayısal değil)'; } column.append(o); });
-      column.value = String(first < 0 ? 0 : first); showPreview(); message('CSV yalnızca bu cihazda okundu. Önizlemeyi kontrol edin.');
+      refreshColumns(); showPreview(); message('CSV yalnızca bu cihazda okundu. Önizlemeyi kontrol edin.');
     }));
     node.append(submit); submit.disabled = true;
+    updateRecipeFields();
     await renderRecovery(panel);
   }
   // Migrate the original single pending pointer without discarding unresolved attempts.
@@ -308,11 +375,12 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
   async function detail(job) {
     title(job.title, statusText[job.status] || job.status);
     const panel = card('İş bilgisi'); paragraph(job.description, panel); paragraph(`İş kimliği: ${job.id}`, panel); paragraph(`${job.rowCount} satır · ${job.profile}`, panel);
+    if (job.recipe) paragraph('Herkese açık tarif: ' + recipeText(job.recipe), panel);
     paragraph(`Teklif sonu: ${new Date(job.deadlineISO).toLocaleString('tr-TR')}`, panel);
     for (const [key, label] of [['taskHash', 'Şifreli girdi özeti'], ['programHash', 'Program özeti']]) { const hash = job[key] || job.delivery?.[key]; if (hash) paragraph(`${label}: ${hash}`, panel); }
     if (isBuyer(job)) {
       const local = await state.vault.loadJob(job.id);
-      if (local?.payload?.task) { paragraph(`Yerel şifreli girdi SHA-256: ${await hashRequest(local.payload.task)}`, panel); paragraph(`Sabit program SHA-256: ${await hashProgram()}`, panel); }
+      if (local?.payload?.task) { paragraph(`Yerel şifreli girdi SHA-256: ${await taskInputHash(local.payload.task)}`, panel); paragraph(`Program SHA-256: ${await taskProgramHash(local.payload.task)}`, panel); }
       if (job.status === 'OPEN') button('Teklifleri şimdi kapat', async () => { await api('/jobs/' + encodeURIComponent(job.id) + '/close', 'POST', {}); await render(); message('Teklifler kapatıldı. Yeni teklif alınmaz.'); }, panel, 'btn secondary');
       await offers(job, root);
       if (job.delivery) link('Teslimi yerel olarak doğrula', jobLink('/delivery', job.id));
@@ -331,6 +399,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     if (job.status !== 'OPEN' || job.ownOffer || new Date(job.deadlineISO).getTime() <= Date.now()) fail('Bu iş yeni teklif almıyor veya teklifiniz zaten kayıtlı.');
     if (!testnetAccount(state.session.paymentAccount)) fail('Geçerli bir testnet ödeme hesabına sahip sağlayıcı oturumu gerekli.');
     const panel = card('Teklifiniz yalnızca müşteriye açılır'); paragraph('Fiyat, teslim süresi ve not tarayıcıda müşterinin RSA anahtarıyla hibrit şifrelenir. Sunucuya açık fiyat gönderilmez. Müşteri kapanıştan sonra teklifleri kendi cihazında karşılaştırır; otomatik MPC seçimi yapılmaz.', panel);
+    if (job.recipe) paragraph('Herkese açık tarif: ' + recipeText(job.recipe), panel);
     const { node, submit } = form(panel, 'Şifrele ve teklif gönder', async () => {
       let amountYocto; try { amountYocto = parseNearAmount(amount.value).toString(); } catch { fail('Geçerli bir testNEAR tutarı girin (en fazla 24 ondalık).'); }
       if (BigInt(amountYocto) <= 0n) fail('Teklif tutarı sıfırdan büyük olmalı.');
@@ -354,6 +423,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     title('Teslim ve yerel kontrol', job.title);
     if (isSelected(job)) {
       const panel = card('Şifreli yürütme'); paragraph('Yalnızca seçilen sağlayıcı bu işi yürütebilir. Sunucu şifreli devreyi işler; sağlayıcıya CSV veya çözülmüş değer gösterilmez.', panel);
+      if (job.recipe) paragraph('Yürütülecek tarif: ' + recipeText(job.recipe), panel);
       if (['AWARDED', 'REVISION'].includes(job.status)) button(job.status === 'REVISION' ? 'Düzeltmeyi yeniden yürüt' : 'Şifreli işi yürüt ve teslim et', async () => {
         await api('/jobs/' + encodeURIComponent(job.id) + '/execute', 'POST', {}); await render(); message('Şifreli teslim oluşturuldu. Müşteri kendi cihazında doğrulayacak.');
       }, panel);
@@ -365,23 +435,37 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const panel = card('Bu cihazda doğrulama');
     paragraph('Sonuç etiketleri bu işin yerel çözücüsüyle açılır ve orijinal değerlerle karşılaştırılır. Bu kontrol yürütme kaynağı veya bağımsız operatör kanıtı değildir.', panel);
     let local, outputs;
-    try { local = await state.vault.loadJob(job.id); if (!local?.dataset || !Array.isArray(local.values)) throw Error(); outputs = await state.vault.decodeDelivery(job.id, job.delivery.outputs); }
+    const isRecipe = job.profile === RECIPE_PROFILE;
+    try { local = await state.vault.loadJob(job.id); if (!local?.dataset || !Array.isArray(local.values)) throw Error(); outputs = await state.vault.decodeDelivery(job.id, isRecipe ? job.delivery : job.delivery.outputs); }
     catch { paragraph('Bu cihazda orijinal CSV veya çözme anahtarı yok ya da teslim açılamıyor. Aynı tarayıcı ve cihazdaki kasayla yeniden açın. Oturum açmak anahtarları başka cihaza taşımaz; sonuç veya kabul oluşturulmadı.', panel, 'danger'); return; }
-    const verified = { correct: job.profile === PROFILE && verifyValues(local.values, outputs), version: job.delivery.version, outputSha256: job.delivery.outputSha256 };
-    const expectedInput = local.payload?.task ? await hashRequest(local.payload.task) : '';
-    if (expectedInput !== job.delivery.inputSha256 || await hashOutput(job.delivery.outputs) !== job.delivery.outputSha256 || await hashProgram() !== job.delivery.programSha256) verified.correct = false;
+    const verified = { correct: false, version: job.delivery.version, outputSha256: job.delivery.outputSha256 };
+    let recipeCSV;
+    try {
+      const task = local.payload?.task;
+      if (!task || task.profile !== job.profile || task.rowCount !== job.rowCount || outputs.length !== local.values.length) throw Error();
+      if (isRecipe) {
+        // Re-extract the encrypted local dataset and check every value against
+        // the bound public program, rather than trusting a cached preview.
+        const values = parseRecipeColumn(local.dataset, local.column, task.recipe);
+        if (JSON.stringify(values) !== JSON.stringify(local.values) || await hashRecipeProgram(job.recipe) !== await hashRecipeProgram(task.recipe)) throw Error();
+        recipeCSV = applyRecipeOutput(local.dataset, local.column, outputs, task.recipe).csv;
+        if (job.delivery.profile !== job.profile || job.delivery.nonce !== task.nonce || job.delivery.rowCount !== task.rowCount) throw Error();
+      } else if (job.profile !== PROFILE || !verifyValues(local.values, outputs)) throw Error();
+      if (await taskInputHash(task) !== job.delivery.inputSha256 || (isRecipe ? await hashRecipeOutput(job.delivery.outputs) : await hashOutput(job.delivery.outputs)) !== job.delivery.outputSha256 || await taskProgramHash(task) !== job.delivery.programSha256) throw Error();
+      verified.correct = true;
+    } catch { verified.correct = false; }
     paragraph(verified.correct ? 'Yerel kontrol başarılı: sonuç desteklenen temizleme kuralıyla eşleşiyor.' : 'Yerel kontrol başarısız. Teslim kabul edilemez.', panel, verified.correct ? 'badge' : 'danger');
     let changedOnly = false; const summary = el('p', null, 'muted'); panel.append(summary); const results = el('div'); panel.append(results);
     const show = () => {
-      results.replaceChildren(); const rows = outputs.map((v, i) => [i + 1, local.dataset.rows[i][local.column] === '' ? '(boş)' : local.dataset.rows[i][local.column], v]);
-      const changed = rows.filter((row, i) => local.values[i] === 255 || local.values[i] !== outputs[i]);
+      results.replaceChildren(); const rows = outputs.map((v, i) => [i + 1, local.dataset.rows[i][local.column] === '' ? '(boş)' : local.dataset.rows[i][local.column], ((isRecipe && local.payload.task.recipe.type === 'number' && v === 255) || v === '') ? '(boş)' : v]);
+      const changed = rows.filter((row, i) => isRecipe ? local.values[i] !== outputs[i] : local.values[i] === 255 || local.values[i] !== outputs[i]);
       summary.textContent = `${rows.length} satır · ${changed.length} değişen · ${rows.length - changed.length} değişmeyen`;
       table(['Satır', 'ÖNCE', 'SONRA'], changedOnly ? changed : rows, results);
     }; show();
     button('Değişen / tüm satırlar', () => { changedOnly = !changedOnly; show(); message('Tablo görünümü değişti.'); }, panel, 'btn secondary');
     if (verified.correct) {
       button('CSV olarak indir (isteğe bağlı)', () => {
-        const blob = new Blob([exportCSV(local.dataset, local.column, outputs)], { type: 'text/csv;charset=utf-8' }), url = win.URL.createObjectURL(blob);
+        const blob = new Blob([isRecipe ? recipeCSV : exportCSV(local.dataset, local.column, outputs)], { type: 'text/csv;charset=utf-8' }), url = win.URL.createObjectURL(blob);
         const a = el('a'); a.href = url; a.download = 'temizlenmis.csv'; a.click(); win.setTimeout(() => win.URL.revokeObjectURL(url), 1000); message('CSV indirme hazırlandı.');
       }, panel, 'btn secondary');
     }

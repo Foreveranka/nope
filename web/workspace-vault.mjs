@@ -9,6 +9,8 @@
  */
 import { cryptoProvider, fromBase64, sha256 } from './gc-core.mjs';
 import { restoreGarbledJob } from './gc-client.mjs';
+import { PROFILE as RECIPE_PROFILE, validateRecipeRequest, hashRecipeRequest, hashRecipeProgram } from './recipe-core.mjs';
+import { decodeRecipe } from './recipe-client.mjs';
 
 const utf8 = new TextEncoder();
 const text = new TextDecoder('utf-8',{fatal:true});
@@ -25,10 +27,13 @@ function b64(bytes) {
   return btoa(binary);
 }
 function bytes(value, min=16, max=16*1024*1024) {
-  if (typeof value !== 'string' || value.length > Math.ceil(max/3)*4) fail('Invalid encrypted base64 payload.');
-  const length = atob(value).length;
-  if (length < min || length > max) fail('Invalid encrypted payload length.');
-  return fromBase64(value,length);
+  if (typeof value !== 'string' || value.length > Math.ceil(max/3)*4 || !/^[A-Za-z0-9+/]*={0,2}$/.test(value)) fail('Invalid encrypted base64 payload.');
+  const decoded = Uint8Array.from(atob(value),c=>c.charCodeAt(0));
+  if (decoded.length < min || decoded.length > max) fail('Invalid encrypted payload length.');
+  // Garbled text jobs can exceed 1 MiB. The label helper's spread-based
+  // re-encoding is safe for small labels, not a complete encrypted job record.
+  if (b64(decoded) !== value) fail('Invalid canonical encrypted base64.');
+  return decoded;
 }
 function object(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) fail('Expected a JSON object.');
@@ -200,14 +205,31 @@ export function createVault(sessionId,{storage}={}) {
     async loadJob(jobId) { return load('job',jobId); },
     async saveDecoder(jobId,job) {
       id(jobId);
+      if (job?.request?.profile === RECIPE_PROFILE) {
+        validateRecipeRequest(job.request);
+        const decoder = object(job.decoder);
+        if (decoder.profile !== RECIPE_PROFILE || decoder.nonce !== job.request.nonce || decoder.rowCount !== job.request.rowCount ||
+            decoder.inputSha256 !== await hashRecipeRequest(job.request) || decoder.programSha256 !== await hashRecipeProgram(job.request.recipe) ||
+            JSON.stringify(decoder.recipe) !== JSON.stringify(job.request.recipe)) fail('Recipe decoder does not match the prepared request.');
+        // The plain JSON output pairs are secrets. Reuse the vault AES record
+        // encryption and session/job AAD; they never enter a network payload.
+        await save('decoder',jobId,{kind:'recipe-v2',decoder});
+        const restored = await load('decoder',jobId);
+        if (JSON.stringify(restored?.decoder) !== JSON.stringify(decoder)) fail('Recipe decoder storage verification failed.');
+        return;
+      }
       if (typeof job?.sealDecoder !== 'function') fail('Expected a garbled job with sealDecoder.');
       await save('decoder',jobId,await job.sealDecoder((await keys()).aes));
     },
     async decodeDelivery(jobId,outputs) {
       const sealed=await load('decoder',jobId);
       if (!sealed) fail('No local decoder for this job. Restore requires the original browser storage.');
+      if (sealed.kind === 'recipe-v2') {
+        const {profile,nonce,rowCount,inputSha256,programSha256,outputSha256,outputs:labels} = object(outputs);
+        return decodeRecipe({profile,nonce,rowCount,inputSha256,programSha256,outputSha256,outputs:labels},sealed.decoder);
+      }
       const job=await restoreGarbledJob(sealed,(await keys()).aes);
-      return job.decode(outputs);
+      return job.decode(Array.isArray(outputs) ? outputs : outputs.outputs);
     },
     async clear() { await store.deleteSession(sessionId); },
   };

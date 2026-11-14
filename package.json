@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "NEAR üzerinde gizli tekliflerle iş satın alma ve müşteri verisini açık hâliyle yürütücüye vermeden hesaplatma projesinin uygulaması.",
   "scripts": {
-    "test": "node --test web/*.test.mjs tests/cloud_gateway_review.test.mjs tests/procurement_*.test.mjs operators/tests/selection-verifier.test.mjs tests/private_sum.test.mjs tests/csv_gc.test.mjs tests/csv_gc_worker.test.mjs workspace/*.test.mjs",
+    "test": "node --test web/*.test.mjs tests/cloud_gateway_review.test.mjs tests/procurement_*.test.mjs operators/tests/selection-verifier.test.mjs tests/private_sum.test.mjs tests/recipe_gc.test.mjs tests/csv_gc.test.mjs tests/csv_gc_worker.test.mjs workspace/*.test.mjs",
     "build": "node scripts/build-web.mjs"
   },
   "repository": {

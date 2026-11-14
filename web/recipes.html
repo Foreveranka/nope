@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#eee8d8">
+  <link rel="icon" type="image/svg+xml" href="/nope-logo.svg">
+  <title>CSV temizleme tarifleri — NOPE</title>
+  <link rel="stylesheet" href="/csv.css">
+  <script type="module" src="/recipes.js"></script>
+</head>
+<body>
+  <a class="skip" href="#recipes-main">İçeriğe geç</a>
+  <header>
+    <a class="brand" href="/" aria-label="NOPE ana sayfa"><svg class="pixel" viewBox="0 0 17 17" aria-hidden="true"><use href="/nope-pixels.svg#nope"></use></svg> NOPE<span> / PRIVATE EXECUTION</span></a>
+    <nav aria-label="Ana menü"><a href="/workspace">Çalışma alanı ↗</a><a href="/csv">Sabit CSV profili ↗</a></nav>
+    <span id="connection" role="status">Tarayıcıda şifreleme · Sunucuda şifreli hesaplama</span>
+  </header>
+  <main id="recipes-main">
+    <div class="terminal-bar"><span>NOPE.EXE / RECIPES</span><span>SAYISAL + METİN / EN FAZLA 4 ADIM</span></div>
+    <section class="intro">
+      <p class="eyebrow"><svg class="pixel" viewBox="0 0 13 13" aria-hidden="true"><use href="/nope-pixels.svg#lock"></use></svg> SEÇİLEBİLİR TARİF / ŞİFRELİ CSV</p>
+      <h1>Temizliği seç.<br><span>Verin sende.</span></h1>
+      <p>Boş sayıları doldur, sınır uygula veya metni düzenle. Yalnız seçili sütun şifreli hesaplanır; dosyanın tamamı ve sonuç tarayıcında kalır.</p>
+      <a id="example" class="text-link">Sayısal ve metin örneği indir ↓</a>
+    </section>
+    <ol class="steps" aria-label="İşlem adımları"><li><span>01</span> CSV ve sütun seç</li><li><span>02</span> Tarifi ayarla ve çalıştır</li><li><span>03</span> Önce / sonra karşılaştır</li></ol>
+    <div class="grid">
+      <section class="card">
+        <p class="eyebrow">01 / DOSYA VE SÜTUN</p>
+        <h2>CSV dosyanı seç.</h2>
+        <label class="drop" for="file"><strong>Dosya seç</strong><span>UTF-8 CSV · En fazla 16 sütun · 64 KiB</span><input id="file" type="file" accept=".csv,text/csv" aria-describedby="file-info input-limits"></label>
+        <p id="file-info" class="small">Dosya adı, başlıklar ve seçmediğin hücreler sunucuya gönderilmez.</p>
+        <label for="column">İşlenecek sütun</label>
+        <select id="column" disabled aria-describedby="validation"><option value="">Önce dosya seç</option></select>
+        <p id="validation" class="small" role="status">Sütunu ve tarif türünü seç.</p>
+        <p id="input-limits" class="small">Sayısal: en fazla 32 satır, boş hücre veya 0–254 kanonik tam sayı. 255 boş hücre için ayrılmıştır. Metin: en fazla 8 satır, hücre başına en fazla 16 bayt yazdırılabilir ASCII; Türkçe karakter desteklenmez. Ayrıca toplam devre bütçesi 10.000 kapıdır: seçtiğin adımlar, özellikle boşluk temizleme, bu satır sınırlarını düşürebilir. Bütçe işlem başlamadan kontrol edilir. Sınır dışı veri kesilmez, reddedilir. Diğer sütunlar UTF-8 metin içerebilir.</p>
+        <p class="small">Virgül veya noktalı virgül ayracı korunur. Formül güvenliği için herhangi bir hücrede =, +, - veya @ ile başlayan içerik, negatif sayılar dahil, reddedilir.</p>
+        <div id="preview-wrap" class="table-wrap" tabindex="0" role="region" aria-label="İşlem öncesi CSV" hidden><table id="preview"></table></div>
+      </section>
+      <section class="card execution">
+        <p class="eyebrow">02 / TEMİZLEME TARİFİ</p>
+        <h2>Kuralları sen belirle.</h2>
+        <label for="recipe-type">Sütun türü</label>
+        <select id="recipe-type"><option value="number">Sayısal</option><option value="text">Metin / ASCII</option></select>
+        <label for="preset">Hazır tarif</label>
+        <select id="preset"><option value="fill-clamp">Boşları doldur + alt / üst sınır</option><option value="fill">Yalnız boşları doldur</option><option value="clamp">Yalnız alt / üst sınır</option></select>
+        <div id="number-controls">
+          <label for="fill-enabled"><input id="fill-enabled" type="checkbox" checked> Boş hücreleri doldur</label>
+          <label for="fill-value">Doldurma değeri (0–254)</label>
+          <input id="fill-value" type="number" min="0" max="254" step="1" value="0" inputmode="numeric">
+          <label for="clamp-enabled"><input id="clamp-enabled" type="checkbox" checked> Alt / üst sınır uygula</label>
+          <label for="clamp-min">Alt sınır (0–254)</label>
+          <input id="clamp-min" type="number" min="0" max="254" step="1" value="0" inputmode="numeric">
+          <label for="clamp-max">Üst sınır (0–254)</label>
+          <input id="clamp-max" type="number" min="0" max="254" step="1" value="100" inputmode="numeric">
+        </div>
+        <div id="text-controls" hidden>
+          <label for="trim-enabled"><input id="trim-enabled" type="checkbox" checked> Baştaki / sondaki ASCII boşluklarını temizle</label>
+          <label for="text-case">Büyük / küçük harf</label>
+          <select id="text-case"><option value="lowercase">Küçük harfe çevir</option><option value="uppercase">Büyük harfe çevir</option><option value="none">Harfleri koru</option></select>
+          <label for="redact-enabled"><input id="redact-enabled" type="checkbox"> Rakamları maskele (0–9 → *)</label>
+        </div>
+        <div class="profile"><span>PUBLIC RECIPE / AÇIK TARİF</span><strong id="recipe-summary">Boş → 0 / Sınır 0–100</strong><p id="recipe-public">Tarif ve parametreleri sunucu tarafından görülebilir.</p><p id="row-count">PUBLIC ROW COUNT / Açık satır sayısı: dosya bekleniyor.</p></div>
+        <p class="small">Adımlar gösterilen sırayla uygulanır. Yalnız sınır uygularsan boş hücreler boş kalır. Yapay zekâya veri veya serbest komut gönderilmez.</p>
+        <button id="run" class="button" type="button" disabled>Tarifi şifreli çalıştır ↗</button>
+        <button id="reset" class="reset" type="button">Dosyayı ve sonucu sıfırla</button>
+        <p id="message" role="status" aria-live="polite">CSV dosyanı seçerek başlayabilirsin.</p>
+        <ol id="events" aria-label="Gerçek işlem aşamaları"></ol>
+        <div id="result" hidden>
+          <p class="eyebrow">03 / ÖNCE VE SONRA</p>
+          <h3>Sonuç tarayıcında.</h3>
+          <p id="result-note"></p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Seçili sütun önce ve sonra"><table id="comparison"></table></div>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Tam sonuç CSV"><table id="after"></table></div>
+          <a id="download" class="button">Tam sonuç CSV’sini indir ↓</a>
+          <p>İndirmek isteğe bağlıdır. Seçmediğin hücreler, tüm başlıklar ve satır sırası korunur.</p>
+        </div>
+      </section>
+    </div>
+    <section class="trust">
+      <h2>Ne gizli, ne açık?</h2>
+      <p>CSV, sütun adı, dosya adı, açık hücreler ve sonucu çözen eşleme tarayıcı belleğinde kalır. Sunucu tek kullanımlık garbled circuit devresini ve seçili gizli etiketleri alır. Tarif, türü, parametreleri ve satır sayısı açıktır; sunucu IP adresini ve zamanlamayı da görebilir.</p>
+      <p>Gerçek kriptografik hesaplama yapılır. Tarayıcı sonucu aynı tarifin yerel referansıyla karşılaştırır; bu kontrol bağımsız bir yürütme veya ZK ispatı değildir. Bu akış zincire kayıt yapmaz. Deneysel uygulama bağımsız güvenlik denetiminden geçmedi; değiştirilmiş istemci koduna veya ele geçirilmiş cihazına karşı güvence vermez. Örnek verilerle dene.</p>
+    </section>
+  </main>
+  <footer><span>NOPE / PRIVATE EXECUTION</span><span>DENEYSEL PROTOTİP · ÖRNEK VERİYLE DENE</span></footer>
+</body>
+</html>

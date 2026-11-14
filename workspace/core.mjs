@@ -1,7 +1,8 @@
 import {randomBytes,createHash,createPublicKey} from 'node:crypto';
-import {PROFILE,validateRequest,hashRequest,hashProgram} from '../web/gc-core.mjs';
+import {PROFILE} from '../web/gc-core.mjs';
+import {PROFILE as RECIPE_PROFILE} from '../web/recipe-core.mjs';
 import {ROOT} from './blob.mjs';
-import {executeTask} from './gc.mjs';
+import {executeTask,validateTask,hashTask,hashTaskProgram} from './gc.mjs';
 import {paymentVerifier,testnetAccount,transactionHash} from './payment.mjs';
 export const sha=value=>createHash('sha256').update(value).digest('hex');
 const canonical=v=>JSON.stringify(v&&typeof v==='object'?Array.isArray(v)?v.map(x=>JSON.parse(canonical(x))):Object.fromEntries(Object.keys(v).sort().map(k=>[k,JSON.parse(canonical(v[k]))])):v);
@@ -24,14 +25,16 @@ export function strictJSON(source){
  else if(source[p]==='"')str();else while(p<source.length&&!/[\s,}\]]/.test(source[p]))p++;}
  walk(0);return value;
 }
-async function bodyFor(req){
+async function bodyFor(req,max=1048576){
  if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers.get('content-type')||''))fail(415,'JSON_REQUIRED');
  if(req.headers.has('content-encoding')&&req.headers.get('content-encoding')!=='identity')fail(415,'INVALID_ENCODING');
- const len=req.headers.get('content-length');if(len!==null&&!/^(0|[1-9][0-9]*)$/.test(len))fail(400,'INVALID_LENGTH');if(len!==null&&Number(len)>1048576)fail(413,'BODY_TOO_LARGE');
+ const len=req.headers.get('content-length');if(len!==null&&!/^(0|[1-9][0-9]*)$/.test(len))fail(400,'INVALID_LENGTH');if(len!==null&&Number(len)>max)fail(413,'BODY_TOO_LARGE');
  if(!req.body)fail(400,'INVALID_JSON');const reader=req.body.getReader(),chunks=[];let size=0;
- try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>1048576){await reader.cancel();fail(413,'BODY_TOO_LARGE');}chunks.push(Buffer.from(value));}}finally{reader.releaseLock();}
+ try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>max){await reader.cancel();fail(413,'BODY_TOO_LARGE');}chunks.push(Buffer.from(value));}}finally{reader.releaseLock();}
  if(len!==null&&Number(len)!==size)fail(400,'INVALID_LENGTH');
- try{return strictJSON(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)));}catch{fail(400,'INVALID_JSON');}
+ let body;try{body=strictJSON(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)));}catch{fail(size>1048576?413:400,size>1048576?'BODY_TOO_LARGE':'INVALID_JSON');}
+ if(size>1048576&&body?.task?.profile!==RECIPE_PROFILE)fail(413,'BODY_TOO_LARGE');
+ return body;
 }
 function publicKey(key){
  if(!key||typeof key!=='object'||Array.isArray(key)||Object.keys(key).some(k=>!['kty','n','e','alg','ext','key_ops'].includes(k))||!['kty','n','e'].every(k=>Object.hasOwn(key,k))||key.kty!=='RSA'||key.e!=='AQAB'||typeof key.n!=='string'||!/^[A-Za-z0-9_-]{342}$/.test(key.n)||Buffer.from(key.n,'base64url').toString('base64url')!==key.n||key.alg!==undefined&&key.alg!=='RSA-OAEP-256'||key.ext!==undefined&&typeof key.ext!=='boolean'||key.key_ops!==undefined&&(!Array.isArray(key.key_ops)||key.key_ops.length!==1||key.key_ops[0]!=='encrypt'))fail(400,'INVALID_PUBLIC_KEY');
@@ -112,11 +115,11 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     for(const p of page.pathnames){const id=p.slice((ROOT+'index/').length,-5);const j=(await history(id)).at(-1)?.job;if(j&&(s.role==='provider'||j.buyerId===s.id))jobs.push(view(j,s,true));}
     return response({jobs,nextCursor:page.cursor});
    }
-   const b=req.method==='POST'?await bodyFor(req):null;
+   const b=req.method==='POST'?await bodyFor(req,route==='/jobs'?3*1024*1024:1048576):null;
    if(route==='/jobs'&&req.method==='POST'){
     role(s,'buyer');schema(b,['jobId','title','description','deadlineISO','profile','rowCount','task','buyerPublicKey']);
-    if(!hex(b.jobId,32)||!text(b.title,100)||!text(b.description,1000,true)||b.profile!==PROFILE||!Number.isInteger(b.rowCount)||b.rowCount<1||b.rowCount>32||typeof b.deadlineISO!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(b.deadlineISO)||!Number.isFinite(Date.parse(b.deadlineISO)))fail(400,'INVALID_JOB');
-    try{validateRequest(b.task);}catch{fail(400,'INVALID_TASK');}if(b.task.rowCount!==b.rowCount||b.task.profile!==b.profile)fail(400,'TASK_MISMATCH');publicKey(b.buyerPublicKey);
+    if(!hex(b.jobId,32)||!text(b.title,100)||!text(b.description,1000,true)||![PROFILE,RECIPE_PROFILE].includes(b.profile)||!Number.isInteger(b.rowCount)||b.rowCount<1||b.rowCount>32||typeof b.deadlineISO!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(b.deadlineISO)||!Number.isFinite(Date.parse(b.deadlineISO)))fail(400,'INVALID_JOB');
+    try{validateTask(b.task);if(b.task.profile===RECIPE_PROFILE&&b.task.programSha256!==await hashTaskProgram(b.task))throw Error('Program mismatch');}catch{fail(400,'INVALID_TASK');}if(b.task.rowCount!==b.rowCount||b.task.profile!==b.profile)fail(400,'TASK_MISMATCH');publicKey(b.buyerPublicKey);
     const creationHash=sha(canonical(b)),records=await history(b.jobId),existing=records.at(-1)?.job;
     if(existing){if(existing.buyerId!==s.id||existing.creationHash!==creationHash)fail(409,'JOB_EXISTS');return response({job:view(existing,s)});}
     if(Date.parse(b.deadlineISO)<=now()||Date.parse(b.deadlineISO)>now()+30*86400000)fail(400,'INVALID_DEADLINE');
@@ -124,14 +127,14 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     const taskPath=`${ROOT}jobs/${b.jobId}/task.json`,taskRecord={buyerId:s.id,creationHash,task:b.task};
     if(!await store.create(taskPath,taskRecord)&&canonical(await store.read(taskPath))!==canonical(taskRecord))fail(409,'JOB_EXISTS');
     await store.create(`${ROOT}index/${b.jobId}.json`,{id:b.jobId});
-    const job={id:b.jobId,buyerId:s.id,buyerName:s.displayName,title:b.title,description:b.description,deadlineISO:b.deadlineISO,status:'OPEN',profile:PROFILE,rowCount:b.rowCount,createdAt:new Date(now()).toISOString(),buyerPublicKey:b.buyerPublicKey,offerCount:0,selectedOffer:null,delivery:null,payment:{status:'NOT_DUE'},revision:0,events:[],offers:[],decisions:[],creationHash,taskHash:await hashRequest(b.task),programHash:await hashProgram()};
+    const job={id:b.jobId,buyerId:s.id,buyerName:s.displayName,title:b.title,description:b.description,deadlineISO:b.deadlineISO,status:'OPEN',profile:b.profile,...(b.profile===RECIPE_PROFILE?{recipe:structuredClone(b.task.recipe)}:{}),rowCount:b.rowCount,createdAt:new Date(now()).toISOString(),buyerPublicKey:b.buyerPublicKey,offerCount:0,selectedOffer:null,delivery:null,payment:{status:'NOT_DUE'},revision:0,events:[],offers:[],decisions:[],creationHash,taskHash:await hashTask(b.task),programHash:await hashTaskProgram(b.task)};
     try{return response({job:view(await commit([],job,s.id),s)},201);}catch(e){if(e.code!=='REVISION_CONFLICT')throw e;const current=(await history(b.jobId)).at(-1)?.job;if(current?.buyerId===s.id&&current.creationHash===creationHash)return response({job:view(current,s)});throw e;}
    }
    const match=/^\/jobs\/([a-f0-9]{32})(?:\/(offers|close|award|task|execute|decision|payment\/verify))?$/.exec(route);if(!match)fail(404,'ROUTE_NOT_FOUND');
    const records=await history(match[1]),current=records.at(-1)?.job;if(!current||s.role==='buyer'&&s.id!==current.buyerId)fail(404,'JOB_NOT_FOUND');const action=match[2];
    if(req.method==='GET'){
     if(!action)return response({job:view(current,s)});
-    if(action==='task'){if(s.id!==current.buyerId)selected(s,current);const t=await store.read(`${ROOT}jobs/${current.id}/task.json`);if(!t||await hashRequest(t.task)!==current.taskHash)fail(503,'TASK_INTEGRITY');return response({task:t.task});}
+    if(action==='task'){if(s.id!==current.buyerId)selected(s,current);const t=await store.read(`${ROOT}jobs/${current.id}/task.json`);if(!t||await hashTask(t.task)!==current.taskHash)fail(503,'TASK_INTEGRITY');return response({task:t.task});}
     fail(405,'METHOD_NOT_ALLOWED');
    }
    if(!action||action==='task')fail(405,'METHOD_NOT_ALLOWED');
@@ -149,10 +152,10 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     j.selectedOffer={offerId:o.id,providerId:o.providerId,paymentAccount:o.paymentAccount,amountYocto:b.amountYocto};j.status='AWARDED';
    }else if(action==='execute'){
     selected(s,j);schema(b,[]);if(['DELIVERED','ACCEPTED','PAID'].includes(j.status)&&j.delivery)return response({job:view(current,s)});state(j,['AWARDED','REVISION']);
-    const t=await store.read(`${ROOT}jobs/${j.id}/task.json`);if(!t||await hashRequest(t.task)!==j.taskHash)fail(503,'TASK_INTEGRITY');
+    const t=await store.read(`${ROOT}jobs/${j.id}/task.json`);if(!t||await hashTask(t.task)!==j.taskHash)fail(503,'TASK_INTEGRITY');
     let result;try{result=await executeTask(t.task);}catch{fail(422,'EXECUTION_FAILED');}
-    if(result.inputSha256!==j.taskHash||result.programSha256!==j.programHash)fail(503,'EXECUTION_INTEGRITY');
-    j.delivery={outputs:result.outputs,inputSha256:result.inputSha256,outputSha256:result.outputSha256,programSha256:result.programSha256,version:(j.delivery?.version||0)+1,deliveredAt:new Date(now()).toISOString()};j.status='DELIVERED';
+    if(result.profile!==j.profile||result.nonce!==t.task.nonce||result.rowCount!==j.rowCount||result.inputSha256!==j.taskHash||result.programSha256!==j.programHash)fail(503,'EXECUTION_INTEGRITY');
+    j.delivery={...(j.profile===RECIPE_PROFILE?{profile:result.profile,nonce:result.nonce,rowCount:result.rowCount}:{}),outputs:result.outputs,inputSha256:result.inputSha256,outputSha256:result.outputSha256,programSha256:result.programSha256,version:(j.delivery?.version||0)+1,deliveredAt:new Date(now()).toISOString()};j.status='DELIVERED';
    }else if(action==='decision'){
     buyer(s,j);schema(b,['decision','version','outputSha256']);state(j,['DELIVERED']);
     if(!['accept','revise'].includes(b.decision)||!Number.isInteger(b.version)||b.version!==j.delivery.version||b.outputSha256!==j.delivery.outputSha256)fail(409,'DELIVERY_MISMATCH');
