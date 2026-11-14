@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "checkedAt": "2026-11-14",
+  "weightsDownloaded": false,
+  "onnxCandidate": {
+    "id": "onnx-community/Qwen2.5-1.5B-Instruct",
+    "revision": "d54957e3af1be04546436e874a60fe386041b244",
+    "q4Bytes": 1787566590,
+    "q4Sha256": "70c24509f760fed9a8f50391165c46a87660197028a42c4547763f1c173ddea6",
+    "q4f16Bytes": 1221878940,
+    "q4f16Sha256": "19dec9f63488016185ba997d5e4492b5ac5b4f7ef1abb45243a91de958838dcd",
+    "within1200000000ByteCeiling": false
+  },
+  "officialGgufAlternative": {
+    "id": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+    "revision": "91cad51170dc346986eccefdc2dd33a9da36ead9",
+    "file": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+    "bytes": 1117320736,
+    "sha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+    "within1200000000ByteCeiling": true,
+    "integrationCaveat": "Requires a GGUF browser runtime; not loadable by the frozen Transformers.js ONNX worker."
+  },
+  "source": "Official Hugging Face model API metadata with blobs=true; no hosted inference."
+}
