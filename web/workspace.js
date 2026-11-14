@@ -262,7 +262,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
   }
   function chrome() {
     const session = state.session, nav = $('workspace-nav'); nav?.replaceChildren();
-    if ($('workspace-identity')) $('workspace-identity').textContent = session ? `${session.displayName} · ${session.role === 'buyer' ? 'Müşteri' : 'Sağlayıcı'} · testnet` : 'Test çalışma alanı · misafir';
+    if ($('workspace-identity')) $('workspace-identity').textContent = session ? `${session.displayName} · ${session.role === 'buyer' ? 'Müşteri' : 'Sağlayıcı'}` : 'Misafir';
     if ($('workspace-logout')) $('workspace-logout').hidden = !session;
     const items = !session ? [['Başlangıç', '/workspace']] : session.role === 'buyer' ? [['Genel bakış', '/customer'], ['Yeni iş', '/jobs/new'], ['İşlerim', '/jobs'], ['Hareketler', '/activity'], ['Kimlik ve kasa', '/settings']] : [['Genel bakış', '/provider'], ['Açık işler', '/jobs'], ['Hareketler', '/activity'], ['Kimlik ve kasa', '/settings']];
     for (const [text, href] of items) {
