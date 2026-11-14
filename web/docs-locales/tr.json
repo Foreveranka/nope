@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "locale": "tr",
+  "ui": {
+    "title": "Dokümantasyon — NOPE",
+    "skip": "İçeriğe geç",
+    "home": "NOPE ana sayfa",
+    "navigation": "Dokümantasyon bölümleri",
+    "sideLabel": "DOKÜMANTASYON / 01",
+    "workspace": "Çalışma alanı",
+    "verify": "Sonuç doğrulama ↗",
+    "documentation": "Dokümantasyon ↗",
+    "sideNote": "Önce akışı öğren. Ardından örnek verilerle dene.",
+    "eyebrow": "NOPE / KULLANIM KILAVUZU",
+    "loading": "Dokümantasyon yükleniyor…",
+    "loadError": "Dokümantasyon yüklenemedi. Bağlantını kontrol edip yeniden dene.",
+    "retry": "Yeniden dene",
+    "copy": "Örneği kopyala",
+    "copied": "Panoya kopyalandı.",
+    "copyError": "Kopyalanamadı. Örnek metnini seçerek kopyalayabilirsin.",
+    "exampleLabel": "KOD / SENTETİK ÖRNEK",
+    "open": "Çalışma alanında aç ↗",
+    "backTop": "Başa dön ↑",
+    "footer": "Şifreli veri · Gizli teklifler · Kullanıcı kontrollü teslim kabulü"
+  },
+  "page": {
+    "title": "NOPE nasıl çalışır?",
+    "intro": "NOPE, seçtiğin CSV alanlarında sınırlı veri dönüşümleri yaptırabileceğin bir testnet iş pazarıdır. Planı tarayıcıda onaylar, şifreli işi yayımlar, teklif seçer ve teslimi kontrol edersin. Bu rehber müşteri ile sağlayıcının görevlerini, kanıtın anlamını ve sistemin sınırlarını açıklar."
+  },
+  "sections": [
+    {
+      "id": "components", "kind": "cards", "title": "Altı bileşen", "intro": "Her bileşen farklı bir sorumluluk taşır. Şifreleme, doğrulama ve ödeme aynı işlem değildir.",
+      "items": [
+        {"id":"browser","title":"Müşteri tarayıcısı ve kasa","text":"CSV burada açılır; gerçek sütun adları, dokunulmayan alanlar ve çözme bilgileri yerel kalır. Şifreli yerel kasa, özel anahtarları ve kanıt tanığını saklar. Tarayıcı profilini veya site verilerini kaybedersen yalnızca yeniden giriş yaparak bu kasayı kurtaramazsın.","code":"","href":""},
+        {"id":"planner","title":"Yerel planlayıcı model","text":"Tarayıcıda çalışan model yalnızca herkese açık hedefini ve anonim sütun türlerini görür. Özel satırları görmez. Desteklenen araçlardan bir plan önerir; modelin önerisi doğruluk garantisi değildir. Önizlemeyi kontrol ederek planı sen onaylarsın.","code":"","href":""},
+        {"id":"marketplace","title":"İş pazarı ve özel depolama","text":"Sunucu oturumları, ilanları ve iş durumunu yönetir. Özel depolama şifreli görevleri, kapalı teklifleri ve kanıt kayıtlarını tutar. Teklifler müşteriye şifrelenir; kapanıştan sonra müşteri açıp seçim yapar. Bu, otomatik veya dağıtık bir açık artırma değildir.","code":"","href":""},
+        {"id":"evaluator","title":"Sunucudaki şifreli değerlendirici","text":"Seçilen sağlayıcı, gerçek garbled circuit değerlendirmesini sunucuda başlatır. Değerlendirici seçilmiş tel etiketlerini ve şifreli devreyi işler; sonuç etiketleri üretir. Bugünkü sağlayıcı rolü, bağımsız bir hesaplama düğümü işlettiği anlamına gelmez.","code":"","href":""},
+        {"id":"proof","title":"Tarayıcı ve sunucuda sonuç kanıtı","text":"Müşteri cihazı, sakladığı özel tanıkla gerçek bir Noir/UltraHonk SNARK üretir. Tarayıcı ve sunucu bütün hücre kanıtlarını ayrı ayrı doğrular. Kanıt, onaylanan dönüşümün önceden bağlanan istemci eşlemeleri altındaki sonucunu doğrular; özgün CSV'nin kaynağını veya AES yürütme izini kanıtlamaz.","code":"","href":""},
+        {"id":"escrow","title":"NEAR testnet emaneti","text":"Sözleşme işin özetlerini, sağlayıcıyı, miktarı, son tarihleri ve teslim sürümünü bağlar. Kabulden sonra yerel testNEAR transferini yürütür. SNARK doğrulaması sözleşmede yapılmaz; bu kapıyı tarayıcı ve sunucu uygular. Sponsor havuzu sınırlıdır ve gerçek para kullanılmaz.","code":"","href":""}
+      ]
+    },
+    {
+      "id":"workflow","kind":"steps","title":"Sekiz adımda iş akışı","intro":"Bir sonraki adıma geçmeden önce ekrandaki durumun kesinleşmesini bekle.",
+      "items":[
+        {"id":"plan","title":"Planla","text":"Müşteri olarak CSV seç, işlenecek sütunları ve türlerini belirle. Herkese açık hedefe kişisel veri yazma. Model, C2 gibi anonim alanlardan sınırlı bir dönüşüm planı çıkarır.","code":"","href":""},
+        {"id":"approve","title":"Önizle ve onayla","text":"Yerel önce/sonra örneklerini ve kaynak tahminini incele. Yanlış niyetle hazırlanmış doğru bir plan yine yanlış işi yapar; onayını model yerine sen verirsin.","code":"","href":""},
+        {"id":"encrypt","title":"Şifrele ve önceden bağla","text":"Tarayıcı yeni devre etiketlerini, özel eşlemeleri ve kanıt köklerini hazırlar. Değişmez kanıt bildirimi, yayımlanan isteğin özetine ödeme ve yürütmeden önce dahil edilir. Çözücü ile tanık kasada kalır.","code":"","href":""},
+        {"id":"publish","title":"Yayımla ve kapalı teklif topla","text":"Şifreli görev ile herkese açık açıklama yayımlanır. Sağlayıcılar fiyat tekliflerini müşteriye şifreler. Teklif süresini izleyip toplama aşamasını kapat; sonra teklifleri yerel olarak aç.","code":"","href":""},
+        {"id":"award","title":"Sağlayıcı seç ve emanet ayır","text":"Teklifi seçtiğinde sağlayıcı ve seçilen fiyat görünür olur. Sponsorlu testnet tutarını ayır ve kesinleşmiş emanet durumunu bekle. Başarısız bir ayırma işlemi yürütme yetkisi vermez.","code":"","href":""},
+        {"id":"evaluate","title":"Değerlendir ve teslimi kaydet","text":"Seçilen sağlayıcı yürütmeyi başlatır. Sunucu şifreli sonucu üretir; teslimin sürümü ve özeti NEAR'a kaydedilir. Eski sürümün kaydı, yeni teslimin kaydı yerine geçmez.","code":"","href":""},
+        {"id":"accept","title":"Yerel çöz, kanıtla ve kabul et","text":"Müşteri sonucu yerelde çözer ve beklenen değerlerle karşılaştırır. Tüm hücrelerin SNARK kanıtları üretilip iki tarafta doğrulanır. Yalnızca güncel teslimle eşleşen doğrulanmış kanıt kabul kapısını açar.","code":"","href":""},
+        {"id":"settle","title":"Öde veya revizyonu izle","text":"Kabulden sonra ödemeyi serbest bırak. Ödendi durumu gerçek transfer, başarılı geri çağırım ve sözleşme kaydıyla doğrulanır. Sorunlu teslimde revizyon isteyebilirsin; uygun son tarih geçince iade, ayrılan tutarı sponsor havuzuna döndürür. Otomatik uyuşmazlık çözümü yoktur.","code":"","href":""}
+      ]
+    },
+    {
+      "id":"directions","kind":"directions","title":"Müşteri ve sağlayıcı için yönler","intro":"Roller ayrı test oturumlarıdır. Oturum adı veya giriş, kimlik doğrulama ve KYC anlamına gelmez.",
+      "items":[
+        {"id":"customer","title":"Müşteri olarak başla","text":"Çalışma alanında müşteri rolünü seç. Yeni iş sayfasında örnek CSV'yi seçip hedefi yaz; önizlemeyi onayladıktan sonra yayımla. İş ayrıntısında teklifleri kapat, aç ve seç. Teslim ekranında çözümleme, kanıt ve karar adımlarını tamamla; ödeme ekranından kesinleşmeyi izle.","code":"/workspace → /jobs/new → /job?id=<jobId> → /delivery?id=<jobId> → /payments?id=<jobId>","href":"/workspace"},
+        {"id":"provider","title":"Sağlayıcı olarak katıl","text":"Ayrı bir tarayıcı profiliyle sağlayıcı oturumu aç ve kendi testnet ödeme hesabını belirt. Açık işin planını, sınırlarını ve süresini inceleyip teklif ver. Seçildiğinde emanet kesinleşmesini bekle; yalnızca atanmış işin değerlendirmesini başlat. Yeni teslim ve ödeme durumunu aynı işten takip et.","code":"/workspace → /provider → /offer?id=<jobId> → /job?id=<jobId>","href":"/workspace"}
+      ]
+    },
+    {
+      "id":"example","kind":"example","title":"Küçük bir önce / sonra örneği","intro":"Aşağıdaki sentetik örnekte C2 metin, C3 sayıdır. Diğer sütunlar müşterinin cihazında korunur. Çıktıyı kontrol ederken hem sıralamaya hem eksik değer kuralına bak.",
+      "items":[
+        {"id":"worked","title":"İki sütun, iki açık kural","text":"Metinde yalnızca ASCII boşluklarını uçlardan kaldır, büyük harfe çevir ve rakamları yıldızla değiştir. Sayıda eksikleri 10 ile doldur, ardından 10–80 aralığına sınırla. 200 değeri 80 olur; zaten aralıktaki 42 değişmez.","code":"C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42","href":""}
+      ]
+    },
+    {
+      "id":"templates","kind":"templates","title":"Kopyala ve kendin dene","intro":"Bu düğmeler yalnızca panoya kopyalar. Dosya yüklemez, iş yayımlamaz veya ödeme başlatmaz. CSV'yi yerel bir dosyaya kaydet; herkese açık hedef örnekleri kod olarak İngilizce verilmiştir.",
+      "items":[
+        {"id":"csv","title":"Hazır sentetik CSV","text":"İlk sütun kayıt, ikinci sütun metin, üçüncü sütun sayıdır. Dosyayı seçtikten sonra C2 ve C3 türlerini kontrol et. Bu üç satırlık örnek gerçek müşteri verisi içermez.","code":"record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n","href":""},
+        {"id":"goal-mixed","title":"Metin ve sayı için herkese açık hedef","text":"Bu hedef, yukarıdaki önce/sonra örneğine karşılık gelir. Özel sütun adlarını veya satır değerlerini hedefe ekleme. Modelin önerdiği planı yine önizleyerek onayla.","code":"For C2, trim ASCII spaces, uppercase ASCII letters, then redact digits with *. For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.","href":""},
+        {"id":"goal-number","title":"Yalnızca sayı için daha küçük hedef","text":"İlk denemeyi küçültmek istersen sadece C3 sütununu seç. Eksik doldurma ve sınırlandırmanın sırasını değiştirmek farklı sonuç verebilir; plan sırası onayın bir parçasıdır.","code":"For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.","href":""}
+      ]
+    },
+    {
+      "id":"limits","kind":"list","title":"Yapabilecekleri ve sınırları","intro":"Arayüzün güncel kaynak tahmini belirleyicidir. Sınır aşımında satırlar sessizce atılmaz; iş hazırlığı durdurulur.",
+      "items":[
+        {"id":"numeric","title":"Sayı araçları","text":"Eksik doldurma ve aralık sınırlama desteklenir. Gerçek sayısal değerler 0–254 arası tam sayılardır; 255 eksik değer işaretidir. Ondalık veya sınırsız büyüklükte sayı dönüşümü yoktur.","code":"","href":""},
+        {"id":"text","title":"ASCII metin araçları","text":"En fazla 16 baytlık ASCII metinde uç boşluk temizleme, harf büyütme/küçültme ve rakam gizleme vardır. Türkçe karakter dönüştürme, genel Unicode temizleme ve anlamsal metin analizi desteklenmez.","code":"","href":""},
+        {"id":"size","title":"Küçük ve sınırlandırılmış işler","text":"En fazla dört seçili sütun; sayısal sütunda 32, metin sütununda sekiz satır desteklenir. Toplam hücre kanıtı 40'ı aşamaz. Devre, istek ve kanıt paketi boyutu ayrıca denetlenir; dört sayısal sütunda 32 satır uygun değildir.","code":"","href":""},
+        {"id":"scope","title":"Özel veriye serbest model erişimi yok","text":"Bu ürün sınırlı araç planlarını yürütür; özel CSV üzerinde keyfi bir yapay zekâ sohbeti çalıştırmaz. Bağımsız sağlayıcı altyapısı veya otomatik hukuki karar güvencesi sunmaz. Kanıt üretimi cihaz kaynaklarını kullanır; süre garantisi yoktur.","code":"","href":""}
+      ]
+    },
+    {
+      "id":"privacy","kind":"list","title":"Ne görünür, ne yerelde kalır?","intro":"Şifreli içerik, bütün üstverinin gizli olduğu anlamına gelmez.",
+      "items":[
+        {"id":"public","title":"Herkese açık olabilecek bilgiler","text":"İlan açıklaması, anonim sütun türleri, plan, satır ve sütun sayıları, zamanlar, özetler, seçilen sağlayıcı ve fiyat görünürdür. Hedefini buna göre yaz. Açık kanıt sayfası yalnızca süzülmüş şifreli görev, teslim, kanıt ve bağlama bilgilerini sunar.","code":"","href":""},
+        {"id":"private","title":"Yerel ve güvenilen alanlar","text":"Ham CSV, özgün başlıklar, çözücü, alternatif etiket çiftleri ve özel kanıt tanığı açık kanıta eklenmez. Tarayıcı uygulamasına, sunucunun yetkilendirmesine ve RPC yanıtlarına güvenilir. Zararlı bir ön yüz veya ele geçirilmiş cihaz karşısında bu sınırlar tek başına koruma sağlamaz.","code":"","href":""}
+      ]
+    },
+    {
+      "id":"verification","kind":"links","title":"Bağımsız sonuç kontrolü","intro":"Bir sunucu başarı rozeti görmek ile kanıtı yeniden doğrulamak aynı şey değildir.",
+      "items":[
+        {"id":"public-verifier","title":"Açık doğrulama sayfası","text":"İş kimliğini doğrulama sayfasına gir. Tarayıcı gerçek kanıtları yerelde denetler; RPC üzerinden görev, program, plan ve güncel teslimin sözleşme kaydıyla eşleşmesini kontrol eder. Müşterinin çözücüsüne ihtiyaç duymaz. Bu yöntem hafif istemci değildir; RPC'ye dayanır.","code":"/verify?id=<jobId>","href":"/verify"},
+        {"id":"payment-check","title":"Sonuç kanıtı ile ödemeyi ayır","text":"Doğru sonuç kanıtı tek başına ödemenin yapıldığını göstermez. Ödeme ekranında gerçek işlem özetini ve kesinleşmiş sözleşme durumunu ayrıca kontrol et. Belirsiz işlemde yeniden ödeme denemek yerine mevcut işlemin durumunu yenile.","code":"/payments?id=<jobId>","href":"/workspace"}
+      ]
+    },
+    {
+      "id":"faq","kind":"faq","title":"Sık sorulanlar","intro":"Denemeye başlamadan önce bu koşulları bilmek veri ve zaman kaybını önler.",
+      "items":[
+        {"id":"file-origin","title":"Kanıt özgün dosyamın doğruluğunu kanıtlar mı?","text":"Hayır. Kanıt, dürüst istemcinin önceden bağladığı girdi/çıktı eşlemeleri altında sonuç doğruluğunu gösterir. Dosyanın kaynağını, müşterinin ilk değerleri doğru sunduğunu veya sağlayıcının hangi makinede çalıştığını kanıtlamaz.","code":"","href":""},
+        {"id":"vault-loss","title":"Başka cihazdan giriş yapınca dosyam açılır mı?","text":"Aynı oturuma erişmek, eski cihazın kasasına erişmek değildir. Yerel kasa ve anahtar kaybolursa çözme ve kanıt üretme yeteneği de kaybolabilir. İş sürerken site verilerini silme; otomatik kurtarma hizmeti yoktur.","code":"","href":""},
+        {"id":"revision","title":"Revizyon veya tekrar yürütme neyi değiştirir?","text":"Her yeni teslim sürümü ve çıktı özeti, önceki teslimin kanıtını geçersiz kılar. Yeni teslimi yeniden çöz, kontrol et ve kanıtla. Hatalı sonucu kabul etmek zorunda değilsin; uygulama güncel zincir kaydından sonra revizyona izin verir.","code":"","href":""},
+        {"id":"refund","title":"Süre dolunca otomatik ödeme olur mu?","text":"Hayır. Sessizlik kabul sayılmaz. Teklif kapanışını, yürütme sonunu ve inceleme sonunu arayüzde ayrı ayrı izle. Uygun inceleme süresi dolunca iade isteği sponsor ayırmasını geri açar; müşteriye para transferi veya otomatik uyuşmazlık kararı değildir.","code":"","href":""},
+        {"id":"sponsor","title":"Neden test işi için fon yetersiz olabilir?","text":"Sponsor havuzu ve işlem anahtarının gaz bütçesi sonludur. İş başına en fazla 0,01 testNEAR ayrılır; başka işler veya ağ maliyeti işlemi engelleyebilir. Havuz kendiliğinden yenilenmez. Gerçek para veya ana ağ işlemi gerekmez.","code":"","href":""}
+      ]
+    },
+    {
+      "id":"glossary","kind":"glossary","title":"Kısa sözlük","intro":"Ekranlarda göreceğin temel kavramlar:",
+      "items":[
+        {"id":"plan-term","title":"Plan","text":"Anonim sütunlara uygulanacak türü belirli, sıralı araç listesi; müşterinin onayladığı çalışma tarifi.","code":"","href":""},
+        {"id":"gc-term","title":"Garbled circuit","text":"Girdileri ve sonuçları tel etiketleriyle temsil eden şifreli devre; sunucu bu etiketlerle değerlendirme yapar.","code":"","href":""},
+        {"id":"commitment-term","title":"Ön bağlama","text":"Sonradan başka bir eşleme veya isteğe geçilmesini engellemek için yürütmeden önce yayımlanan kriptografik bağ.","code":"","href":""},
+        {"id":"proof-term","title":"SNARK","text":"Özel tanığı yayımlamadan belirli bir matematiksel ilişkinin sağlandığını doğrulamaya yarayan kısa sonuç kanıtı.","code":"","href":""},
+        {"id":"hash-term","title":"Özet ve bağlama","text":"Görev, plan, teslim sürümü ve ödeme koşullarının tam olarak aynı işe ait olduğunu denetleyen kimlikler.","code":"","href":""},
+        {"id":"final-term","title":"Kesinleşme","text":"İşlemin ve ilgili sözleşme durumunun doğrulanması; yalnızca istek gönderilmiş olması ödeme tamamlandı demek değildir.","code":"","href":""}
+      ]
+    }
+  ]
+}

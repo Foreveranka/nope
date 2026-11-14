@@ -195,7 +195,7 @@
   "Expected a 32-byte lowercase hex salt.": "Un sel de 32 octets en hexadécimal minuscule est attendu.",
   "Expected a canonical nonnegative yoctoNEAR integer string or BigInt.": "Une chaîne d’entier canonique positif ou nul en yoctoNEAR, ou un BigInt, est attendue.",
   "Expected a dense recipe array.": "Un tableau de recette sans éléments manquants est attendu.",
-  "Expected a garbled job with sealDecoder.": "Une tâche de circuit garbled avec sealDecoder est attendue.",
+  "Expected a garbled job with sealDecoder.": "Une tâche de circuit brouillé avec sealDecoder est attendue.",
   "Expected a JSON object.": "Un objet JSON est attendu.",
   "Expected a nonnegative NEAR decimal with at most 24 fractional digits.": "Un montant NEAR positif ou nul avec 24 décimales maximum est attendu.",
   "Expected a public RSA-OAEP SHA-256 JWK.": "Une clé publique JWK RSA-OAEP SHA-256 est attendue.",
@@ -216,7 +216,7 @@
   "Fiyatı gizli tut.": "Gardez le prix confidentiel.",
   "fon ayırma": "réservation des fonds",
   "Fon ayırma": "Réservation des fonds",
-  "GARBLED CIRCUIT": "CIRCUIT GARBLED",
+  "GARBLED CIRCUIT": "CIRCUIT BROUILLÉ",
   "Geçerli bir CSV veri kümesi gerekli.": "Un jeu de données CSV valide est requis.",
   "Geçerli bir iş kimliği gerekli.": "Un identifiant de tâche valide est requis.",
   "Geçerli bir testNEAR tutarı girin (en fazla 24 ondalık).": "Saisissez un montant valide en testNEAR (24 décimales maximum).",
@@ -740,7 +740,7 @@
   "Unexpected recipe protocol fields.": "Champs de protocole de recette inattendus.",
   "Unknown recipe gate.": "Porte de recette inconnue.",
   "Unlisted runtime network request blocked.": "Une requête réseau du moteur d’exécution absente de la liste autorisée a été bloquée.",
-  "Unsupported garbled profile.": "Profil de circuit garbled non pris en charge.",
+  "Unsupported garbled profile.": "Profil de circuit brouillé non pris en charge.",
   "Unsupported proof action": "Action de preuve non prise en charge",
   "Unsupported proof manifest.": "Manifeste de preuve non pris en charge.",
   "Unsupported recipe profile or program hash.": "Profil de recette ou hash de programme non pris en charge.",
@@ -817,5 +817,7 @@
   "Zincir kayıt bağı manifestle eşleşmiyor.": "La liaison de l’enregistrement sur la chaîne ne correspond pas au manifeste.",
   "Zincirde kesinleşmiş teslim: sürüm {0} · şifreli çıktı SHA-256: {1}": "Livraison finalisée sur la chaîne : version {0} · SHA-256 de la sortie chiffrée : {1}",
   "Zincirde ödeme doğrulandı": "Paiement vérifié sur la chaîne",
-  "Zincirdeki ön taahhüt, şifreli girdi veya program farklı.": "L’engagement préalable, l’entrée chiffrée ou le programme enregistré sur la chaîne diffère."
+  "Zincirdeki ön taahhüt, şifreli girdi veya program farklı.": "L’engagement préalable, l’entrée chiffrée ou le programme enregistré sur la chaîne diffère.",
+  "Dokümantasyon ↗": "Documentation ↗",
+  "DOKÜMANTASYON ↗": "DOCUMENTATION ↗"
 }

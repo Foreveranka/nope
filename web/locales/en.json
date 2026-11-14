@@ -817,5 +817,7 @@
   "{0}: {1}": "{0}: {1}",
   "{0}{1}": "{0}{1}",
   "İş tanımı boş olamaz ve en fazla 1800 UTF-8 bayt olmalıdır. Gizli veri yazmayın.": "The job description must be nonempty and no larger than 1800 UTF-8 bytes. Do not enter private data.",
-  "İşlem tamamlanamadı.": "The action could not be completed."
+  "İşlem tamamlanamadı.": "The action could not be completed.",
+  "Dokümantasyon ↗": "Documentation ↗",
+  "DOKÜMANTASYON ↗": "DOCUMENTATION ↗"
 }

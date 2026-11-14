@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#eee8d8">
+  <title>NOPE</title>
+  <link rel="preload" href="/nope-pixel.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/nope-mono.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="/workspace.css">
+  <link rel="stylesheet" href="/i18n.css">
+  <link rel="stylesheet" href="/docs.css">
+  <script type="module" src="/docs.js"></script>
+</head>
+<body class="docs-page">
+  <a class="skip" href="#docs-root" data-docs-ui="skip"></a>
+  <aside class="sidebar">
+    <a class="brand" href="/" id="docs-brand"><svg viewBox="0 0 17 17" aria-hidden="true"><use href="/nope-pixels.svg#nope"></use></svg>NOPE<span>PRIVATE WORK</span></a>
+    <p class="side-label" data-docs-ui="sideLabel"></p>
+    <nav id="docs-nav"></nav>
+    <div class="side-bottom">
+      <p data-docs-ui="sideNote"></p>
+      <a href="/workspace" data-docs-ui="workspace"></a>
+      <a href="/verify" data-docs-ui="verify"></a>
+      <a class="docs-link" href="/docs" aria-current="page" data-docs-ui="documentation"></a>
+    </div>
+  </aside>
+  <div class="page">
+    <header class="topbar">
+      <div class="terminal-path"><span class="terminal-file" aria-hidden="true">NOPE.EXE</span><a href="/workspace" data-docs-ui="workspace"></a></div>
+      <span class="environment">NEAR TESTNET</span>
+    </header>
+    <main id="docs-top">
+      <div class="page-heading" id="docs-heading" hidden>
+        <p class="eyebrow" data-docs-ui="eyebrow"></p>
+        <h1 id="docs-title"></h1>
+        <p id="docs-intro"></p>
+      </div>
+      <div id="docs-status" class="notice" role="status" aria-live="polite" hidden></div>
+      <button id="docs-retry" class="secondary" type="button" hidden></button>
+      <div id="docs-root" tabindex="-1" aria-busy="true"><div class="card docs-skeleton" aria-hidden="true"><span></span><span></span><span></span></div></div>
+    </main>
+    <footer>
+      <span class="footer-title"><svg viewBox="0 0 13 13" aria-hidden="true"><use href="/nope-pixels.svg#lock"></use></svg><span data-docs-ui="footer"></span></span>
+    </footer>
+  </div>
+</body>
+</html>

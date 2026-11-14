@@ -1,0 +1,385 @@
+{
+  "version": 1,
+  "locale": "es",
+  "ui": {
+    "title": "Documentación — NOPE",
+    "skip": "Ir al contenido",
+    "home": "Página de inicio de NOPE",
+    "navigation": "Secciones de la documentación",
+    "sideLabel": "DOCUMENTACIÓN / 01",
+    "workspace": "Espacio de trabajo",
+    "verify": "Verificación del resultado ↗",
+    "documentation": "Documentación ↗",
+    "sideNote": "Conoce primero el flujo. Después pruébalo con datos de ejemplo.",
+    "eyebrow": "NOPE / GUÍA DE USO",
+    "loading": "Cargando la documentación…",
+    "loadError": "No se ha podido cargar la documentación. Comprueba la conexión y vuelve a intentarlo.",
+    "retry": "Reintentar",
+    "copy": "Copiar el ejemplo",
+    "copied": "Copiado al portapapeles.",
+    "copyError": "No se ha podido copiar. Puedes seleccionar el texto del ejemplo y copiarlo.",
+    "exampleLabel": "CÓDIGO / EJEMPLO SINTÉTICO",
+    "open": "Abrir en el espacio de trabajo ↗",
+    "backTop": "Volver arriba ↑",
+    "footer": "Datos cifrados · Ofertas confidenciales · Aceptación de la entrega controlada por el usuario"
+  },
+  "page": {
+    "title": "¿Cómo funciona NOPE?",
+    "intro": "NOPE es un mercado de tareas en testnet que permite encargar transformaciones limitadas de los campos de un CSV que elijas. Apruebas el plan en el navegador, publicas la tarea cifrada, eliges una oferta y compruebas la entrega. Esta guía explica las responsabilidades del cliente y del proveedor, qué significa la prueba y cuáles son los límites del sistema."
+  },
+  "sections": [
+    {
+      "id": "components",
+      "kind": "cards",
+      "title": "Seis componentes",
+      "intro": "Cada componente tiene una responsabilidad distinta. Cifrar, verificar y pagar no son la misma operación.",
+      "items": [
+        {
+          "id": "browser",
+          "title": "Navegador y bóveda del cliente",
+          "text": "El CSV se abre aquí; los nombres reales de las columnas, los campos que no se procesan y la información para descifrar permanecen en local. La bóveda local cifrada guarda las claves privadas y el testigo de la prueba. Si pierdes el perfil del navegador o los datos del sitio, no podrás recuperar esta bóveda simplemente iniciando sesión otra vez.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "planner",
+          "title": "Modelo de planificación local",
+          "text": "El modelo que se ejecuta en el navegador solo ve tu objetivo público y los tipos de columnas anónimas. No ve las filas privadas. Propone un plan con las herramientas admitidas; su propuesta no garantiza la corrección. Tú apruebas el plan después de revisar la vista previa.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "marketplace",
+          "title": "Mercado de tareas y almacenamiento privado",
+          "text": "El servidor gestiona las sesiones, los anuncios y el estado de las tareas. El almacenamiento privado conserva las tareas cifradas, las ofertas selladas y los registros de pruebas. Las ofertas se cifran para el cliente; tras el cierre, este las descifra y elige. No es una subasta automática ni distribuida.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "evaluator",
+          "title": "Evaluador cifrado en el servidor",
+          "text": "El proveedor elegido inicia la evaluación real del circuito ofuscado en el servidor. El evaluador procesa las etiquetas de cable seleccionadas y el circuito cifrado, y produce etiquetas de resultado. El rol actual de proveedor no significa que este opere un nodo de cálculo independiente.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "proof",
+          "title": "Prueba del resultado en el navegador y el servidor",
+          "text": "El dispositivo del cliente genera un SNARK real de Noir/UltraHonk con el testigo privado que conserva. El navegador y el servidor verifican por separado las pruebas de todas las celdas. La prueba verifica el resultado de la transformación aprobada bajo las correspondencias del cliente comprometidas previamente; no prueba el origen del CSV original ni una traza de ejecución AES.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "escrow",
+          "title": "Depósito en garantía en NEAR testnet",
+          "text": "El contrato vincula los hashes de la tarea, el proveedor, el importe, las fechas límite y la versión de entrega. Tras la aceptación, ejecuta la transferencia nativa de testNEAR. El contrato no verifica SNARK; esa condición la aplican el navegador y el servidor. El fondo de patrocinio es limitado y no se utiliza dinero real.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "workflow",
+      "kind": "steps",
+      "title": "El flujo en ocho pasos",
+      "intro": "Espera a que se confirme el estado mostrado antes de pasar al siguiente paso.",
+      "items": [
+        {
+          "id": "plan",
+          "title": "Planificar",
+          "text": "Como cliente, elige un CSV y define las columnas que se procesarán y sus tipos. No escribas datos personales en el objetivo público. El modelo elabora un plan de transformación limitado a partir de campos anónimos como C2.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "approve",
+          "title": "Previsualizar y aprobar",
+          "text": "Revisa los ejemplos locales de antes y después y la estimación de recursos. Un plan técnicamente correcto para un objetivo equivocado sigue haciendo el trabajo equivocado; la aprobación la das tú, no el modelo.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "encrypt",
+          "title": "Cifrar y comprometer de antemano",
+          "text": "El navegador prepara nuevas etiquetas del circuito, correspondencias privadas y raíces de prueba. El manifiesto inmutable de prueba se incluye en el hash de la solicitud publicada antes del pago y de la ejecución. El decodificador y el testigo permanecen en la bóveda.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "publish",
+          "title": "Publicar y recibir ofertas selladas",
+          "text": "Se publican la tarea cifrada y su descripción pública. Los proveedores cifran sus ofertas de precio para el cliente. Controla el plazo de ofertas y cierra la fase de recepción; después descifra las ofertas localmente.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "award",
+          "title": "Elegir proveedor y reservar los fondos en garantía",
+          "text": "Al elegir una oferta, el proveedor y el precio seleccionado se hacen visibles. Reserva el importe patrocinado en testnet y espera a que el depósito en garantía se finalice. Una reserva fallida no autoriza la ejecución.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "evaluate",
+          "title": "Evaluar y registrar la entrega",
+          "text": "El proveedor elegido inicia la ejecución. El servidor produce el resultado cifrado; la versión de entrega y su hash se registran en NEAR. El registro de una versión anterior no sustituye al de la nueva entrega.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "accept",
+          "title": "Descifrar localmente, generar la prueba y aceptar",
+          "text": "El cliente descifra el resultado localmente y lo compara con los valores esperados. Se generan las pruebas SNARK de todas las celdas y se verifican en ambos lados. Solo una prueba verificada que coincida con la entrega actual permite aceptarla.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "settle",
+          "title": "Pagar o seguir la revisión",
+          "text": "Tras aceptar, libera el pago. El estado de pagado se verifica mediante la transferencia real, la devolución de llamada correcta y el registro del contrato. Puedes solicitar una revisión si la entrega es incorrecta; una vez vencido el plazo correspondiente, el reembolso devuelve el importe reservado al fondo de patrocinio. No hay resolución automática de disputas.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "directions",
+      "kind": "directions",
+      "title": "Indicaciones para clientes y proveedores",
+      "intro": "Los roles corresponden a sesiones de prueba separadas. El nombre de sesión o el inicio de sesión no equivalen a una verificación de identidad ni a KYC.",
+      "items": [
+        {
+          "id": "customer",
+          "title": "Empezar como cliente",
+          "text": "Elige el rol de cliente en el espacio de trabajo. En la página de nueva tarea, selecciona el CSV de ejemplo y escribe el objetivo; publica tras aprobar la vista previa. En los detalles de la tarea, cierra las ofertas, descífralas y elige una. Completa el descifrado, la prueba y la decisión en la pantalla de entrega; sigue la finalización en la pantalla de pago.",
+          "code": "/workspace → /jobs/new → /job?id=<jobId> → /delivery?id=<jobId> → /payments?id=<jobId>",
+          "href": "/workspace"
+        },
+        {
+          "id": "provider",
+          "title": "Participar como proveedor",
+          "text": "Inicia una sesión de proveedor con un perfil de navegador separado e indica tu propia cuenta de pago testnet. Revisa el plan, los límites y el plazo de la tarea abierta antes de ofertar. Si te eligen, espera a que el depósito en garantía se finalice; inicia la evaluación solo de la tarea asignada. Sigue la nueva entrega y el pago desde la misma tarea.",
+          "code": "/workspace → /provider → /offer?id=<jobId> → /job?id=<jobId>",
+          "href": "/workspace"
+        }
+      ]
+    },
+    {
+      "id": "example",
+      "kind": "example",
+      "title": "Un pequeño ejemplo de antes y después",
+      "intro": "En el siguiente ejemplo sintético, C2 es texto y C3 es numérico. Las demás columnas se conservan en el dispositivo del cliente. Al comprobar la salida, revisa tanto el orden como la regla de valores ausentes.",
+      "items": [
+        {
+          "id": "worked",
+          "title": "Dos columnas, dos reglas explícitas",
+          "text": "En el texto, elimina solo los espacios ASCII de los extremos, convierte a mayúsculas y sustituye los dígitos por asteriscos. En los números, rellena los valores ausentes con 10 y después limita al rango 10–80. El valor 200 pasa a 80; 42, que ya está dentro del rango, no cambia.",
+          "code": "C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "templates",
+      "kind": "templates",
+      "title": "Copia y pruébalo",
+      "intro": "Estos botones solo copian al portapapeles. No suben archivos, publican tareas ni inician pagos. Guarda el CSV en un archivo local; los ejemplos de objetivos públicos se presentan como código en inglés.",
+      "items": [
+        {
+          "id": "csv",
+          "title": "CSV sintético listo para usar",
+          "text": "La primera columna identifica el registro, la segunda contiene texto y la tercera contiene números. Tras seleccionar el archivo, comprueba los tipos de C2 y C3. Este ejemplo de tres filas no contiene datos reales de clientes.",
+          "code": "record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n",
+          "href": ""
+        },
+        {
+          "id": "goal-mixed",
+          "title": "Objetivo público para texto y números",
+          "text": "Este objetivo corresponde al ejemplo anterior de antes y después. No añadas nombres de columnas privadas ni valores de filas al objetivo. Revisa y aprueba igualmente la vista previa del plan propuesto por el modelo.",
+          "code": "For C2, trim ASCII spaces, uppercase ASCII letters, then redact digits with *. For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.",
+          "href": ""
+        },
+        {
+          "id": "goal-number",
+          "title": "Un objetivo más pequeño, solo con números",
+          "text": "Si quieres reducir la primera prueba, selecciona únicamente C3. Cambiar el orden del relleno y la limitación puede producir resultados distintos; el orden del plan forma parte de tu aprobación.",
+          "code": "For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "limits",
+      "kind": "list",
+      "title": "Capacidades y límites",
+      "intro": "La estimación actual de recursos de la interfaz es la referencia. Si se supera un límite, las filas no se descartan sin avisar; se detiene la preparación de la tarea.",
+      "items": [
+        {
+          "id": "numeric",
+          "title": "Herramientas numéricas",
+          "text": "Se admiten el relleno de valores ausentes y la limitación a un rango. Los valores numéricos reales son enteros de 0–254; 255 indica un valor ausente. No se admiten transformaciones de números decimales ni de magnitud ilimitada.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "text",
+          "title": "Herramientas de texto ASCII",
+          "text": "En textos ASCII de hasta 16 bytes se pueden eliminar espacios de los extremos, convertir mayúsculas y minúsculas y ocultar dígitos. No se admiten la conversión de caracteres turcos, la limpieza general de Unicode ni el análisis semántico de texto.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "size",
+          "title": "Tareas pequeñas y acotadas",
+          "text": "Se admiten hasta cuatro columnas seleccionadas, con 32 filas para columnas numéricas y ocho para columnas de texto. El total de pruebas de celda no puede superar 40. También se comprueban por separado los tamaños del circuito, la solicitud y el paquete de pruebas; cuatro columnas numéricas con 32 filas no son una combinación válida.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "scope",
+          "title": "El modelo no tiene acceso libre a los datos privados",
+          "text": "Este producto ejecuta planes con herramientas limitadas; no ofrece un chat de inteligencia artificial arbitrario sobre el CSV privado. No garantiza una infraestructura de proveedores independientes ni decisiones legales automáticas. La generación de pruebas usa los recursos del dispositivo; no se garantiza un tiempo de ejecución.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "privacy",
+      "kind": "list",
+      "title": "¿Qué es visible y qué permanece en local?",
+      "intro": "Que el contenido esté cifrado no significa que todos sus metadatos sean privados.",
+      "items": [
+        {
+          "id": "public",
+          "title": "Información que puede ser pública",
+          "text": "Son visibles la descripción del anuncio, los tipos de columnas anónimas, el plan, los números de filas y columnas, las fechas, los hashes, el proveedor elegido y el precio. Redacta el objetivo teniendo esto en cuenta. La página pública de prueba solo presenta la tarea cifrada, la entrega, la prueba y los datos de vinculación filtrados para su publicación.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "private",
+          "title": "Datos locales y ámbitos de confianza",
+          "text": "El CSV en bruto, las cabeceras originales, el decodificador, los pares alternativos de etiquetas y el testigo privado de la prueba no se incluyen en la prueba pública. Se confía en la aplicación del navegador, la autorización del servidor y las respuestas RPC. Por sí solos, estos límites no protegen frente a una interfaz maliciosa o un dispositivo comprometido.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "verification",
+      "kind": "links",
+      "title": "Comprobación independiente del resultado",
+      "intro": "Ver una insignia de éxito del servidor no es lo mismo que volver a verificar la prueba.",
+      "items": [
+        {
+          "id": "public-verifier",
+          "title": "Página pública de verificación",
+          "text": "Introduce el identificador de la tarea en la página de verificación. El navegador comprueba localmente las pruebas reales y consulta por RPC que la tarea, el programa, el plan y la entrega actual coincidan con el registro del contrato. No necesita el decodificador del cliente. Este método no es un cliente ligero; depende del RPC.",
+          "code": "/verify?id=<jobId>",
+          "href": "/verify"
+        },
+        {
+          "id": "payment-check",
+          "title": "Distinguir la prueba del resultado del pago",
+          "text": "Una prueba válida del resultado no demuestra por sí sola que se haya pagado. Comprueba por separado el hash de la transacción real y el estado finalizado del contrato en la pantalla de pago. Si una operación es incierta, actualiza su estado en lugar de intentar pagar otra vez.",
+          "code": "/payments?id=<jobId>",
+          "href": "/workspace"
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "kind": "faq",
+      "title": "Preguntas frecuentes",
+      "intro": "Conocer estas condiciones antes de empezar evita perder datos y tiempo.",
+      "items": [
+        {
+          "id": "file-origin",
+          "title": "¿La prueba demuestra que mi archivo original es correcto?",
+          "text": "No. La prueba muestra la corrección del resultado bajo las correspondencias de entrada y salida que un cliente honesto ha comprometido previamente. No demuestra el origen del archivo, que el cliente haya proporcionado correctamente los valores iniciales ni en qué máquina ha trabajado el proveedor.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "vault-loss",
+          "title": "¿Podré abrir el archivo si inicio sesión desde otro dispositivo?",
+          "text": "Tener acceso a la misma sesión no equivale a acceder a la bóveda del dispositivo anterior. Si se pierden la bóveda local y la clave, también puede perderse la capacidad de descifrar y generar pruebas. No borres los datos del sitio mientras haya una tarea en curso; no hay un servicio de recuperación automática.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "revision",
+          "title": "¿Qué cambia con una revisión o una nueva ejecución?",
+          "text": "Cada nueva versión de entrega y hash de salida invalidan la prueba de la entrega anterior. Descifra, comprueba y prueba de nuevo la nueva entrega. No tienes que aceptar un resultado incorrecto; la aplicación permite solicitar una revisión una vez actualizado el registro en la cadena.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "refund",
+          "title": "¿Se paga automáticamente al vencer el plazo?",
+          "text": "No. El silencio no equivale a una aceptación. Controla por separado en la interfaz el cierre de ofertas, el fin de ejecución y el fin de revisión. Tras vencer el plazo de revisión correspondiente, una solicitud de reembolso libera la reserva patrocinada; no es una transferencia al cliente ni una resolución automática de disputas.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "sponsor",
+          "title": "¿Por qué pueden faltar fondos para una tarea de prueba?",
+          "text": "El fondo de patrocinio y el presupuesto de gas de la clave de transacción son limitados. Se reservan como máximo 0,01 testNEAR por tarea; otras tareas o el coste de la red pueden impedir la operación. El fondo no se repone automáticamente. No se necesita dinero real ni transacciones en la red principal.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "glossary",
+      "kind": "glossary",
+      "title": "Glosario breve",
+      "intro": "Conceptos básicos que verás en las pantallas:",
+      "items": [
+        {
+          "id": "plan-term",
+          "title": "Plan",
+          "text": "Lista ordenada de herramientas tipadas que se aplicarán a columnas anónimas; las reglas de trabajo aprobadas por el cliente.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "gc-term",
+          "title": "Circuito ofuscado (garbled circuit)",
+          "text": "Circuito cifrado que representa las entradas y los resultados mediante etiquetas de cable; el servidor evalúa con estas etiquetas.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "commitment-term",
+          "title": "Compromiso previo",
+          "text": "Vinculación criptográfica publicada antes de la ejecución para impedir que después se sustituya la correspondencia o la solicitud.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "proof-term",
+          "title": "SNARK",
+          "text": "Prueba breve del resultado que permite verificar que se cumple una relación matemática determinada sin publicar el testigo privado.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "hash-term",
+          "title": "Hash y vinculación",
+          "text": "Identificadores que permiten comprobar que la tarea, el plan, la versión de entrega y las condiciones de pago pertenecen exactamente al mismo trabajo.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "final-term",
+          "title": "Finalización",
+          "text": "Verificación de la transacción y del estado correspondiente del contrato; haber enviado una solicitud no significa que el pago esté completado.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    }
+  ]
+}

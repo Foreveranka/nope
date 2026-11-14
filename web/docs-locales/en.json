@@ -1,0 +1,385 @@
+{
+  "version": 1,
+  "locale": "en",
+  "ui": {
+    "title": "Documentation — NOPE",
+    "skip": "Skip to content",
+    "home": "NOPE home page",
+    "navigation": "Documentation sections",
+    "sideLabel": "DOCUMENTATION / 01",
+    "workspace": "Workspace",
+    "verify": "Result verification ↗",
+    "documentation": "Documentation ↗",
+    "sideNote": "Learn the workflow first. Then try it with sample data.",
+    "eyebrow": "NOPE / USER GUIDE",
+    "loading": "Loading documentation…",
+    "loadError": "The documentation could not be loaded. Check your connection and try again.",
+    "retry": "Try again",
+    "copy": "Copy example",
+    "copied": "Copied to clipboard.",
+    "copyError": "Could not copy. You can select and copy the example text instead.",
+    "exampleLabel": "CODE / SYNTHETIC EXAMPLE",
+    "open": "Open in workspace ↗",
+    "backTop": "Back to top ↑",
+    "footer": "Encrypted data · Private bids · User-controlled delivery acceptance"
+  },
+  "page": {
+    "title": "How does NOPE work?",
+    "intro": "NOPE is a testnet marketplace for bounded data transformations on selected CSV fields. You approve the plan in your browser, publish the encrypted job, select a bid and review the delivery. This guide explains the customer’s and provider’s roles, what the proof establishes and the system’s limits."
+  },
+  "sections": [
+    {
+      "id": "components",
+      "kind": "cards",
+      "title": "Six components",
+      "intro": "Each component has a different responsibility. Encryption, verification and payment are separate operations.",
+      "items": [
+        {
+          "id": "browser",
+          "title": "Customer browser and vault",
+          "text": "The CSV is opened here; real column names, untouched fields and decryption information stay local. The encrypted local vault stores private keys and the secret proof witness. If you lose your browser profile or site data, signing in again alone cannot recover this vault.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "planner",
+          "title": "Local planning model",
+          "text": "The model runs in your browser and sees only your public goal and anonymous column types. It does not see private rows. It proposes a plan using supported tools; its proposal is not a correctness guarantee. You review the preview and approve the plan yourself.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "marketplace",
+          "title": "Marketplace and private storage",
+          "text": "The server manages sessions, listings and job status. Private storage holds encrypted tasks, sealed bids and proof records. Bids are encrypted for the customer, who opens them after bidding closes and makes a selection. This is not an automatic or distributed auction.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "evaluator",
+          "title": "Server-side encrypted evaluator",
+          "text": "The selected provider starts actual garbled circuit evaluation on the server. The evaluator processes the selected wire labels and encrypted circuit, producing result labels. The current provider role does not mean that the provider operates an independent computation node.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "proof",
+          "title": "Result proof in the browser and on the server",
+          "text": "The customer’s device generates an actual Noir/UltraHonk SNARK using its stored private witness. The browser and server each verify every cell proof. The proof verifies the approved transformation’s result under the client mappings committed to in advance; it does not establish the original CSV’s provenance or prove an AES execution trace.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "escrow",
+          "title": "NEAR testnet escrow",
+          "text": "The contract binds the job’s hashes, provider, amount, deadlines and delivery version. After acceptance, it executes the native testNEAR transfer. SNARK verification does not happen in the contract; the browser and server enforce that gate. The sponsor pool is limited, and no real money is used.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "workflow",
+      "kind": "steps",
+      "title": "The workflow in eight steps",
+      "intro": "Wait for the status shown on screen to be finalized before moving to the next step.",
+      "items": [
+        {
+          "id": "plan",
+          "title": "Plan",
+          "text": "As a customer, select a CSV and choose the columns to process and their types. Do not put personal data in the public goal. The model uses anonymous fields such as C2 to propose a bounded transformation plan.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "approve",
+          "title": "Preview and approve",
+          "text": "Review the local before/after examples and resource estimate. A correctly formed plan for the wrong intent still does the wrong job; you give approval, not the model.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "encrypt",
+          "title": "Encrypt and commit in advance",
+          "text": "The browser prepares fresh circuit labels, private mappings and proof roots. The immutable proof manifest is included in the published request’s hash before payment and execution. The decoder and witness stay in the vault.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "publish",
+          "title": "Publish and collect sealed bids",
+          "text": "The encrypted task and public description are published. Providers encrypt their price bids for the customer. Monitor the deadline and close bidding, then open the bids locally.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "award",
+          "title": "Select a provider and reserve escrow",
+          "text": "Selecting a bid makes the provider and selected price visible. Reserve the sponsored testnet amount and wait for the escrow status to be finalized. A failed reservation does not authorize execution.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "evaluate",
+          "title": "Evaluate and record delivery",
+          "text": "The selected provider starts execution. The server produces the encrypted result; the delivery version and hash are recorded on NEAR. A record for an older version does not count as a record for the new delivery.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "accept",
+          "title": "Decrypt locally, prove and accept",
+          "text": "The customer decrypts the result locally and compares it with the expected values. SNARK proofs for all cells are generated and verified on both sides. Only a verified proof matching the current delivery satisfies the proof requirement for acceptance.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "settle",
+          "title": "Pay or follow revisions",
+          "text": "Release payment after acceptance. Paid status is verified through the actual transfer, a successful callback and the contract record. You can request a revision for a problematic delivery. After the applicable deadline, a refund returns the reserved amount to the sponsor pool. There is no automatic dispute resolution.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "directions",
+      "kind": "directions",
+      "title": "Directions for customers and providers",
+      "intro": "The roles use separate test sessions. A session name or sign-in does not constitute identity verification or KYC.",
+      "items": [
+        {
+          "id": "customer",
+          "title": "Start as a customer",
+          "text": "Choose the customer role in the workspace. On the new-job page, select the sample CSV and enter the goal, then approve the preview and publish. In the job details, close bidding, open bids and select one. On the delivery screen, complete decryption, proof and decision steps; track finality on the payment screen.",
+          "code": "/workspace → /jobs/new → /job?id=<jobId> → /delivery?id=<jobId> → /payments?id=<jobId>",
+          "href": "/workspace"
+        },
+        {
+          "id": "provider",
+          "title": "Join as a provider",
+          "text": "Start a provider session in a separate browser profile and enter your own testnet payment account. Review the open job’s plan, limits and deadline before bidding. If selected, wait for escrow finality, then start evaluation only for your assigned job. Track the new delivery and payment status within the same job.",
+          "code": "/workspace → /provider → /offer?id=<jobId> → /job?id=<jobId>",
+          "href": "/workspace"
+        }
+      ]
+    },
+    {
+      "id": "example",
+      "kind": "example",
+      "title": "A small before / after example",
+      "intro": "In the synthetic example below, C2 is text and C3 is numeric. Other columns are preserved on the customer’s device. When checking the output, review both the order of operations and the missing-value rule.",
+      "items": [
+        {
+          "id": "worked",
+          "title": "Two columns, two explicit rules",
+          "text": "For text, remove only leading and trailing ASCII spaces, convert to uppercase and replace digits with asterisks. For numbers, fill missing values with 10, then clamp to the 10–80 range. The value 200 becomes 80; 42 is already in range and stays unchanged.",
+          "code": "C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "templates",
+      "kind": "templates",
+      "title": "Copy and try it yourself",
+      "intro": "These buttons only copy to the clipboard. They do not upload files, publish jobs or initiate payments. Save the CSV as a local file; public goal examples are provided as English code snippets.",
+      "items": [
+        {
+          "id": "csv",
+          "title": "Ready-to-use synthetic CSV",
+          "text": "The first column identifies the record, the second contains text and the third contains numbers. After selecting the file, check the types for C2 and C3. This three-row example contains no real customer data.",
+          "code": "record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n",
+          "href": ""
+        },
+        {
+          "id": "goal-mixed",
+          "title": "Public goal for text and numbers",
+          "text": "This goal corresponds to the before/after example above. Do not include private column names or row values in the goal. Always review and approve the model’s proposed plan using the preview.",
+          "code": "For C2, trim ASCII spaces, uppercase ASCII letters, then redact digits with *. For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.",
+          "href": ""
+        },
+        {
+          "id": "goal-number",
+          "title": "A smaller goal for numbers only",
+          "text": "For a smaller first trial, select only C3. Changing the order of filling missing values and clamping can produce different results; operation order is part of your approval.",
+          "code": "For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "limits",
+      "kind": "list",
+      "title": "Capabilities and limits",
+      "intro": "The interface’s current resource estimate is what counts. If a limit is exceeded, rows are not silently dropped; job preparation stops.",
+      "items": [
+        {
+          "id": "numeric",
+          "title": "Numeric tools",
+          "text": "Missing-value filling and range clamping are supported. Actual numeric values are integers from 0–254; 255 marks a missing value. Decimal or unbounded numeric transformations are not supported.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "text",
+          "title": "ASCII text tools",
+          "text": "ASCII text up to 16 bytes supports trimming at both ends, upper/lowercase conversion and digit masking. Turkish character conversion, general Unicode cleaning and semantic text analysis are not supported.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "size",
+          "title": "Small, bounded jobs",
+          "text": "Up to four selected columns are supported, with 32 rows for numeric columns and eight for text columns. The total number of cell proofs cannot exceed 40. Circuit, request and proof bundle sizes are checked separately; 32 rows across four numeric columns are not allowed.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "scope",
+          "title": "No unrestricted model access to private data",
+          "text": "This product executes bounded tool plans, not arbitrary AI chat over a private CSV. It does not provide independent provider infrastructure or guaranteed automatic legal decisions. Proof generation uses your device’s resources; completion time is not guaranteed.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "privacy",
+      "kind": "list",
+      "title": "What is visible, and what stays local?",
+      "intro": "Encrypted content does not mean all metadata is private.",
+      "items": [
+        {
+          "id": "public",
+          "title": "Information that may be public",
+          "text": "The listing description, anonymous column types, plan, row and column counts, timestamps, hashes, selected provider and price are visible. Write your goal accordingly. The public proof page exposes only filtered encrypted task, delivery, proof and binding information.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "private",
+          "title": "Local data and trust assumptions",
+          "text": "The raw CSV, original headers, decoder, alternative label pairs and private proof witness are not included in the public proof. The browser app, server authorization and RPC responses are trusted. These boundaries alone do not protect against a malicious frontend or a compromised device.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "verification",
+      "kind": "links",
+      "title": "Independent result verification",
+      "intro": "Seeing a server success badge is not the same as verifying the proof again.",
+      "items": [
+        {
+          "id": "public-verifier",
+          "title": "Public verification page",
+          "text": "Enter the job ID on the verification page. The browser checks the actual proofs locally and uses RPC to check that the task, program, plan and current delivery match the contract record. It does not need the customer’s decoder. This method is RPC-backed, not a light client.",
+          "code": "/verify?id=<jobId>",
+          "href": "/verify"
+        },
+        {
+          "id": "payment-check",
+          "title": "Keep result proof and payment separate",
+          "text": "A correct result proof alone does not show that payment was made. On the payment screen, separately check the actual transaction hash and finalized contract state. If an action’s outcome is uncertain, refresh the existing transaction’s status instead of attempting another payment.",
+          "code": "/payments?id=<jobId>",
+          "href": "/workspace"
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "kind": "faq",
+      "title": "Frequently asked questions",
+      "intro": "Understanding these conditions before trying the system helps prevent loss of data and time.",
+      "items": [
+        {
+          "id": "file-origin",
+          "title": "Does the proof establish that my original file is correct?",
+          "text": "No. The proof establishes result correctness under the input/output mappings committed to in advance by an honest client. It does not establish the file’s origin, that the customer supplied truthful initial values or which machine the provider used.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "vault-loss",
+          "title": "Can I open my file by signing in on another device?",
+          "text": "Access to the same session is not access to the old device’s vault. Losing the local vault and key may also mean losing the ability to decrypt or generate proofs. Do not clear site data while a job is in progress; there is no automatic recovery service.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "revision",
+          "title": "What changes with a revision or another execution?",
+          "text": "Each new delivery version and output hash invalidates the previous delivery’s proof. Decrypt, check and prove the new delivery again. You do not have to accept an incorrect result; the app allows a revision after the current delivery is recorded on-chain.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "refund",
+          "title": "Does the deadline trigger automatic payment?",
+          "text": "No. Silence does not count as acceptance. Track the bidding, execution and review deadlines separately in the interface. After the applicable review period expires, a refund request frees the sponsor allocation again; it is not a transfer to the customer or an automatic dispute decision.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "sponsor",
+          "title": "Why might funding be insufficient for a test job?",
+          "text": "The sponsor pool and the transaction key’s gas budget are finite. Up to 0,01 testNEAR is reserved per job; other jobs or network costs may prevent the action. The pool does not replenish itself. No real money or mainnet transaction is required.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "glossary",
+      "kind": "glossary",
+      "title": "Short glossary",
+      "intro": "Key terms you will see on screen:",
+      "items": [
+        {
+          "id": "plan-term",
+          "title": "Plan",
+          "text": "An ordered list of typed tools applied to anonymous columns; the processing instructions approved by the customer.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "gc-term",
+          "title": "Garbled circuit",
+          "text": "An encrypted circuit that represents inputs and results using wire labels; the server evaluates these labels.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "commitment-term",
+          "title": "Prior commitment",
+          "text": "A cryptographic binding published before execution to prevent switching to a different mapping or request later.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "proof-term",
+          "title": "SNARK",
+          "text": "A succinct result proof used to verify that a specific mathematical relation holds without publishing the private witness.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "hash-term",
+          "title": "Hashes and bindings",
+          "text": "Identifiers used to check that the task, plan, delivery version and payment terms all belong to the exact same job.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "final-term",
+          "title": "Finality",
+          "text": "Verification of the transaction and corresponding contract state; sending a request alone does not mean payment is complete.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,385 @@
+{
+  "version": 1,
+  "locale": "de",
+  "ui": {
+    "title": "Dokumentation — NOPE",
+    "skip": "Zum Inhalt springen",
+    "home": "NOPE-Startseite",
+    "navigation": "Dokumentationsabschnitte",
+    "sideLabel": "DOKUMENTATION / 01",
+    "workspace": "Arbeitsbereich",
+    "verify": "Ergebnisprüfung ↗",
+    "documentation": "Dokumentation ↗",
+    "sideNote": "Lerne zuerst den Ablauf kennen. Probiere ihn anschließend mit Beispieldaten aus.",
+    "eyebrow": "NOPE / BENUTZERHANDBUCH",
+    "loading": "Dokumentation wird geladen…",
+    "loadError": "Die Dokumentation konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.",
+    "retry": "Erneut versuchen",
+    "copy": "Beispiel kopieren",
+    "copied": "In die Zwischenablage kopiert.",
+    "copyError": "Das Kopieren ist fehlgeschlagen. Du kannst den Beispieltext markieren und selbst kopieren.",
+    "exampleLabel": "CODE / SYNTHETISCHES BEISPIEL",
+    "open": "Im Arbeitsbereich öffnen ↗",
+    "backTop": "Nach oben ↑",
+    "footer": "Verschlüsselte Daten · Geheime Angebote · Lieferannahme unter deiner Kontrolle"
+  },
+  "page": {
+    "title": "Wie funktioniert NOPE?",
+    "intro": "NOPE ist ein Testnet-Marktplatz für begrenzte Datentransformationen in ausgewählten CSV-Feldern. Du gibst den Plan im Browser frei, veröffentlichst den verschlüsselten Auftrag, wählst ein Angebot aus und prüfst die Lieferung. Dieser Leitfaden erklärt die Aufgaben von Kunde und Anbieter, die Aussage des Nachweises und die Grenzen des Systems."
+  },
+  "sections": [
+    {
+      "id": "components",
+      "kind": "cards",
+      "title": "Sechs Komponenten",
+      "intro": "Jede Komponente hat eine andere Aufgabe. Verschlüsselung, Prüfung und Zahlung sind getrennte Vorgänge.",
+      "items": [
+        {
+          "id": "browser",
+          "title": "Kundenbrowser und Tresor",
+          "text": "Hier wird die CSV geöffnet. Echte Spaltennamen, unveränderte Felder und Entschlüsselungsinformationen bleiben lokal. Der verschlüsselte lokale Tresor speichert private Schlüssel und geheime Nachweisdaten. Wenn dein Browserprofil oder deine Websitedaten verloren gehen, lässt sich dieser Tresor nicht allein durch eine erneute Anmeldung wiederherstellen.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "planner",
+          "title": "Lokales Planungsmodell",
+          "text": "Das Modell läuft in deinem Browser und sieht nur dein öffentliches Ziel und anonyme Spaltentypen. Private Zeilen sieht es nicht. Es schlägt einen Plan mit unterstützten Werkzeugen vor. Dieser Vorschlag garantiert keine Korrektheit. Du prüfst die Vorschau und gibst den Plan selbst frei.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "marketplace",
+          "title": "Marktplatz und privater Speicher",
+          "text": "Der Server verwaltet Sitzungen, Ausschreibungen und den Auftragsstatus. Der private Speicher enthält verschlüsselte Aufgaben, verdeckte Angebote und Nachweisdatensätze. Angebote werden für den Kunden verschlüsselt. Nach Ende der Angebotsphase öffnet er sie und trifft seine Auswahl. Dies ist keine automatische oder verteilte Auktion.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "evaluator",
+          "title": "Serverseitige verschlüsselte Auswertung",
+          "text": "Der ausgewählte Anbieter startet die tatsächliche Garbled-Circuit-Auswertung auf dem Server. Die Auswertung verarbeitet die ausgewählten Leitungslabels und den verschlüsselten Schaltkreis und erzeugt Ergebnislabels. Die derzeitige Anbieterrolle bedeutet nicht, dass der Anbieter einen unabhängigen Rechenknoten betreibt.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "proof",
+          "title": "Ergebnisnachweis in Browser und Server",
+          "text": "Das Kundengerät erstellt mit den gespeicherten geheimen Nachweisdaten einen tatsächlichen Noir/UltraHonk SNARK. Browser und Server prüfen jeweils sämtliche Zellnachweise. Der Nachweis verifiziert das Ergebnis der freigegebenen Transformation unter den vorab festgelegten Client-Zuordnungen. Er belegt weder die Herkunft der ursprünglichen CSV noch eine AES-Ausführungsspur.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "escrow",
+          "title": "NEAR-Testnet-Escrow",
+          "text": "Der Vertrag bindet die Hashes des Auftrags, den Anbieter, den Betrag, die Fristen und die Lieferversion. Nach der Annahme führt er die native testNEAR-Überweisung aus. Die SNARK-Prüfung findet nicht im Vertrag statt. Diese Prüfung setzen Browser und Server durch. Der Sponsorenpool ist begrenzt. Echtes Geld wird nicht verwendet.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "workflow",
+      "kind": "steps",
+      "title": "Der Ablauf in acht Schritten",
+      "intro": "Warte auf die endgültige Bestätigung des angezeigten Status, bevor du mit dem nächsten Schritt fortfährst.",
+      "items": [
+        {
+          "id": "plan",
+          "title": "Planen",
+          "text": "Wähle als Kunde eine CSV sowie die zu verarbeitenden Spalten und ihre Typen aus. Schreibe keine personenbezogenen Daten in das öffentliche Ziel. Das Modell erstellt anhand anonymer Felder wie C2 einen begrenzten Transformationsplan.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "approve",
+          "title": "Vorschau prüfen und freigeben",
+          "text": "Prüfe die lokalen Vorher/Nachher-Beispiele und die Ressourcenschätzung. Auch ein korrekt aufgebauter Plan erledigt die falsche Aufgabe, wenn er das falsche Ziel umsetzt. Du gibst ihn frei, nicht das Modell.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "encrypt",
+          "title": "Verschlüsseln und vorab binden",
+          "text": "Der Browser bereitet neue Schaltkreislabels, geheime Zuordnungen und Nachweiswurzeln vor. Das unveränderliche Nachweismanifest wird vor Zahlung und Ausführung in den Hash der veröffentlichten Anfrage einbezogen. Decoder und geheime Nachweisdaten bleiben im Tresor.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "publish",
+          "title": "Veröffentlichen und verdeckte Angebote einholen",
+          "text": "Die verschlüsselte Aufgabe und die öffentliche Beschreibung werden veröffentlicht. Anbieter verschlüsseln ihre Preisangebote für den Kunden. Behalte die Frist im Blick, beende die Angebotsphase und öffne die Angebote anschließend lokal.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "award",
+          "title": "Anbieter auswählen und Escrow reservieren",
+          "text": "Mit der Auswahl eines Angebots werden Anbieter und ausgewählter Preis sichtbar. Reserviere den gesponserten Testnet-Betrag und warte auf den endgültig bestätigten Escrow-Status. Eine fehlgeschlagene Reservierung berechtigt nicht zur Ausführung.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "evaluate",
+          "title": "Auswerten und Lieferung eintragen",
+          "text": "Der ausgewählte Anbieter startet die Ausführung. Der Server erzeugt das verschlüsselte Ergebnis. Lieferversion und Hash werden auf NEAR eingetragen. Der Eintrag einer älteren Version ersetzt nicht den Eintrag der neuen Lieferung.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "accept",
+          "title": "Lokal entschlüsseln, nachweisen und annehmen",
+          "text": "Der Kunde entschlüsselt das Ergebnis lokal und vergleicht es mit den erwarteten Werten. Für alle Zellen werden SNARK-Nachweise erstellt und auf beiden Seiten geprüft. Nur ein verifizierter Nachweis, der zur aktuellen Lieferung passt, erfüllt die Nachweisanforderung für die Annahme.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "settle",
+          "title": "Bezahlen oder Korrekturen verfolgen",
+          "text": "Gib die Zahlung nach der Annahme frei. Der Status „Bezahlt“ wird anhand der tatsächlichen Überweisung, eines erfolgreichen Callbacks und des Vertragseintrags verifiziert. Bei einer fehlerhaften Lieferung kannst du eine Korrektur anfordern. Nach Ablauf der maßgeblichen Frist gibt eine Rückzahlung den reservierten Betrag an den Sponsorenpool zurück. Es gibt keine automatische Streitbeilegung.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "directions",
+      "kind": "directions",
+      "title": "Anleitung für Kunden und Anbieter",
+      "intro": "Die Rollen nutzen getrennte Testsitzungen. Ein Sitzungsname oder eine Anmeldung stellt keine Identitätsprüfung oder KYC dar.",
+      "items": [
+        {
+          "id": "customer",
+          "title": "Als Kunde starten",
+          "text": "Wähle im Arbeitsbereich die Kundenrolle. Wähle auf der Seite für neue Aufträge die Beispiel-CSV und gib das Ziel ein. Prüfe die Vorschau, gib sie frei und veröffentliche den Auftrag. Beende in den Auftragsdetails die Angebotsphase, öffne die Angebote und wähle eines aus. Führe auf der Lieferseite Entschlüsselung, Nachweis und Entscheidung aus. Verfolge die endgültige Bestätigung auf der Zahlungsseite.",
+          "code": "/workspace → /jobs/new → /job?id=<jobId> → /delivery?id=<jobId> → /payments?id=<jobId>",
+          "href": "/workspace"
+        },
+        {
+          "id": "provider",
+          "title": "Als Anbieter mitmachen",
+          "text": "Öffne eine Anbietersitzung in einem separaten Browserprofil und gib dein eigenes Testnet-Zahlungskonto an. Prüfe vor der Angebotsabgabe den Plan, die Grenzen und die Frist des offenen Auftrags. Warte nach deiner Auswahl auf die endgültige Escrow-Bestätigung und starte nur die Auswertung des dir zugewiesenen Auftrags. Verfolge die neue Lieferung und den Zahlungsstatus im selben Auftrag.",
+          "code": "/workspace → /provider → /offer?id=<jobId> → /job?id=<jobId>",
+          "href": "/workspace"
+        }
+      ]
+    },
+    {
+      "id": "example",
+      "kind": "example",
+      "title": "Ein kleines Vorher/Nachher-Beispiel",
+      "intro": "Im synthetischen Beispiel unten ist C2 eine Textspalte und C3 eine Zahlenspalte. Andere Spalten bleiben auf dem Kundengerät erhalten. Prüfe bei der Ausgabe sowohl die Reihenfolge der Schritte als auch die Regel für fehlende Werte.",
+      "items": [
+        {
+          "id": "worked",
+          "title": "Zwei Spalten, zwei klare Regeln",
+          "text": "Entferne im Text nur ASCII-Leerzeichen am Anfang und Ende, wandle ihn in Großbuchstaben um und ersetze Ziffern durch Sternchen. Fülle fehlende Zahlenwerte mit 10 und begrenze sie anschließend auf den Bereich 10–80. Aus 200 wird 80. Der Wert 42 liegt bereits im Bereich und bleibt unverändert.",
+          "code": "C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "templates",
+      "kind": "templates",
+      "title": "Kopieren und selbst ausprobieren",
+      "intro": "Diese Schaltflächen kopieren nur in die Zwischenablage. Sie laden keine Dateien hoch, veröffentlichen keine Aufträge und lösen keine Zahlungen aus. Speichere die CSV als lokale Datei. Die Beispiele für öffentliche Ziele sind als englische Codeblöcke angegeben.",
+      "items": [
+        {
+          "id": "csv",
+          "title": "Fertige synthetische CSV",
+          "text": "Die erste Spalte kennzeichnet den Datensatz, die zweite enthält Text und die dritte Zahlen. Prüfe nach der Dateiauswahl die Typen von C2 und C3. Dieses Beispiel mit drei Zeilen enthält keine echten Kundendaten.",
+          "code": "record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n",
+          "href": ""
+        },
+        {
+          "id": "goal-mixed",
+          "title": "Öffentliches Ziel für Text und Zahlen",
+          "text": "Dieses Ziel entspricht dem Vorher/Nachher-Beispiel oben. Füge dem Ziel keine geheimen Spaltennamen oder Zeilenwerte hinzu. Prüfe den Modellvorschlag weiterhin anhand der Vorschau und gib ihn selbst frei.",
+          "code": "For C2, trim ASCII spaces, uppercase ASCII letters, then redact digits with *. For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.",
+          "href": ""
+        },
+        {
+          "id": "goal-number",
+          "title": "Ein kleineres Ziel nur für Zahlen",
+          "text": "Wähle für einen kleineren ersten Versuch nur C3 aus. Eine andere Reihenfolge beim Füllen fehlender Werte und Begrenzen kann andere Ergebnisse erzeugen. Die Reihenfolge der Schritte ist Teil deiner Freigabe.",
+          "code": "For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "limits",
+      "kind": "list",
+      "title": "Funktionen und Grenzen",
+      "intro": "Maßgeblich ist die aktuelle Ressourcenschätzung der Oberfläche. Wird eine Grenze überschritten, werden keine Zeilen stillschweigend entfernt. Die Auftragsvorbereitung wird gestoppt.",
+      "items": [
+        {
+          "id": "numeric",
+          "title": "Werkzeuge für Zahlen",
+          "text": "Unterstützt werden das Füllen fehlender Werte und die Begrenzung auf einen Wertebereich. Tatsächliche Zahlenwerte sind ganze Zahlen von 0–254. 255 kennzeichnet einen fehlenden Wert. Dezimalzahlen und Transformationen beliebig großer Zahlen werden nicht unterstützt.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "text",
+          "title": "Werkzeuge für ASCII-Text",
+          "text": "Bei ASCII-Text mit höchstens 16 Byte sind das Entfernen äußerer Leerzeichen, die Umwandlung in Groß-/Kleinbuchstaben und die Maskierung von Ziffern möglich. Die Umwandlung türkischer Zeichen, allgemeine Unicode-Bereinigung und semantische Textanalyse werden nicht unterstützt.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "size",
+          "title": "Kleine, begrenzte Aufträge",
+          "text": "Unterstützt werden höchstens vier ausgewählte Spalten, mit 32 Zeilen für Zahlenspalten und acht für Textspalten. Insgesamt sind höchstens 40 Zellnachweise zulässig. Die Größen von Schaltkreis, Anfrage und Nachweispaket werden zusätzlich geprüft. 32 Zeilen in vier Zahlenspalten sind nicht zulässig.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "scope",
+          "title": "Kein uneingeschränkter Modellzugriff auf private Daten",
+          "text": "Dieses Produkt führt begrenzte Werkzeugpläne aus, keinen beliebigen KI-Chat über eine private CSV. Es bietet weder unabhängige Anbieterinfrastruktur noch eine Garantie für automatische rechtliche Entscheidungen. Die Nachweiserstellung nutzt die Ressourcen deines Geräts. Eine feste Dauer wird nicht garantiert.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "privacy",
+      "kind": "list",
+      "title": "Was ist sichtbar, was bleibt lokal?",
+      "intro": "Verschlüsselte Inhalte bedeuten nicht, dass sämtliche Metadaten geheim sind.",
+      "items": [
+        {
+          "id": "public",
+          "title": "Möglicherweise öffentliche Informationen",
+          "text": "Die Auftragsbeschreibung, anonymen Spaltentypen, der Plan, Zeilen- und Spaltenanzahl, Zeitangaben, Hashes sowie der ausgewählte Anbieter und Preis sind sichtbar. Formuliere dein Ziel entsprechend. Die öffentliche Nachweisseite zeigt nur gefilterte Informationen zu verschlüsselter Aufgabe, Lieferung, Nachweis und Bindung.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "private",
+          "title": "Lokale Daten und Vertrauensannahmen",
+          "text": "CSV-Rohdaten, ursprüngliche Kopfzeilen, Decoder, alternative Labelpaare und geheime Nachweisdaten werden dem öffentlichen Nachweis nicht beigefügt. Die Browseranwendung, die Autorisierung durch den Server und RPC-Antworten werden als vertrauenswürdig vorausgesetzt. Gegen eine bösartige Oberfläche oder ein kompromittiertes Gerät bieten diese Grenzen allein keinen Schutz.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "verification",
+      "kind": "links",
+      "title": "Unabhängige Ergebnisprüfung",
+      "intro": "Eine Erfolgsmeldung des Servers zu sehen ist nicht dasselbe, wie den Nachweis erneut zu prüfen.",
+      "items": [
+        {
+          "id": "public-verifier",
+          "title": "Öffentliche Prüfseite",
+          "text": "Gib die Auftrags-ID auf der Prüfseite ein. Der Browser prüft die tatsächlichen Nachweise lokal. Über RPC kontrolliert er, ob Aufgabe, Programm, Plan und aktuelle Lieferung zum Vertragseintrag passen. Der Decoder des Kunden wird nicht benötigt. Diese Methode ist kein Light Client, sondern stützt sich auf RPC.",
+          "code": "/verify?id=<jobId>",
+          "href": "/verify"
+        },
+        {
+          "id": "payment-check",
+          "title": "Ergebnisnachweis und Zahlung getrennt betrachten",
+          "text": "Ein korrekter Ergebnisnachweis allein zeigt nicht, dass eine Zahlung erfolgt ist. Prüfe auf der Zahlungsseite zusätzlich den tatsächlichen Transaktionshash und den endgültig bestätigten Vertragsstatus. Ist das Ergebnis eines Vorgangs unklar, aktualisiere den Status der bestehenden Transaktion, statt eine weitere Zahlung zu versuchen.",
+          "code": "/payments?id=<jobId>",
+          "href": "/workspace"
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "kind": "faq",
+      "title": "Häufige Fragen",
+      "intro": "Wenn du diese Bedingungen vor dem Ausprobieren kennst, vermeidest du Daten- und Zeitverlust.",
+      "items": [
+        {
+          "id": "file-origin",
+          "title": "Belegt der Nachweis die Korrektheit meiner ursprünglichen Datei?",
+          "text": "Nein. Der Nachweis belegt die Korrektheit des Ergebnisses unter den Eingabe-/Ausgabezuordnungen, die ein ehrlicher Client vorab festgelegt hat. Er belegt weder die Herkunft der Datei noch, dass der Kunde die ursprünglichen Werte wahrheitsgemäß angegeben hat, oder auf welcher Maschine der Anbieter gearbeitet hat.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "vault-loss",
+          "title": "Kann ich meine Datei nach der Anmeldung auf einem anderen Gerät öffnen?",
+          "text": "Der Zugriff auf dieselbe Sitzung bedeutet keinen Zugriff auf den Tresor des bisherigen Geräts. Gehen lokaler Tresor und Schlüssel verloren, kann auch die Möglichkeit zum Entschlüsseln und Erstellen von Nachweisen verloren gehen. Lösche während eines laufenden Auftrags keine Websitedaten. Es gibt keinen automatischen Wiederherstellungsdienst.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "revision",
+          "title": "Was ändert sich bei einer Korrektur oder erneuten Ausführung?",
+          "text": "Jede neue Lieferversion und jeder neue Ausgabe-Hash machen den Nachweis der vorherigen Lieferung ungültig. Entschlüssle und prüfe die neue Lieferung erneut und erstelle einen neuen Nachweis. Du musst kein fehlerhaftes Ergebnis annehmen. Die App erlaubt eine Korrektur nach dem aktuellen Blockchain-Eintrag.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "refund",
+          "title": "Wird nach Fristablauf automatisch bezahlt?",
+          "text": "Nein. Schweigen gilt nicht als Annahme. Verfolge Angebotsfrist, Ausführungsfrist und Prüffrist in der Oberfläche getrennt. Nach Ablauf der maßgeblichen Prüffrist gibt eine Rückzahlungsanfrage die Sponsorenreservierung wieder frei. Das ist weder eine Überweisung an den Kunden noch eine automatische Entscheidung über einen Streitfall.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "sponsor",
+          "title": "Warum können für einen Testauftrag Mittel fehlen?",
+          "text": "Der Sponsorenpool und das Gasbudget des Transaktionsschlüssels sind begrenzt. Pro Auftrag werden höchstens 0,01 testNEAR reserviert. Andere Aufträge oder Netzwerkkosten können den Vorgang verhindern. Der Pool füllt sich nicht selbstständig auf. Echtes Geld oder eine Mainnet-Transaktion sind nicht erforderlich.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "glossary",
+      "kind": "glossary",
+      "title": "Kurzes Glossar",
+      "intro": "Grundbegriffe, die dir in der Oberfläche begegnen:",
+      "items": [
+        {
+          "id": "plan-term",
+          "title": "Plan",
+          "text": "Eine geordnete Liste typisierter Werkzeuge für anonyme Spalten: die vom Kunden freigegebenen Verarbeitungsschritte.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "gc-term",
+          "title": "Garbled Circuit",
+          "text": "Ein verschlüsselter Schaltkreis, der Eingaben und Ergebnisse durch Leitungslabels darstellt. Der Server wertet diese Labels aus.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "commitment-term",
+          "title": "Vorab-Commitment",
+          "text": "Eine vor der Ausführung veröffentlichte kryptografische Bindung, die einen späteren Wechsel zu einer anderen Zuordnung oder Anfrage verhindern soll.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "proof-term",
+          "title": "SNARK",
+          "text": "Ein kurzer Ergebnisnachweis, mit dem sich die Erfüllung einer bestimmten mathematischen Beziehung prüfen lässt, ohne die geheimen Nachweisdaten zu veröffentlichen.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "hash-term",
+          "title": "Hashes und Bindungen",
+          "text": "Kennungen, mit denen geprüft wird, ob Aufgabe, Plan, Lieferversion und Zahlungsbedingungen genau demselben Auftrag zugeordnet sind.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "final-term",
+          "title": "Endgültige Bestätigung",
+          "text": "Die Prüfung der Transaktion und des zugehörigen Vertragsstatus. Allein das Senden einer Anfrage bedeutet nicht, dass die Zahlung abgeschlossen ist.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    }
+  ]
+}

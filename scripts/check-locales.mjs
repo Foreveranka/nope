@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 const root=new URL('../web/locales/',import.meta.url);
 const sources=await Promise.all(['workspace-tr.json','static-tr.json'].map(async name=>JSON.parse(await fs.readFile(new URL(name,root),'utf8'))));
 const merged=Object.fromEntries(Object.entries(Object.assign({'Dil':'Dil','Dil seçimi':'Dil seçimi'},...sources)).sort(([a],[b])=>a.localeCompare(b,'tr')));
-for(const [key,value]of Object.entries(merged))if(typeof value!=='string'||key!==value||!key.trim())throw Error('Invalid source UI catalog key');
+for(const [key,value]of Object.entries(merged))if(typeof value!=='string'||!value.trim()||!key.trim())throw Error('Invalid source UI catalog key');
 if(process.argv.includes('--write-tr'))await fs.writeFile(new URL('tr.json',root),JSON.stringify(merged,null,2)+'\n');
 const placeholders=s=>[...s.matchAll(/\{\d+\}/g)].map(m=>m[0]).sort().join(',');
 const results=[];

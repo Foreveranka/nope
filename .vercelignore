@@ -83,3 +83,5 @@
 !proof-runtime/artifacts/**
 
 !scripts/check-locales.mjs
+
+!scripts/check-docs-locales.mjs

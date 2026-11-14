@@ -1,0 +1,385 @@
+{
+  "version": 1,
+  "locale": "fr",
+  "ui": {
+    "title": "Documentation — NOPE",
+    "skip": "Aller au contenu",
+    "home": "Accueil NOPE",
+    "navigation": "Sections de la documentation",
+    "sideLabel": "DOCUMENTATION / 01",
+    "workspace": "Espace de travail",
+    "verify": "Vérification du résultat ↗",
+    "documentation": "Documentation ↗",
+    "sideNote": "Découvrez d’abord le fonctionnement. Essayez ensuite avec les données d’exemple.",
+    "eyebrow": "NOPE / GUIDE D’UTILISATION",
+    "loading": "Chargement de la documentation…",
+    "loadError": "La documentation n’a pas pu être chargée. Vérifiez votre connexion, puis réessayez.",
+    "retry": "Réessayer",
+    "copy": "Copier l’exemple",
+    "copied": "Copié dans le presse-papiers.",
+    "copyError": "La copie a échoué. Vous pouvez sélectionner le texte de l’exemple et le copier.",
+    "exampleLabel": "CODE / EXEMPLE SYNTHÉTIQUE",
+    "open": "Ouvrir dans l’espace de travail ↗",
+    "backTop": "Retour en haut ↑",
+    "footer": "Données chiffrées · Offres confidentielles · Acceptation de livraison contrôlée par l’utilisateur"
+  },
+  "page": {
+    "title": "Comment fonctionne NOPE ?",
+    "intro": "NOPE est une place de marché de tâches sur testnet permettant de faire effectuer des transformations limitées sur les champs CSV de votre choix. Vous approuvez le plan dans le navigateur, publiez la tâche chiffrée, choisissez une offre et vérifiez la livraison. Ce guide explique les responsabilités du client et du prestataire, la portée de la preuve et les limites du système."
+  },
+  "sections": [
+    {
+      "id": "components",
+      "kind": "cards",
+      "title": "Six composants",
+      "intro": "Chaque composant a une responsabilité distincte. Le chiffrement, la vérification et le paiement ne constituent pas une seule et même opération.",
+      "items": [
+        {
+          "id": "browser",
+          "title": "Navigateur et coffre du client",
+          "text": "Le CSV est ouvert ici ; les véritables noms de colonnes, les champs non traités et les informations de déchiffrement restent en local. Le coffre local chiffré conserve les clés privées et le témoin de preuve. Si vous perdez le profil du navigateur ou les données du site, une simple reconnexion ne permet pas de récupérer ce coffre.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "planner",
+          "title": "Modèle de planification local",
+          "text": "Le modèle qui s’exécute dans le navigateur ne voit que votre objectif public et les types de colonnes anonymes. Il ne voit pas les lignes privées. Il propose un plan à partir des outils pris en charge ; sa proposition n’est pas une garantie de correction. Vous approuvez vous-même le plan après avoir vérifié l’aperçu.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "marketplace",
+          "title": "Place de marché et stockage privé",
+          "text": "Le serveur gère les sessions, les annonces et l’état des tâches. Le stockage privé conserve les tâches chiffrées, les offres scellées et les enregistrements de preuves. Les offres sont chiffrées pour le client ; après la clôture, celui-ci les déchiffre et fait son choix. Il ne s’agit pas d’une enchère automatique ou distribuée.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "evaluator",
+          "title": "Évaluateur chiffré sur le serveur",
+          "text": "Le prestataire choisi lance l’évaluation réelle du circuit brouillé sur le serveur. L’évaluateur traite les étiquettes de fil sélectionnées et le circuit chiffré, puis produit les étiquettes du résultat. Le rôle actuel de prestataire ne signifie pas qu’il exploite un nœud de calcul indépendant.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "proof",
+          "title": "Preuve du résultat dans le navigateur et sur le serveur",
+          "text": "L’appareil du client génère un véritable SNARK Noir/UltraHonk avec le témoin privé qu’il conserve. Le navigateur et le serveur vérifient séparément les preuves de toutes les cellules. La preuve vérifie le résultat de la transformation approuvée selon les correspondances du client engagées à l’avance ; elle ne prouve ni la provenance du CSV d’origine ni une trace d’exécution AES.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "escrow",
+          "title": "Séquestre sur NEAR testnet",
+          "text": "Le contrat lie les hashes de la tâche, le prestataire, le montant, les échéances et la version de livraison. Après l’acceptation, il effectue le transfert natif de testNEAR. Le contrat ne vérifie pas les SNARK ; cette condition est appliquée par le navigateur et le serveur. La réserve de parrainage est limitée et aucun argent réel n’est utilisé.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "workflow",
+      "kind": "steps",
+      "title": "Le parcours en huit étapes",
+      "intro": "Attendez la confirmation de l’état affiché avant de passer à l’étape suivante.",
+      "items": [
+        {
+          "id": "plan",
+          "title": "Planifier",
+          "text": "En tant que client, choisissez un CSV, les colonnes à traiter et leurs types. N’inscrivez aucune donnée personnelle dans l’objectif public. Le modèle produit un plan de transformation limité à partir de champs anonymes tels que C2.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "approve",
+          "title": "Prévisualiser et approuver",
+          "text": "Examinez les exemples locaux avant et après, ainsi que l’estimation des ressources. Un plan techniquement correct répondant à un mauvais objectif effectue tout de même le mauvais travail ; c’est vous qui approuvez, pas le modèle.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "encrypt",
+          "title": "Chiffrer et engager à l’avance",
+          "text": "Le navigateur prépare de nouvelles étiquettes de circuit, des correspondances privées et des racines de preuve. Le manifeste de preuve immuable est inclus dans le hash de la requête publiée avant le paiement et l’exécution. Le décodeur et le témoin restent dans le coffre.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "publish",
+          "title": "Publier et recevoir des offres scellées",
+          "text": "La tâche chiffrée et sa description publique sont publiées. Les prestataires chiffrent leurs offres de prix pour le client. Surveillez l’échéance des offres et clôturez la collecte ; déchiffrez ensuite les offres localement.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "award",
+          "title": "Choisir le prestataire et réserver le séquestre",
+          "text": "Lorsque vous choisissez une offre, le prestataire et le prix retenu deviennent visibles. Réservez le montant sponsorisé sur testnet et attendez la finalisation du séquestre. Une réservation échouée n’autorise pas l’exécution.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "evaluate",
+          "title": "Évaluer et enregistrer la livraison",
+          "text": "Le prestataire choisi lance l’exécution. Le serveur produit le résultat chiffré ; la version de livraison et son hash sont enregistrés sur NEAR. L’enregistrement d’une ancienne version ne remplace pas celui de la nouvelle livraison.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "accept",
+          "title": "Décoder localement, prouver et accepter",
+          "text": "Le client décode le résultat localement et le compare aux valeurs attendues. Les preuves SNARK de toutes les cellules sont générées et vérifiées des deux côtés. Seule une preuve vérifiée correspondant à la livraison actuelle permet son acceptation.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "settle",
+          "title": "Payer ou suivre la révision",
+          "text": "Après l’acceptation, libérez le paiement. L’état payé est vérifié à partir du transfert réel, du rappel réussi et de l’enregistrement du contrat. Vous pouvez demander une révision en cas de livraison incorrecte ; une fois l’échéance applicable dépassée, le remboursement restitue le montant réservé à la réserve de parrainage. Il n’y a pas de résolution automatique des litiges.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "directions",
+      "kind": "directions",
+      "title": "Instructions pour les clients et les prestataires",
+      "intro": "Les rôles correspondent à des sessions de test distinctes. Le nom de session ou la connexion ne constitue ni une vérification d’identité ni un contrôle KYC.",
+      "items": [
+        {
+          "id": "customer",
+          "title": "Commencer en tant que client",
+          "text": "Choisissez le rôle client dans l’espace de travail. Sur la page de création de tâche, sélectionnez le CSV d’exemple et saisissez l’objectif ; publiez après avoir approuvé l’aperçu. Dans les détails de la tâche, clôturez les offres, déchiffrez-les et choisissez-en une. Effectuez le décodage, la preuve et la décision sur l’écran de livraison ; suivez la finalisation sur l’écran de paiement.",
+          "code": "/workspace → /jobs/new → /job?id=<jobId> → /delivery?id=<jobId> → /payments?id=<jobId>",
+          "href": "/workspace"
+        },
+        {
+          "id": "provider",
+          "title": "Participer en tant que prestataire",
+          "text": "Ouvrez une session prestataire dans un profil de navigateur distinct et indiquez votre propre compte de paiement testnet. Examinez le plan, les limites et le délai de la tâche ouverte avant de proposer une offre. Si vous êtes choisi, attendez la finalisation du séquestre ; lancez l’évaluation uniquement pour la tâche qui vous est attribuée. Suivez la nouvelle livraison et le paiement depuis cette même tâche.",
+          "code": "/workspace → /provider → /offer?id=<jobId> → /job?id=<jobId>",
+          "href": "/workspace"
+        }
+      ]
+    },
+    {
+      "id": "example",
+      "kind": "example",
+      "title": "Un petit exemple avant et après",
+      "intro": "Dans l’exemple synthétique ci-dessous, C2 est du texte et C3 est numérique. Les autres colonnes sont conservées sur l’appareil du client. En vérifiant la sortie, contrôlez à la fois l’ordre et la règle des valeurs manquantes.",
+      "items": [
+        {
+          "id": "worked",
+          "title": "Deux colonnes, deux règles explicites",
+          "text": "Dans le texte, supprimez uniquement les espaces ASCII aux extrémités, convertissez en majuscules et remplacez les chiffres par des astérisques. Pour les nombres, remplacez les valeurs manquantes par 10, puis ramenez-les dans l’intervalle 10–80. La valeur 200 devient 80 ; 42, déjà dans l’intervalle, reste inchangé.",
+          "code": "C2: trim → uppercase → redactDigits\n\"  Acme42  \" → \"ACME**\"\n\" beta7 \"    → \"BETA*\"\n\nC3: fill(10) → clamp(10, 80)\nmissing → 10\n200     → 80\n42      → 42",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "templates",
+      "kind": "templates",
+      "title": "Copiez et essayez",
+      "intro": "Ces boutons copient uniquement dans le presse-papiers. Ils ne téléversent aucun fichier, ne publient aucune tâche et ne déclenchent aucun paiement. Enregistrez le CSV dans un fichier local ; les exemples d’objectifs publics sont fournis sous forme de code en anglais.",
+      "items": [
+        {
+          "id": "csv",
+          "title": "CSV synthétique prêt à l’emploi",
+          "text": "La première colonne identifie l’enregistrement, la deuxième contient du texte et la troisième des nombres. Après avoir sélectionné le fichier, vérifiez les types de C2 et C3. Cet exemple de trois lignes ne contient aucune donnée réelle de client.",
+          "code": "record,supplier,score\nR01,\"  Acme42  \",\nR02,\" beta7 \",200\nR03,Gamma,42\n",
+          "href": ""
+        },
+        {
+          "id": "goal-mixed",
+          "title": "Objectif public pour le texte et les nombres",
+          "text": "Cet objectif correspond à l’exemple avant et après ci-dessus. N’ajoutez pas de noms de colonnes privées ni de valeurs de lignes à l’objectif. Prévisualisez et approuvez tout de même le plan proposé par le modèle.",
+          "code": "For C2, trim ASCII spaces, uppercase ASCII letters, then redact digits with *. For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.",
+          "href": ""
+        },
+        {
+          "id": "goal-number",
+          "title": "Un objectif plus petit, uniquement numérique",
+          "text": "Pour réduire le premier essai, sélectionnez uniquement C3. Inverser l’ordre du remplissage et du bornage peut donner un résultat différent ; l’ordre du plan fait partie de votre approbation.",
+          "code": "For C3, fill missing values with 10, then clamp to 10 through 80. Preserve row order.",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "limits",
+      "kind": "list",
+      "title": "Possibilités et limites",
+      "intro": "L’estimation actuelle des ressources dans l’interface fait foi. En cas de dépassement, les lignes ne sont pas supprimées silencieusement ; la préparation de la tâche est arrêtée.",
+      "items": [
+        {
+          "id": "numeric",
+          "title": "Outils numériques",
+          "text": "Le remplissage des valeurs manquantes et le bornage dans un intervalle sont pris en charge. Les valeurs numériques réelles sont des entiers de 0–254 ; 255 indique une valeur manquante. Les transformations de nombres décimaux ou de taille illimitée ne sont pas disponibles.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "text",
+          "title": "Outils de texte ASCII",
+          "text": "Sur du texte ASCII de 16 octets maximum, vous pouvez supprimer les espaces aux extrémités, convertir la casse et masquer les chiffres. La conversion de caractères turcs, le nettoyage général Unicode et l’analyse sémantique du texte ne sont pas pris en charge.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "size",
+          "title": "Des tâches petites et bornées",
+          "text": "Jusqu’à quatre colonnes sélectionnées sont prises en charge, avec 32 lignes pour les colonnes numériques et huit pour les colonnes de texte. Le total des preuves de cellule ne peut pas dépasser 40. Les tailles du circuit, de la requête et de l’ensemble de preuves sont aussi contrôlées séparément ; quatre colonnes numériques de 32 lignes ne conviennent pas.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "scope",
+          "title": "Aucun accès libre du modèle aux données privées",
+          "text": "Ce produit exécute des plans composés d’outils limités ; il ne fournit pas de conversation d’intelligence artificielle arbitraire sur le CSV privé. Il ne garantit ni une infrastructure de prestataires indépendants ni des décisions juridiques automatiques. La génération de preuves utilise les ressources de l’appareil ; aucun délai n’est garanti.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "privacy",
+      "kind": "list",
+      "title": "Qu’est-ce qui est visible et qu’est-ce qui reste en local ?",
+      "intro": "Un contenu chiffré ne signifie pas que toutes ses métadonnées sont confidentielles.",
+      "items": [
+        {
+          "id": "public",
+          "title": "Informations pouvant être publiques",
+          "text": "La description de l’annonce, les types de colonnes anonymes, le plan, les nombres de lignes et de colonnes, les dates, les hashes, le prestataire choisi et le prix sont visibles. Rédigez votre objectif en conséquence. La page publique de preuve ne présente que la tâche chiffrée, la livraison, la preuve et les informations de liaison filtrées pour publication.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "private",
+          "title": "Données locales et périmètres de confiance",
+          "text": "Le CSV brut, les en-têtes d’origine, le décodeur, les paires d’étiquettes alternatives et le témoin privé de preuve ne sont pas inclus dans la preuve publique. L’application du navigateur, l’autorisation du serveur et les réponses RPC sont des éléments de confiance. À elles seules, ces limites ne protègent pas contre une interface malveillante ou un appareil compromis.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "verification",
+      "kind": "links",
+      "title": "Vérification indépendante du résultat",
+      "intro": "Voir un badge de réussite du serveur ne revient pas à vérifier à nouveau la preuve.",
+      "items": [
+        {
+          "id": "public-verifier",
+          "title": "Page publique de vérification",
+          "text": "Saisissez l’identifiant de la tâche sur la page de vérification. Le navigateur contrôle localement les preuves réelles et vérifie par RPC que la tâche, le programme, le plan et la livraison actuelle correspondent à l’enregistrement du contrat. Il n’a pas besoin du décodeur du client. Cette méthode n’est pas un client léger ; elle dépend du RPC.",
+          "code": "/verify?id=<jobId>",
+          "href": "/verify"
+        },
+        {
+          "id": "payment-check",
+          "title": "Distinguer la preuve du résultat du paiement",
+          "text": "Une preuve valide du résultat ne montre pas à elle seule que le paiement a été effectué. Sur l’écran de paiement, vérifiez séparément le hash de la transaction réelle et l’état finalisé du contrat. Si une opération reste incertaine, actualisez son état au lieu de tenter de payer à nouveau.",
+          "code": "/payments?id=<jobId>",
+          "href": "/workspace"
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "kind": "faq",
+      "title": "Questions fréquentes",
+      "intro": "Connaître ces conditions avant de commencer évite de perdre des données et du temps.",
+      "items": [
+        {
+          "id": "file-origin",
+          "title": "La preuve garantit-elle que mon fichier d’origine est correct ?",
+          "text": "Non. La preuve montre la correction du résultat selon les correspondances d’entrée et de sortie engagées à l’avance par un client honnête. Elle ne prouve ni la provenance du fichier, ni que le client a fourni correctement les valeurs initiales, ni sur quelle machine le prestataire a travaillé.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "vault-loss",
+          "title": "Mon fichier sera-t-il accessible si je me connecte depuis un autre appareil ?",
+          "text": "Accéder à la même session ne signifie pas accéder au coffre de l’ancien appareil. Si le coffre local et la clé sont perdus, la capacité à décoder et à générer des preuves peut aussi être perdue. Ne supprimez pas les données du site pendant une tâche ; aucun service de récupération automatique n’est disponible.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "revision",
+          "title": "Que change une révision ou une nouvelle exécution ?",
+          "text": "Chaque nouvelle version de livraison et chaque nouveau hash de sortie invalident la preuve de la livraison précédente. Décodez, vérifiez et prouvez à nouveau la nouvelle livraison. Vous n’êtes pas obligé d’accepter un résultat incorrect ; l’application permet une révision après la mise à jour de l’enregistrement sur la chaîne.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "refund",
+          "title": "Le paiement est-il automatique à l’échéance ?",
+          "text": "Non. Le silence ne vaut pas acceptation. Surveillez séparément dans l’interface la clôture des offres, la fin de l’exécution et la fin de l’examen. Une fois le délai d’examen applicable dépassé, une demande de remboursement libère la réservation de parrainage ; il ne s’agit ni d’un transfert au client ni d’une décision automatique sur un litige.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "sponsor",
+          "title": "Pourquoi les fonds peuvent-ils manquer pour une tâche de test ?",
+          "text": "La réserve de parrainage et le budget de gaz de la clé de transaction sont limités. Au maximum 0,01 testNEAR est réservé par tâche ; d’autres tâches ou le coût du réseau peuvent bloquer l’opération. La réserve ne se reconstitue pas automatiquement. Aucun argent réel ni aucune transaction sur le réseau principal n’est nécessaire.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "id": "glossary",
+      "kind": "glossary",
+      "title": "Petit glossaire",
+      "intro": "Les notions essentielles que vous verrez à l’écran :",
+      "items": [
+        {
+          "id": "plan-term",
+          "title": "Plan",
+          "text": "Liste ordonnée d’outils typés à appliquer aux colonnes anonymes ; la recette de travail approuvée par le client.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "gc-term",
+          "title": "Circuit brouillé (garbled circuit)",
+          "text": "Circuit chiffré qui représente les entrées et les résultats par des étiquettes de fil ; le serveur effectue l’évaluation à l’aide de ces étiquettes.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "commitment-term",
+          "title": "Engagement préalable",
+          "text": "Liaison cryptographique publiée avant l’exécution pour empêcher de lui substituer ensuite une autre correspondance ou une autre requête.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "proof-term",
+          "title": "SNARK",
+          "text": "Preuve courte du résultat permettant de vérifier qu’une relation mathématique précise est satisfaite sans publier le témoin privé.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "hash-term",
+          "title": "Hash et liaison",
+          "text": "Identifiants permettant de vérifier que la tâche, le plan, la version de livraison et les conditions de paiement appartiennent exactement au même travail.",
+          "code": "",
+          "href": ""
+        },
+        {
+          "id": "final-term",
+          "title": "Finalisation",
+          "text": "Vérification de la transaction et de l’état correspondant du contrat ; le simple envoi d’une requête ne signifie pas que le paiement est terminé.",
+          "code": "",
+          "href": ""
+        }
+      ]
+    }
+  ]
+}

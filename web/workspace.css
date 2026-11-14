@@ -231,3 +231,6 @@ footer .footer-note{font-size:10px}
 
 @media(prefers-reduced-motion:no-preference){a,button,input,select,textarea{transition:background-color .14s ease,border-color .14s ease,color .14s ease}
 }
+
+/* Documentation remains reachable in the compact mobile sidebar too. */
+.side-bottom > a.docs-link{display:inline-flex;align-items:center;min-height:32px}

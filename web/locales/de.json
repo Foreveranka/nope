@@ -817,5 +817,7 @@
   "{0}: {1}": "{0}: {1}",
   "{0}{1}": "{0}{1}",
   "İş tanımı boş olamaz ve en fazla 1800 UTF-8 bayt olmalıdır. Gizli veri yazmayın.": "Die Auftragsbeschreibung darf nicht leer sein und höchstens 1800 UTF-8-Byte umfassen. Gib keine geheimen Daten ein.",
-  "İşlem tamamlanamadı.": "Der Vorgang konnte nicht abgeschlossen werden."
+  "İşlem tamamlanamadı.": "Der Vorgang konnte nicht abgeschlossen werden.",
+  "Dokümantasyon ↗": "Dokumentation ↗",
+  "DOKÜMANTASYON ↗": "DOKUMENTATION ↗"
 }

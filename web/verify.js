@@ -1,5 +1,5 @@
 import {boundedPublicJSON,validatePublicEvidence,verifyPublicChainBinding} from './public-proof.mjs';
-import {initI18n,setLanguage,localizeDocument,mountLanguagePicker,msg,bindText} from './i18n.mjs';
+import {initI18n,setLanguage,localizeDocument,mountLanguagePicker,msg,bindText,hasTranslation} from './i18n.mjs';
 
 // Select/localize first: a query-string job must not begin automatic verification
 // before the initial static UI and language picker are ready.
@@ -7,6 +7,8 @@ try{await initI18n({document,window});}
 catch{setLanguage('en',{persist:false});}
 localizeDocument(document);
 mountLanguagePicker({document,window});
+// Display only cataloged diagnostics; unknown worker/RPC errors stay out of UI.
+const diagnostic=error=>{const text=error?.message;return typeof text==='string'&&hasTranslation(text)?msg(text):msg('Doğrulama tamamlanamadı.');};
 const localizedError=message=>Object.assign(new Error(String(message)),{localizedMessage:message});
 const $=id=>document.getElementById(id);
 
@@ -44,9 +46,9 @@ $('result-proof-form').onsubmit=async event=>{
   bindText($('result-status'),msg('Zincir bağı eşleşti. Gerçek sonuç kanıtı bu tarayıcıda doğrulanıyor…'));
   await proofInBrowser(evidence,current);if(current!==resultEpoch)return;
   bindText($('result-status'),msg('Bağımsız sonuç kanıtı ve kesinleşmiş zincir bağı doğrulandı. CSV veya gizli eşleme açılmadı.'));
-  $('result-details').textContent=JSON.stringify({jobId,relation:'Önceden sabitlenen eşleme altında onaylı işlemin doğru sonucu',...chain,proofRows:evidence.bundle.rows.length},null,2);$('result-details').hidden=false;
+  $('result-details').textContent=JSON.stringify({jobId,relation:'approved-result-under-precommitted-mapping',...chain,proofRows:evidence.bundle.rows.length},null,2);$('result-details').hidden=false;
   const url=new URL(location.href);url.searchParams.set('id',jobId);history.replaceState({},'',url);
- }catch(error){if(current===resultEpoch)bindText($('result-status'),error?.name==='AbortError'?msg('Kayıt alınamadı; sonuç kanıtı onaylanmadı.'):error?.localizedMessage||msg(error?.message||'Doğrulama tamamlanamadı.'));}
+ }catch(error){if(current===resultEpoch)bindText($('result-status'),error?.name==='AbortError'?msg('Kayıt alınamadı; sonuç kanıtı onaylanmadı.'):error?.localizedMessage||diagnostic(error));}
  finally{if(current===resultEpoch){stopResultWork();$('result-check').disabled=false;$('result-cancel').hidden=true;}}
 };
 const resultId=new URL(location.href).searchParams.get('id');if(resultId&&/^[a-f0-9]{32}$/.test(resultId)){ $('result-job-id').value=resultId;$('result-proof-form').requestSubmit();}

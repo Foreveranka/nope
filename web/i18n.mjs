@@ -12,6 +12,8 @@ const checkLanguage=value=>LANGUAGES.includes(value);
 export const getLanguage=()=>language;
 export const getLocale=()=>LOCALES[language];
 const has=(obj,key)=>obj&&Object.hasOwn(obj,key);
+// Membership, not output inequality: a valid catalog value may equal its key.
+export const hasTranslation=source=>typeof source==='string'&&(has(catalogs.tr,source)||has(catalogs.en,source));
 export function translate(source,values=[],lang=language){
  if(typeof source!=='string'||!Array.isArray(values))throw Error('Invalid UI message');
  const dict=catalogs[checkLanguage(lang)?lang:'en'];

@@ -113,7 +113,7 @@ test('v4 unit fixture publishes the precommitted outer task, stable session/job 
 test('enabled v4 initialization failure never invokes v3 fallback or publishes an unproven job',async()=>{
  const f=await fixture();let v3=0;
  const buyer=browser(f,{path:'/jobs/new',garblePlan:()=>{v3++;},garbleProofPlan:()=>{throw Error('UNIT proof assets unavailable');}});await buyer.app.start();await buyer.change('planningMode','agent');await buyer.upload();await buyer.change('agentColumn1','number');await buyer.change('agentGoal',TASK.goal);buyer.get('title').value='UNIT fail closed';await buyer.click('Yerel ajanla plan üret');await buyer.change('agentApprove',true);await buyer.submit();
- assert.equal(v3,0);assert.equal(buyer.calls.filter(c=>c.route==='/jobs'&&c.method==='POST').length,0);assert.match(buyer.message(),/proof assets unavailable/);
+ assert.equal(v3,0);assert.equal(buyer.calls.filter(c=>c.route==='/jobs'&&c.method==='POST').length,0);assert.match(buyer.message(),/İşlem tamamlanamadı/);assert.ok(!buyer.message().includes('UNIT proof assets unavailable'),'unknown SDK diagnostic is never visitor-facing copy');
 });
 
 test('session capability preserves explicit legacy agent v3 and manual v2 while malformed enabled capability never downgrades',async()=>{

@@ -3,10 +3,10 @@
   "version": "0.2.0",
   "description": "NEAR \u00fczerinde gizli tekliflerle i\u015f sat\u0131n alma ve m\u00fc\u015fteri verisini a\u00e7\u0131k h\u00e2liyle y\u00fcr\u00fct\u00fcc\u00fcye vermeden hesaplatma projesinin uygulamas\u0131.",
   "scripts": {
-    "test": "node --test planner-runtime/*.test.mjs web/*.test.mjs tests/cloud_gateway_review.test.mjs tests/procurement_*.test.mjs operators/tests/selection-verifier.test.mjs tests/private_sum.test.mjs tests/plan_gc.test.mjs tests/proof_plan.test.mjs tests/public_proof.test.mjs tests/locale.test.mjs tests/i18n.test.mjs tests/workspace_escrow_deploy.test.mjs tests/recipe_gc.test.mjs tests/csv_gc.test.mjs tests/csv_gc_worker.test.mjs workspace/*.test.mjs",
+    "test": "node --test planner-runtime/*.test.mjs web/*.test.mjs tests/cloud_gateway_review.test.mjs tests/procurement_*.test.mjs operators/tests/selection-verifier.test.mjs tests/private_sum.test.mjs tests/plan_gc.test.mjs tests/proof_plan.test.mjs tests/public_proof.test.mjs tests/locale.test.mjs tests/i18n.test.mjs tests/docs.test.mjs tests/workspace_escrow_deploy.test.mjs tests/recipe_gc.test.mjs tests/csv_gc.test.mjs tests/csv_gc_worker.test.mjs workspace/*.test.mjs",
     "build": "node scripts/build-web.mjs",
     "test:proof": "npm --prefix proof-runtime test",
-    "check:locales": "node scripts/check-locales.mjs"
+    "check:locales": "node scripts/check-locales.mjs && node scripts/check-docs-locales.mjs"
   },
   "repository": {
     "type": "git",

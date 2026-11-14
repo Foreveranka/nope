@@ -195,7 +195,7 @@
   "Expected a 32-byte lowercase hex salt.": "Se espera una sal de 32 bytes en hexadecimal minúsculo.",
   "Expected a canonical nonnegative yoctoNEAR integer string or BigInt.": "Se espera una cadena de entero canónico no negativo en yoctoNEAR o un BigInt.",
   "Expected a dense recipe array.": "Se espera un array de reglas sin huecos.",
-  "Expected a garbled job with sealDecoder.": "Se espera una tarea de circuito garbled con sealDecoder.",
+  "Expected a garbled job with sealDecoder.": "Se espera una tarea de circuito ofuscado con sealDecoder.",
   "Expected a JSON object.": "Se espera un objeto JSON.",
   "Expected a nonnegative NEAR decimal with at most 24 fractional digits.": "Se espera un importe NEAR no negativo con hasta 24 decimales.",
   "Expected a public RSA-OAEP SHA-256 JWK.": "Se espera una clave pública JWK RSA-OAEP SHA-256.",
@@ -216,7 +216,7 @@
   "Fiyatı gizli tut.": "Mantén el precio en privado.",
   "fon ayırma": "reserva de fondos",
   "Fon ayırma": "Reserva de fondos",
-  "GARBLED CIRCUIT": "CIRCUITO GARBLED",
+  "GARBLED CIRCUIT": "CIRCUITO OFUSCADO",
   "Geçerli bir CSV veri kümesi gerekli.": "Se necesita un conjunto de datos CSV válido.",
   "Geçerli bir iş kimliği gerekli.": "Se necesita un identificador de tarea válido.",
   "Geçerli bir testNEAR tutarı girin (en fazla 24 ondalık).": "Introduce un importe válido en testNEAR (hasta 24 decimales).",
@@ -740,7 +740,7 @@
   "Unexpected recipe protocol fields.": "Campos de protocolo de las reglas inesperados.",
   "Unknown recipe gate.": "Puerta de reglas desconocida.",
   "Unlisted runtime network request blocked.": "Se ha bloqueado una solicitud de red del entorno de ejecución no incluida en la lista permitida.",
-  "Unsupported garbled profile.": "Perfil de circuito garbled no compatible.",
+  "Unsupported garbled profile.": "Perfil de circuito ofuscado no compatible.",
   "Unsupported proof action": "Acción de prueba no compatible",
   "Unsupported proof manifest.": "Manifiesto de prueba no compatible.",
   "Unsupported recipe profile or program hash.": "Perfil de reglas o hash de programa no compatible.",
@@ -817,5 +817,7 @@
   "Zincir kayıt bağı manifestle eşleşmiyor.": "La vinculación del registro en la cadena no coincide con el manifiesto.",
   "Zincirde kesinleşmiş teslim: sürüm {0} · şifreli çıktı SHA-256: {1}": "Entrega finalizada en la cadena: versión {0} · SHA-256 de la salida cifrada: {1}",
   "Zincirde ödeme doğrulandı": "Pago verificado en la cadena",
-  "Zincirdeki ön taahhüt, şifreli girdi veya program farklı.": "El compromiso previo, la entrada cifrada o el programa de la cadena es diferente."
+  "Zincirdeki ön taahhüt, şifreli girdi veya program farklı.": "El compromiso previo, la entrada cifrada o el programa de la cadena es diferente.",
+  "Dokümantasyon ↗": "Documentación ↗",
+  "DOKÜMANTASYON ↗": "DOCUMENTACIÓN ↗"
 }

@@ -1,4 +1,4 @@
-import { msg, bindText, bindAttribute, getLocale, setLanguage, initI18n, localizeDocument, mountLanguagePicker } from './i18n.mjs';
+import { msg, bindText, bindAttribute, hasTranslation, getLocale, setLanguage, initI18n, localizeDocument, mountLanguagePicker } from './i18n.mjs';
 import { MAX_BYTES, parseCSV, verifyValues, exportCSV } from './csv-input.mjs';
 import { hashRequest, hashOutput, hashProgram, sha256 } from './gc-core.mjs';
 import { PROFILE as RECIPE_PROFILE, compileRecipe, referenceApply, estimateRecipe, hashRecipeRequest, hashRecipeOutput, hashRecipeProgram } from './recipe-core.mjs';
@@ -116,7 +116,13 @@ export async function generateAgentPlan(task, { workerFactory = () => new Worker
         const value = event.data;
         if (value?.type === 'progress') { try { onProgress(value); } catch {} }
         else if (value?.type === 'plan') resolve(value);
-        else if (value?.type === 'error') reject(productError(modelFailure(value)));
+        else if (value?.type === 'error') {
+          const error = productError(modelFailure(value));
+          // Sanitized worker diagnostics stay on the local Error for debugging;
+          // the UI uses localizedMessage and never prints an unknown diagnostic.
+          if (typeof value.error === 'string') error.message = value.error;
+          reject(error);
+        }
         else reject(productError(msg('Yerel modelden beklenmeyen cevap geldi.')));
       };
       worker.onerror = () => reject(productError(msg('Yerel model yüklenemedi veya bu tarayıcıda çalıştırılamadı.')));
@@ -206,9 +212,17 @@ function productError(text) {
 class FriendlyError extends Error {
   constructor(text) { super(String(text)); this.localizedMessage = text; }
 }
+function diagnosticText(text) {
+  // Catalog membership includes messages whose translation equals their key. Unknown
+  // SDK/browser exceptions are diagnostics, not visitor-facing UI copy.
+  if (hasTranslation(text)) return msg(text);
+  return msg('İşlem tamamlanamadı. Bağlantıyı ve bu cihazdaki yerel kasayı kontrol edip durumu yenileyin.');
+}
 function errorText(error) {
   if (error.localizedMessage) return error.localizedMessage;
   const text = error.message || 'İşlem tamamlanamadı.';
+  // This stale-plan validation also runs before browser catalogs initialize.
+  if (text === 'Plan bu iş tanımına ait değil.') return msg('Plan bu iş tanımına ait değil.');
   // Only known validation templates are translated; model-authored explanations
   // and customer content remain interpolation values, never catalog keys.
   const unsupported = 'Model bu işi desteklenen gizli işlemlerle planlayamadı: ';
@@ -229,7 +243,7 @@ function errorText(error) {
   }
   const rows = /^Expected 1–(\d+) rows\.$/.exec(text);
   if (rows) return msg`Expected 1–${rows[1]} rows.`;
-  return msg(text);
+  return diagnosticText(text);
 }
 const modelStages = {
   loading: msg('Model yükleniyor'), download: msg('Model indiriliyor'), verified: msg('Model dosyası doğrulandı'),
@@ -246,7 +260,7 @@ function modelProgress(value) {
 function modelFailure(value) {
   const text = typeof value.error === 'string' ? value.error : 'Yerel model çalıştırılamadı.';
   const detail = /^Local model failed \([^)]*\): (.*)$/.exec(text);
-  return detail ? msg`Yerel model başarısız (${modelStages[value.stage] || msg('Yerel model')}): ${msg(detail[1])}` : msg(text);
+  return detail ? msg`Yerel model başarısız (${modelStages[value.stage] || msg('Yerel model')}): ${errorText({ message: detail[1] })}` : diagnosticText(text);
 }
 // Values render again inside a bound message; dates must follow the new locale
 // without changing datetime-local controls or any serialized wire timestamps.

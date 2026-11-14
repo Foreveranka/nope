@@ -60,3 +60,13 @@ test('an unavailable or stalled optional catalog retains English and does not bl
   if(failure==='fr'){i.setLanguage('fr');assert.equal(i.getLanguage(),'en');assert.equal(e.records.get(i.STORAGE_KEY),'fr','keep desired choice for next successful load');}
  }
 });
+
+test('diagnostic membership recognizes identity translations without exposing arbitrary error text',async()=>{
+ const i=await moduleForTest(),e=env({preference:'de'});
+ await i.initI18n({document:e.doc,window:e.win,storage:e.storage,fetch:async(url,options)=>{
+  const r=await e.fetch(url,options);const d=await r.json();return{ok:true,json:async()=>({...d,'Secure WebCrypto is required.':String(url).endsWith('/de.json')?'Sicheres WebCrypto ist erforderlich.':'Secure WebCrypto is required.'})};
+ }});
+ assert.equal(i.hasTranslation('Secure WebCrypto is required.'),true);
+ assert.equal(String(i.msg('Secure WebCrypto is required.')),'Sicheres WebCrypto ist erforderlich.');
+ assert.equal(i.hasTranslation('arbitrary private SDK text'),false);
+});
