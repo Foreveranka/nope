@@ -31,21 +31,33 @@ export function createWalletRPC(config,{fetcher=fetch}={}){
   check(Object.hasOwn(data,'result'),'WALLET_RPC_UNAVAILABLE',503);return data.result;
  };
 }
+export const WORKSPACE_ORIGIN='https://nope-workspace.vercel.app';
+export const LEGACY_WORKSPACE_ORIGIN='https://veil-procurement.vercel.app';
+// Configuration is an exact allowlist, never a wildcard or a forwarded-host rule.
+export function workspaceOrigins(env=process.env){
+ const canonical=env.NOPE_WORKSPACE_ORIGIN||WORKSPACE_ORIGIN;
+ const compatibility=env.NOPE_WORKSPACE_COMPAT_ORIGINS===undefined?(canonical===WORKSPACE_ORIGIN?[LEGACY_WORKSPACE_ORIGIN]:[]):env.NOPE_WORKSPACE_COMPAT_ORIGINS.split(',').map(s=>s.trim());
+ const allowed=[...new Set([canonical,...compatibility.filter(s=>s!=='')])];
+ for(const origin of allowed){
+  let url;try{url=new URL(origin);}catch{fail('WALLET_AUTH_ORIGIN',503);}
+  check(url.origin===origin&&!url.hostname.includes('*')&&(url.protocol==='https:'||/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)),'WALLET_AUTH_ORIGIN',503);
+ }
+ return {canonical,allowed};
+}
 export function createWalletAuth({store,env=process.env,config,now=Date.now,rpc}={}){
  if(!config)return null;
  check(config.network==='testnet'&&testnetAccount(config.contractId)&&store&&typeof store.read==='function'&&typeof store.create==='function','WALLET_AUTH_CONFIG',503);
  rpc??=createWalletRPC(config);
- const origin=env.NOPE_WORKSPACE_ORIGIN||'https://veil-procurement.vercel.app';
- check(new URL(origin).origin===origin&&(/^https:\/\//.test(origin)||/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)),'WALLET_AUTH_ORIGIN',503);
- function sessionFor(session,requestOrigin){check(session&&/^[a-f0-9]{32}$/.test(session.id)&&['buyer','provider'].includes(session.role)&&requestOrigin===origin,'WALLET_SESSION_MISMATCH',403);}
- async function get(session){
+ const origins=workspaceOrigins(env);
+ function sessionFor(session,requestOrigin){check(session&&/^[a-f0-9]{32}$/.test(session.id)&&['buyer','provider'].includes(session.role)&&origins.allowed.includes(requestOrigin),'WALLET_SESSION_MISMATCH',403);}
+ async function get(session,origin=origins.canonical){
   sessionFor(session,origin);const record=await store.read(`${WALLET_ROOT}sessions/${session.id}.json`);if(record===null)return null;
   check(record.version===1&&record.sessionId===session.id&&record.role===session.role&&record.origin===origin&&record.wallet?.network==='testnet'&&testnetAccount(record.wallet.accountId)&&typeof record.wallet.publicKey==='string','WALLET_LINK_INTEGRITY',503);
   return structuredClone(record.wallet);
  }
- async function challenge({session,accountId,origin:requestOrigin}){
-  sessionFor(session,requestOrigin);check(testnetAccount(accountId),'WALLET_ACCOUNT_REQUIRED',400);
-  const linked=await get(session);check(!linked||linked.accountId===accountId,'WALLET_ACCOUNT_IMMUTABLE');
+ async function challenge({session,accountId,origin}){
+  sessionFor(session,origin);check(testnetAccount(accountId),'WALLET_ACCOUNT_REQUIRED',400);
+  const linked=await get(session,origin);check(!linked||linked.accountId===accountId,'WALLET_ACCOUNT_IMMUTABLE');
   let limited=true;
   for(let i=0;i<8;i++){const id=sha(`rate:${session.id}:${Math.floor(now()/300000)}:${i}`);if(await store.create(`${WALLET_ROOT}challenges/${id}.json`,{rate:true})){limited=false;break;}}
   check(!limited,'WALLET_CHALLENGE_LIMIT',429);
@@ -54,8 +66,8 @@ export function createWalletAuth({store,env=process.env,config,now=Date.now,rpc}
   const value={challengeId,network:'testnet',accountId,sessionId:session.id,role:session.role,origin,nonce,issuedAt,expiresAt,message:canonical(context),recipient:origin,callbackUrl:origin+'/settings'};
   check(await store.create(`${WALLET_ROOT}challenges/${challengeId}.json`,value),'WALLET_CHALLENGE_COLLISION',503);return Object.freeze(value);
  }
- async function verify({session,origin:requestOrigin,...input}){
-  sessionFor(session,requestOrigin);check(exact(input,['challengeId','accountId','publicKey','signature'])&&hash(input.challengeId)&&testnetAccount(input.accountId),'WALLET_INVALID_PROOF',400);
+ async function verify({session,origin,...input}){
+  sessionFor(session,origin);check(exact(input,['challengeId','accountId','publicKey','signature'])&&hash(input.challengeId)&&testnetAccount(input.accountId),'WALLET_INVALID_PROOF',400);
   const c=await store.read(`${WALLET_ROOT}challenges/${input.challengeId}.json`);
   check(c&&c.challengeId===input.challengeId&&c.sessionId===session.id&&c.role===session.role&&c.origin===origin&&c.network==='testnet'&&c.accountId===input.accountId&&c.recipient===origin&&c.callbackUrl===origin+'/settings','WALLET_CHALLENGE_MISMATCH',403);
   check(Number.isFinite(Date.parse(c.issuedAt))&&Date.parse(c.issuedAt)<=now()&&Date.parse(c.expiresAt)===Date.parse(c.issuedAt)+300000&&now()<Date.parse(c.expiresAt),'WALLET_CHALLENGE_EXPIRED');
@@ -63,7 +75,7 @@ export function createWalletAuth({store,env=process.env,config,now=Date.now,rpc}
   check(c.message===canonical(expected),'WALLET_CHALLENGE_INTEGRITY',503);
   check(typeof input.publicKey==='string'&&/^ed25519:[1-9A-HJ-NP-Za-km-z]{43,44}$/.test(input.publicKey),'WALLET_INVALID_PUBLIC_KEY',400);
   let key;try{key=PublicKey.from(input.publicKey);check(key.toString()===input.publicKey&&key.data.length===32,'WALLET_INVALID_PUBLIC_KEY',400);}catch{fail('WALLET_INVALID_PUBLIC_KEY',400);}
-  const signature=decodeBase64(input.signature,64),nonce=decodeBase64(c.nonce,32),linked=await get(session);check(!linked||linked.accountId===c.accountId,'WALLET_ACCOUNT_IMMUTABLE');
+  const signature=decodeBase64(input.signature,64),nonce=decodeBase64(c.nonce,32),linked=await get(session,origin);check(!linked||linked.accountId===c.accountId,'WALLET_ACCOUNT_IMMUTABLE');
   check((await rpc('status',[]))?.chain_id==='testnet','WALLET_WRONG_NETWORK',503);
   let blockHash;
   try{
@@ -78,7 +90,7 @@ export function createWalletAuth({store,env=process.env,config,now=Date.now,rpc}
   const wallet={accountId:c.accountId,network:'testnet',publicKey:input.publicKey,verifiedAt:new Date(now()).toISOString()};
   const record={version:1,sessionId:session.id,role:session.role,origin,wallet,blockHash};
   if(!await store.create(`${WALLET_ROOT}sessions/${session.id}.json`,record)){
-   const winner=await get(session);check(winner?.accountId===c.accountId&&winner.network==='testnet','WALLET_ACCOUNT_IMMUTABLE');return winner;
+   const winner=await get(session,origin);check(winner?.accountId===c.accountId&&winner.network==='testnet','WALLET_ACCOUNT_IMMUTABLE');return winner;
   }
   return wallet;
  }

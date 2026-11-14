@@ -9,7 +9,7 @@ import {ROOT} from './blob.mjs';
 import {executeTask,validateTask,hashTask,hashTaskProgram} from './gc.mjs';
 import {paymentVerifier,testnetAccount,transactionHash} from './payment.mjs';
 import {WALLET_ESCROW_KIND} from './wallet-escrow.mjs';
-import {walletIdentity,chainHash} from './wallet-auth.mjs';
+import {walletIdentity,chainHash,workspaceOrigins,LEGACY_WORKSPACE_ORIGIN} from './wallet-auth.mjs';
 export const sha=value=>createHash('sha256').update(value).digest('hex');
 const canonical=v=>JSON.stringify(v&&typeof v==='object'?Array.isArray(v)?v.map(x=>JSON.parse(canonical(x))):Object.fromEntries(Object.keys(v).sort().map(k=>[k,JSON.parse(canonical(v[k]))])):v);
 const exact=(o,keys)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).sort().join()===keys.slice().sort().join();
@@ -69,9 +69,9 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
  if(walletRequired&&(!walletEscrow||!walletAuth))throw Error('Wallet authentication and escrow services required');
  const proofEscrow=walletRequired?walletEscrow:walletEscrow||escrow;
  const proofCapabilities=()=>({proof:{profile:PROOF_PROFILE,enabled:Boolean(proofEscrow),contractId:proofEscrow?.contractId||null},...(walletAuth?{wallet:{required:walletRequired,enabled:true,network:'testnet',contractId:walletEscrow?.contractId||null}}:{})});
- async function sessionView(raw){
+ async function sessionView(raw,origin){
   if(!walletAuth)return raw;
-  const wallet=await walletAuth.get(raw);
+  const wallet=await walletAuth.get(raw,origin);
   return Object.defineProperty({...raw,...(wallet?{id:walletIdentity(raw.role,wallet.accountId),paymentAccount:raw.role==='provider'?wallet.accountId:raw.paymentAccount}:{}),wallet},GUEST_ID,{value:raw.id});
  }
  const linked=s=>{if(!s.wallet||s.wallet.network!=='testnet'||!testnetAccount(s.wallet.accountId))fail(403,'WALLET_LINK_REQUIRED');};
@@ -145,8 +145,8 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
  const state=(j,allowed)=>{if(!allowed.includes(j.status))fail(409,'INVALID_STATE');};
  return async req=>{
   try{
-   const url=new URL(req.url),origin=req.headers.get('origin'),allowed=env.NOPE_WORKSPACE_ORIGIN||'https://veil-procurement.vercel.app';
-   if((origin?origin!==allowed:req.method!=='GET')||url.origin!==allowed||new URL(allowed).origin!==allowed||!(/^https:\/\//.test(allowed)||/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(allowed))||req.headers.get('sec-fetch-site')==='cross-site')fail(403,'ORIGIN_DENIED');
+   const url=new URL(req.url),origin=req.headers.get('origin'),origins=workspaceOrigins(env),allowed=url.origin;
+   if(!origins.allowed.includes(allowed)||(origin?origin!==allowed:req.method!=='GET')||req.headers.get('sec-fetch-site')==='cross-site')fail(403,'ORIGIN_DENIED');
    if(!['GET','POST'].includes(req.method))fail(405,'METHOD_NOT_ALLOWED');
    const route=url.pathname.slice('/api/workspace'.length);
    if(!url.pathname.startsWith('/api/workspace/')||[...url.searchParams.keys()].some(k=>!['cursor'].includes(k))||url.searchParams.getAll('cursor').length>1)fail(404,'ROUTE_NOT_FOUND');
@@ -157,8 +157,8 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     const clientToken=cookie||randomBytes(32).toString('base64url'),client=sha(clientToken),token=randomBytes(32).toString('base64url');
     await quota(client,'sessions',sha(token));await daySessionClaim();
     const session={id:randomBytes(16).toString('hex'),role:b.role,displayName:b.displayName,paymentAccount:b.paymentAccount||null};
-    if(!await store.create(`${ROOT}sessions/${sha(token)}.json`,{session,client}))fail(503,'SESSION_UNAVAILABLE');
-    return response({token,session:await sessionView(session),...proofCapabilities()},201,{'Set-Cookie':`workspace_client=${clientToken}; Path=/api/workspace; HttpOnly; SameSite=Strict; Max-Age=2592000${allowed.startsWith('https:')?'; Secure':''}`});
+    if(!await store.create(`${ROOT}sessions/${sha(token)}.json`,{session,client,origin:allowed}))fail(503,'SESSION_UNAVAILABLE');
+    return response({token,session:await sessionView(session,allowed),...proofCapabilities()},201,{'Set-Cookie':`workspace_client=${clientToken}; Path=/api/workspace; HttpOnly; SameSite=Strict; Max-Age=2592000${allowed.startsWith('https:')?'; Secure':''}`});
    }
    // Deliberately public evidence contains only ciphertexts, commitments and an
    // already verified proof. Never return sessions, quotes, names or local keys.
@@ -171,13 +171,15 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     return response({version:1,network:'testnet',jobId:job.id,task:record.task,delivery:job.delivery,binding:proofBindingForJob(job),proof:job.proof,bundle,...(walletPayment(job)?{walletBuyerAccount:job.buyerWallet.accountId}:{})});
    }
    const auth=req.headers.get('authorization')||'';if(!/^Bearer [A-Za-z0-9_-]{43}$/.test(auth))fail(401,'SESSION_REQUIRED');
-   const record=await store.read(`${ROOT}sessions/${sha(auth.slice(7))}.json`);if(!record)fail(401,'SESSION_REQUIRED');const s=await sessionView(record.session);
+   const record=await store.read(`${ROOT}sessions/${sha(auth.slice(7))}.json`);if(!record)fail(401,'SESSION_REQUIRED');
+   const sessionOrigin=record.origin??(origins.allowed.includes(LEGACY_WORKSPACE_ORIGIN)?LEGACY_WORKSPACE_ORIGIN:origins.canonical);
+   if(sessionOrigin!==allowed)fail(403,'SESSION_ORIGIN_MISMATCH');const s=await sessionView(record.session,allowed);
    if(route==='/session'&&req.method==='GET')return response({session:s,...proofCapabilities()});
    if(route==='/wallet'&&req.method==='GET')return response({wallet:s.wallet||null});
    if(req.method==='POST'&&['/wallet/challenge','/wallet/verify'].includes(route)){
     if(!walletAuth)fail(503,'WALLET_AUTH_UNAVAILABLE');const input=await bodyFor(req);
     if(route==='/wallet/challenge'){schema(input,['accountId']);return response({challenge:await walletAuth.challenge({session:record.session,origin:allowed,...input})});}
-    schema(input,['challengeId','accountId','publicKey','signature']);const wallet=await walletAuth.verify({session:record.session,origin:allowed,...input});return response({wallet,session:await sessionView(record.session)});
+    schema(input,['challengeId','accountId','publicKey','signature']);const wallet=await walletAuth.verify({session:record.session,origin:allowed,...input});return response({wallet,session:await sessionView(record.session,allowed)});
    }
    if(route==='/jobs'&&req.method==='GET'){
     const cursor=url.searchParams.get('cursor')||undefined;if(cursor&&cursor.length>2048)fail(400,'INVALID_CURSOR');

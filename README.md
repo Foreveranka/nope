@@ -6,7 +6,9 @@ Hire an agent to transform a CSV without sending its private rows to the plannin
 
 **NEAR Hackathon 2026 · Privacy & Private AI · Working testnet prototype**
 
-[Open NOPE](https://veil-procurement.vercel.app) · [Enter the application](https://veil-procurement.vercel.app/workspace) · [User documentation / Türkçe dahil 5 dil](https://veil-procurement.vercel.app/docs) · [Verify a completed job](https://veil-procurement.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99)
+[Open NOPE](https://nope-workspace.vercel.app) · [Enter the application](https://nope-workspace.vercel.app/workspace) · [User documentation / Türkçe dahil 5 dil](https://nope-workspace.vercel.app/docs) · [Verify a completed job](https://nope-workspace.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99)
+
+The canonical URL is [nope-workspace.vercel.app](https://nope-workspace.vercel.app). The [old URL](https://veil-procurement.vercel.app) remains usable for existing browser sessions and local vault data. Browser storage does not move between origins: use the old URL for existing CSV/decoder/witness data; a fresh wallet login on the new URL can recover wallet-owned job access, but cannot recover that local data.
 
 ## What you can try
 
@@ -18,7 +20,7 @@ This repository's current application is `/workspace`. The older Concrete FHE/MP
 
 ### 1. Independently verify an existing result — no wallet or installation
 
-Open [this browser-demo job](https://veil-procurement.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99). The page fetches public encrypted evidence, checks the pinned contract and finalized chain state, then verifies the actual Noir/UltraHonk result proof in your browser. Wait for the explicit success message and `escrowState: Paid` in the details.
+Open [this browser-demo job](https://nope-workspace.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99). The page fetches public encrypted evidence, checks the pinned contract and finalized chain state, then verifies the actual Noir/UltraHonk result proof in your browser. Wait for the explicit success message and `escrowState: Paid` in the details.
 
 No customer session, CSV, decoder or private mapping is needed. This three-row/two-column browser demo has six actual result proofs. The [earlier one-row HTTP run](docs/verification/wallet-funded-http-production.json) used an authored plan and does not demonstrate neural planning.
 
@@ -146,7 +148,7 @@ These commands run contract unit tests/builds, not deployment or wallet operatio
 
 ### Run your own full application
 
-The hosted demo is the quickest review path. To self-host the complete application, use a Vercel-compatible Node environment and **your own private Vercel Blob store**. Set `BLOB_READ_WRITE_TOKEN` only in the server environment and `NOPE_WORKSPACE_ORIGIN` to the exact origin visitors use. Project keys, invitations and existing Blob credentials are not included in the repository.
+The hosted demo is the quickest review path. To self-host the complete application, use a Vercel-compatible Node environment and **your own private Vercel Blob store**. Set `BLOB_READ_WRITE_TOKEN` only in the server environment and `NOPE_WORKSPACE_ORIGIN` to the exact origin visitors use. `NOPE_WORKSPACE_COMPAT_ORIGINS` optionally lists additional exact origins, separated by commas; it grants no cross-origin API or signature access. The source defaults allow the canonical NOPE URL and the old URL only. Explicit self-host origins do not inherit those defaults. Project keys, invitations and existing Blob credentials are not included in the repository.
 
 For local development, after installing Vercel CLI (58.7.1 was used for the recorded checks) and supplying your own private Blob credential in ignored local environment configuration:
 
@@ -167,7 +169,7 @@ The reviewed live deployment is immutable and capacity-limited. See the contract
 | Browser funding flow | [C775 fund-only evidence](docs/verification/c775-fund-only.json) | Exact 0.001 testNEAR, FINAL same-block pinned code/empty key list and Held state; no payment or result-proof claim |
 | Browser delivery recording | [C775 record-only evidence](docs/verification/c775-record-only.json) | Exact selected-provider record call, zero deposit, FINAL Delivered v1/output hash; no payment or result-proof claim |
 | Real deployed HTTP lifecycle | [Production run](docs/verification/wallet-funded-http-production.json) | Genuine test-wallet NEP-413, sealed bid, exact buyer deposit, encrypted execution, actual result proof, explicit acceptance and provider payout |
-| Independent public result verification | [C775 verifier](https://veil-procurement.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99) | All six proofs and Paid binding passed in live Chrome and a fresh unauthenticated process without the buyer witness |
+| Independent public result verification | [C775 verifier](https://nope-workspace.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99) | All six proofs and Paid binding passed in live Chrome and a fresh unauthenticated process without the buyer witness |
 | Actual native payout and refund | [Financial checks](payments/wallet_escrow/verification/live-financial-checks.json) | Exact public-testnet provider payment and original-buyer refund; direct contract tests, not computation proofs |
 | Locked deployment | [Independent code/key check](docs/verification/wallet-escrow-independent-deploy.json) | Finalized code, source-WASM hash and empty access-key list |
 | Contract execution/failure cases | [Contract evidence](payments/wallet_escrow/README.md#actual-validation-and-deployment) | 13 contract unit tests and a real local WASM sandbox; local sandbox is not public-chain evidence |

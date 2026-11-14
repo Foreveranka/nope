@@ -1,7 +1,7 @@
 import {createWorkspace} from '../workspace/core.mjs';
 import {blobWorkspaceStore} from '../workspace/blob.mjs';
 import {createEscrowService} from '../workspace/escrow.mjs';
-import {createWalletAuth} from '../workspace/wallet-auth.mjs';
+import {createWalletAuth,workspaceOrigins} from '../workspace/wallet-auth.mjs';
 import {createWalletEscrow} from '../workspace/wallet-escrow.mjs';
 import {WALLET_ESCROW_POLICY} from '../workspace/wallet-config.mjs';
 const MAX=1024*1024;
@@ -27,7 +27,12 @@ export function createWorkspaceHandler({env=process.env,store,handle}={}){
  return async function handler(req,res){
   res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
   try{
-   const base=env.NOPE_WORKSPACE_ORIGIN||'https://veil-procurement.vercel.app',url=new URL(req.url,base);
+   const origins=workspaceOrigins(env),host=req.headers?.host;
+   if(host!==undefined&&(typeof host!=='string'||!origins.allowed.some(o=>new URL(o).host===host)))reject(403,'ORIGIN_DENIED');
+   // The direct Host chooses only among configured origins. Never trust forwarded headers
+   // or use Origin to disguise a request to a different (or preview) host.
+   const base=host===undefined?origins.canonical:origins.allowed.find(o=>new URL(o).host===host),url=new URL(req.url,base);
+   if(!origins.allowed.includes(url.origin)||host!==undefined&&url.host!==host)reject(403,'ORIGIN_DENIED');
    if(url.pathname==='/api/workspace'){
     const routes=url.searchParams.getAll('route');if(routes.length!==1||!/^(?:session|wallet(?:\/(?:challenge|verify))?|jobs(?:\/[a-f0-9]{32}(?:\/(?:offers|close|award|task|execute|decision|proof(?:\/evidence)?|payment\/(?:verify|fund|record|release|refund|refresh|prepare|confirm)))?)?)$/.test(routes[0]))reject(404,'ROUTE_NOT_FOUND');url.pathname='/api/workspace/'+routes[0];url.searchParams.delete('route');
    }

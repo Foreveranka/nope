@@ -20,12 +20,28 @@ The selected provider triggers the current garbled-circuit evaluator in the Node
 ## Server configuration
 
 - `BLOB_READ_WRITE_TOKEN`: server-only credential for the deployment's **private** Vercel Blob store.
-- `NOPE_WORKSPACE_ORIGIN`: exact HTTPS application origin, or explicitly configured loopback HTTP origin for development. The default is `https://veil-procurement.vercel.app`.
+- `NOPE_WORKSPACE_ORIGIN`: exact HTTPS application origin, or explicitly configured loopback HTTP origin for development. The default is `https://nope-workspace.vercel.app`.
+- `NOPE_WORKSPACE_COMPAT_ORIGINS`: optional comma-separated additional exact origins. When the canonical origin is the source default, compatibility defaults to `https://veil-procurement.vercel.app`; a different explicit canonical origin has no compatibility default. An explicitly empty value disables compatibility. No wildcard, preview-host or forwarded-host authorization.
 - The reviewed public contract/network/code pins are committed in `workspace/wallet-config.mjs` and `web/wallet-pins.mjs`; the build requires byte parity. They contain no signing key. A different deployment requires a reviewed matching pin update.
 
 New wallet jobs do not use a server wallet signer or a sponsor payment reserve. The server constructs bounded intents and observes the chain. Users authorize signatures and native testnet transfers in their wallets. Never put customer CSV plaintext, a wallet private key, seed, decoder, proof witness or a customer wallet store into environment configuration or Blob.
 
 The private Blob adapter accepts only its bounded immutable application namespaces, including the exact wallet session/challenge/claim/intent/transaction paths. Wallet records retain the 1 MiB bound; the 3 MiB task allowance does not apply to them. The production-path regression is `workspace/wallet-blob.test.mjs`.
+
+## Canonical URL and compatibility rollout
+
+The canonical application URL is `https://nope-workspace.vercel.app`. Keep `https://veil-procurement.vercel.app` attached to the same project and serving the application without a forced redirect: browser sessions, IndexedDB vaults, CSV decoders and proof witnesses cannot transfer between origins. New sessions bind to their creation origin; historical production sessions lacking an origin field remain old-origin sessions. Existing wallet links retain their original origin and records are not rewritten. A fresh verified wallet session at the new URL can recover wallet-owned jobs, but not local CSV/decoder/witness data.
+
+For an explicit production configuration, set these server environment names only after release agreement:
+
+```text
+NOPE_WORKSPACE_ORIGIN=https://nope-workspace.vercel.app
+NOPE_WORKSPACE_COMPAT_ORIGINS=https://veil-procurement.vercel.app
+```
+
+If neither variable is set, the source defaults already allow exactly these two URLs. An existing `NOPE_WORKSPACE_ORIGIN` set to the old URL overrides the new default; update it as above or explicitly add the new origin to `NOPE_WORKSPACE_COMPAT_ORIGINS` during a staged rollout. `NOPE_PROCUREMENT_ORIGIN` and `VEIL_PUBLIC_ORIGIN` belong to older endpoints and do not configure this workspace; this change does not require altering them. `BLOB_READ_WRITE_TOKEN` continues to use the same private store and needs no rotation or value change for this alias addition.
+
+An allowlisted origin must still match the request URL and supplied Origin header. NEP-413 message origin, recipient and `/settings` callback all use the request's own origin; a signature, challenge or bearer session from one URL is rejected at the other. After deployment, smoke each URL separately: create a synthetic session, request `/wallet/challenge` for a synthetic testnet account, and check all three origin fields plus the callback. Replay the token on the other URL to confirm `SESSION_ORIGIN_MISMATCH`. No signature, funding or payout is needed for that smoke check. Source changes do not alter hosted env, domains or deployment by themselves.
 
 ## Build and release
 

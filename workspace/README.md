@@ -45,7 +45,14 @@ intent. The public verifier uses RPC-backed chain checks, not a light client.
 [api/workspace.mjs](../api/workspace.mjs) exports
 `createWorkspaceHandler({env,store?,handle?})`; production uses private Vercel Blob
 with `BLOB_READ_WRITE_TOKEN`. `NOPE_WORKSPACE_ORIGIN` is an exact origin, default
-`https://veil-procurement.vercel.app`. Local origins must be explicitly configured.
+`https://nope-workspace.vercel.app`. `NOPE_WORKSPACE_COMPAT_ORIGINS` is an optional
+comma-separated list of additional exact origins. With the default canonical
+origin, the compatibility default is `https://veil-procurement.vercel.app`;
+an explicit different canonical origin has no compatibility default. Local
+origins must be explicitly configured. Requests must target an allowed origin;
+a supplied Origin must equal that same request origin, even between the two
+allowed URLs. Direct Host only selects a configured origin; preview hosts are
+not automatically allowed.
 There is no forwarded-host authorization, caller-selected RPC or in-memory
 production fallback. The Web Request core is `createWorkspace(...)` in
 [core.mjs](core.mjs); injected stores/RPC are test seams.
@@ -69,14 +76,20 @@ Create a buyer/provider session, then authenticate its wallet:
 
 All routes except session creation and public proof evidence require the session
 bearer. Only the token hash is persisted. Wallet challenges bind account, role,
-session, origin, nonce, timestamps and callback URL `/settings`; the exact signed
+session, request origin, nonce, timestamps and that origin’s callback URL `/settings`; the exact signed
 message/nonce/recipient/callback must be preserved. Public keys are ed25519
 base58; signatures are canonical base64 of 64 bytes. A current FINAL FullAccess
 key must verify the signature. Nonces are one-use, and a session cannot switch
 accounts after linking. Provider payout account is derived from the linked wallet.
 Role/account identities are stable across fresh verified sessions, allowing the
 original buyer to recover escrow access without their old browser session. This
-does not recover the local CSV, decoder or proof witness.
+does not recover the local CSV, decoder or proof witness. Browser sessions and
+vaults do not move between URLs. New bearer sessions are origin-bound; historical
+production sessions without an origin field remain bound to the old URL when
+that compatibility origin is enabled. Existing immutable records are not migrated
+or rewritten. Keep the old URL serving the app without a forced redirect so
+existing users can still use their local vault. Use a fresh wallet login at the
+new URL to recover wallet-owned job access, not local decryption/proof material.
 
 ## Job and payment API
 
@@ -167,7 +180,7 @@ and FINAL **0.001 testNEAR provider payout**. Local/server verification, a fresh
 unauthenticated process and the live public browser verifier verified all six
 proofs. All 11 independent chain/proof checks passed, including the exact native
 transfer, nonce-bound successful callback and same-block pinned/keyless Paid hold.
-The lifecycle snapshot separates browser observations from independent checks. [Open the public verifier](https://veil-procurement.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99)
+The lifecycle snapshot separates browser observations from independent checks. [Open the public verifier](https://nope-workspace.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99)
 without the buyer's session, CSV or witness.
 
 The [earlier Node-signed HTTP lifecycle](../docs/verification/wallet-funded-http-production.json)
