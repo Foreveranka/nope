@@ -14,7 +14,7 @@ const tabs=[...document.querySelectorAll('[data-flow]')];
 const copy={
  client:[msg('Veriniz önce kendi bilgisayarınızda şifrelenir.'),msg('Tarayıcı tek kullanımlık gizli etiketler ve şifreli devre üretir. Açık kayıtlar ve sonuç eşlemesi buluta gönderilmez.')],
  cipher:[msg('Bulut, açık kayıtlarınızı almaz.'),msg('Yürütücü kodlanmış girdiyi ve şifreli devreyi işler. Sonucu anlamlandıran eşleme tarayıcınızda kalır.')],
- result:[msg('Şifreli cevap geri gelir. Açma işi sizdedir.'),msg('Tarayıcı sonucu açar ve kuralla karşılaştırır. Boş değer sıfır, 100 üzeri sayı 100 olur; diğer sütunlar korunur.')]
+ result:[msg('Şifreli cevap geri gelir. Açma işi sizdedir.'),msg('Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.')]
 };
 function activate(tab){
  const stage=tab.dataset.flow;

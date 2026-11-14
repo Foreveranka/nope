@@ -887,5 +887,21 @@
   "Çıkış yerel kasayı silmez. Aynı cüzdan ve rolle yeniden bağlanınca iş sahipliği geri gelir; bu cihazdaki kasa korunuyorsa özel verilere erişilebilir. Farklı cüzdan veya rol iş yetkilerini değiştirir. Kayıp CSV ve çözücü yeniden girişle kurtarılamaz.": "Die Abmeldung löscht den lokalen Tresor nicht. Dieselbe Wallet und Rolle stellen die Auftragsinhaberschaft wieder her; private Daten bleiben zugänglich, wenn der Tresor auf diesem Gerät erhalten ist. Eine andere Wallet oder Rolle ändert die Auftragsrechte. Verlorene CSV oder Decoder werden durch Anmeldung nicht wiederhergestellt.",
   "Başka cüzdan veya rolün iş yetkilerini değiştirdiğini ve yerel kasayı silmenin dosya ile çözücüyü kaybettirebileceğini anladım. Kasayı koruyarak çıkış yapmayı onaylıyorum.": "Ich verstehe, dass eine andere Wallet oder Rolle die Auftragsrechte ändert und das Löschen des Tresors Datei und Decoder verlieren kann. Ich stimme der Abmeldung bei Erhalt des Tresors zu.",
   "Önce yerel kasa ve cüzdan yetkileri uyarısını onaylayın.": "Bestätige zuerst den Hinweis zu lokalem Tresor und Wallet-Rechten.",
-  "Oturum kapandı. Yerel kasa korundu. Aynı cüzdan ve rolle yeniden bağlanabilirsin; kayıp yerel dosyalar yeniden girişle geri gelmez.": "Abgemeldet. Der lokale Tresor bleibt erhalten. Du kannst dieselbe Wallet und Rolle erneut verknüpfen; verlorene lokale Dateien werden durch Anmeldung nicht wiederhergestellt."
+  "Oturum kapandı. Yerel kasa korundu. Aynı cüzdan ve rolle yeniden bağlanabilirsin; kayıp yerel dosyalar yeniden girişle geri gelmez.": "Abgemeldet. Der lokale Tresor bleibt erhalten. Du kannst dieselbe Wallet und Rolle erneut verknüpfen; verlorene lokale Dateien werden durch Anmeldung nicht wiederhergestellt.",
+  "Aynı işte metin ve sayı dönüşümü.": "Text und Zahlen in einem Auftrag.",
+  "Planı onayla, teslimi doğrula.": "Plan freigeben, Lieferung prüfen.",
+  "CSV / METİN + SAYI": "CSV / TEXT + ZAHLEN",
+  "Seçilen sütunlarda örnek dönüşümler": "Beispieltransformationen ausgewählter Spalten",
+  "SÜTUN": "SPALTE",
+  "C1 · METİN": "C1 · TEXT",
+  "C2 · SAYI": "C2 · ZAHL",
+  "C3 · DİĞER": "C3 · ANDERE",
+  "C1: BOŞLUKLARI AL, BÜYÜK HARFE ÇEVİR. C2: BOŞ → 0, ÜST SINIR 100. C3 VE SATIR SIRASI KORUNUR.": "C1: RAND-LEERZEICHEN ENTFERNEN, GROSSSCHREIBUNG. C2: LEER → 0, OBERGRENZE 100. C3 UND ZEILENREIHENFOLGE BLEIBEN ERHALTEN.",
+  "AJAN PLANLAR.": "DER AGENT PLANT.",
+  "VERİ SENDE KALIR.": "DIE DATEN BLEIBEN BEI DIR.",
+  "Ne yapılacağını yaz, işlenecek sütunları seç. Yerel ajan yalnızca açık iş tanımını ve anonim sütun türlerini kullanarak plan hazırlar. Önizlemeyi onayladığında seçilen değerler tarayıcında şifrelenir.": "Beschreibe die Aufgabe und wähle die Spalten. Der lokale Agent plant nur anhand der öffentlichen Aufgabenbeschreibung und anonymen Spaltentypen. Nach Freigabe der Vorschau verschlüsselt dein Browser die ausgewählten Werte.",
+  "Sağlayıcı şifreli hesabı başlatır. Teslimi kendi cihazında aç, önce/sonra tablosunda incele ve sonuç kanıtını doğrula. Ödemeyi serbest bırakmak senin onayını gerektirir.": "Der Anbieter startet die verschlüsselte Berechnung. Öffne die Lieferung auf deinem Gerät, prüfe die Vorher-Nachher-Tabelle und verifiziere den Ergebnisbeweis. Die Zahlung wird nur mit deiner Freigabe ausgezahlt.",
+  "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗": "ABGESCHLOSSENEN AUFTRAG PRÜFEN ↗",
+  "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ": "BIS ZU 4 SPALTEN · 40 ZELLEN · ASCII-TEXT- UND SCHALTUNGSGRENZEN GELTEN",
+  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Dein Browser öffnet das Ergebnis und verifiziert den Ergebnisbeweis. Ausgewählte Text- und Zahlenspalten werden nach deinem freigegebenen Plan umgewandelt; andere Spalten bleiben erhalten."
 }

@@ -887,5 +887,21 @@
   "Çıkış yerel kasayı silmez. Aynı cüzdan ve rolle yeniden bağlanınca iş sahipliği geri gelir; bu cihazdaki kasa korunuyorsa özel verilere erişilebilir. Farklı cüzdan veya rol iş yetkilerini değiştirir. Kayıp CSV ve çözücü yeniden girişle kurtarılamaz.": "Signing out does not delete the local vault. Linking the same wallet and role restores job ownership; private data remains accessible if this device’s vault is intact. A different wallet or role changes job permissions. Signing in cannot recover a lost CSV or decoder.",
   "Başka cüzdan veya rolün iş yetkilerini değiştirdiğini ve yerel kasayı silmenin dosya ile çözücüyü kaybettirebileceğini anladım. Kasayı koruyarak çıkış yapmayı onaylıyorum.": "I understand that another wallet or role changes job permissions and deleting the local vault can lose the file and decoder. I agree to sign out while preserving the vault.",
   "Önce yerel kasa ve cüzdan yetkileri uyarısını onaylayın.": "First acknowledge the local-vault and wallet-permissions warning.",
-  "Oturum kapandı. Yerel kasa korundu. Aynı cüzdan ve rolle yeniden bağlanabilirsin; kayıp yerel dosyalar yeniden girişle geri gelmez.": "Signed out. The local vault was preserved. You can link the same wallet and role again; signing in does not restore lost local files."
+  "Oturum kapandı. Yerel kasa korundu. Aynı cüzdan ve rolle yeniden bağlanabilirsin; kayıp yerel dosyalar yeniden girişle geri gelmez.": "Signed out. The local vault was preserved. You can link the same wallet and role again; signing in does not restore lost local files.",
+  "Aynı işte metin ve sayı dönüşümü.": "Text and numbers in one job.",
+  "Planı onayla, teslimi doğrula.": "Approve the plan. Verify the delivery.",
+  "CSV / METİN + SAYI": "CSV / TEXT + NUMBERS",
+  "Seçilen sütunlarda örnek dönüşümler": "Example transformations in selected columns",
+  "SÜTUN": "COLUMN",
+  "C1 · METİN": "C1 · TEXT",
+  "C2 · SAYI": "C2 · NUMBER",
+  "C3 · DİĞER": "C3 · OTHER",
+  "C1: BOŞLUKLARI AL, BÜYÜK HARFE ÇEVİR. C2: BOŞ → 0, ÜST SINIR 100. C3 VE SATIR SIRASI KORUNUR.": "C1: TRIM, UPPERCASE. C2: EMPTY → 0, CAP AT 100. C3 AND ROW ORDER ARE PRESERVED.",
+  "AJAN PLANLAR.": "THE AGENT PLANS.",
+  "VERİ SENDE KALIR.": "YOU KEEP THE DATA.",
+  "Ne yapılacağını yaz, işlenecek sütunları seç. Yerel ajan yalnızca açık iş tanımını ve anonim sütun türlerini kullanarak plan hazırlar. Önizlemeyi onayladığında seçilen değerler tarayıcında şifrelenir.": "Describe the task and select the columns to process. The local agent plans using only the public job description and anonymous column types. When you approve the preview, your browser encrypts the selected values.",
+  "Sağlayıcı şifreli hesabı başlatır. Teslimi kendi cihazında aç, önce/sonra tablosunda incele ve sonuç kanıtını doğrula. Ödemeyi serbest bırakmak senin onayını gerektirir.": "The provider starts the encrypted computation. Open the delivery on your device, review the before-and-after table and verify the result proof. Releasing payment requires your approval.",
+  "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗": "VERIFY A COMPLETED JOB ↗",
+  "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ": "UP TO 4 COLUMNS · 40 CELLS · ASCII TEXT AND CIRCUIT LIMITS APPLY",
+  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Your browser opens the result and verifies the result proof. Selected text and number columns follow your approved plan; other columns are preserved."
 }

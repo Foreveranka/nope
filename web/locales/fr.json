@@ -887,5 +887,21 @@
   "Çıkış yerel kasayı silmez. Aynı cüzdan ve rolle yeniden bağlanınca iş sahipliği geri gelir; bu cihazdaki kasa korunuyorsa özel verilere erişilebilir. Farklı cüzdan veya rol iş yetkilerini değiştirir. Kayıp CSV ve çözücü yeniden girişle kurtarılamaz.": "La déconnexion ne supprime pas le coffre local. Relier le même portefeuille et rôle rétablit la propriété des travaux ; les données privées restent accessibles si le coffre de cet appareil est intact. Un autre portefeuille ou rôle change les droits. La connexion ne récupère pas un CSV ou décodeur perdu.",
   "Başka cüzdan veya rolün iş yetkilerini değiştirdiğini ve yerel kasayı silmenin dosya ile çözücüyü kaybettirebileceğini anladım. Kasayı koruyarak çıkış yapmayı onaylıyorum.": "Je comprends qu’un autre portefeuille ou rôle change les droits et que supprimer le coffre local peut faire perdre le fichier et le décodeur. J’accepte la déconnexion en conservant le coffre.",
   "Önce yerel kasa ve cüzdan yetkileri uyarısını onaylayın.": "Accepte d’abord l’avertissement sur le coffre local et les droits du portefeuille.",
-  "Oturum kapandı. Yerel kasa korundu. Aynı cüzdan ve rolle yeniden bağlanabilirsin; kayıp yerel dosyalar yeniden girişle geri gelmez.": "Session fermée. Le coffre local a été conservé. Tu peux relier le même portefeuille et rôle ; la connexion ne restaure pas les fichiers locaux perdus."
+  "Oturum kapandı. Yerel kasa korundu. Aynı cüzdan ve rolle yeniden bağlanabilirsin; kayıp yerel dosyalar yeniden girişle geri gelmez.": "Session fermée. Le coffre local a été conservé. Tu peux relier le même portefeuille et rôle ; la connexion ne restaure pas les fichiers locaux perdus.",
+  "Aynı işte metin ve sayı dönüşümü.": "Du texte et des nombres dans une même mission.",
+  "Planı onayla, teslimi doğrula.": "Approuvez le plan. Vérifiez la livraison.",
+  "CSV / METİN + SAYI": "CSV / TEXTE + NOMBRES",
+  "Seçilen sütunlarda örnek dönüşümler": "Exemples de transformations des colonnes sélectionnées",
+  "SÜTUN": "COLONNE",
+  "C1 · METİN": "C1 · TEXTE",
+  "C2 · SAYI": "C2 · NOMBRE",
+  "C3 · DİĞER": "C3 · AUTRE",
+  "C1: BOŞLUKLARI AL, BÜYÜK HARFE ÇEVİR. C2: BOŞ → 0, ÜST SINIR 100. C3 VE SATIR SIRASI KORUNUR.": "C1 : SUPPRIMER LES ESPACES EXTÉRIEURS, MAJUSCULES. C2 : VIDE → 0, PLAFOND 100. C3 ET L’ORDRE DES LIGNES SONT CONSERVÉS.",
+  "AJAN PLANLAR.": "L’AGENT PLANIFIE.",
+  "VERİ SENDE KALIR.": "VOUS GARDEZ LES DONNÉES.",
+  "Ne yapılacağını yaz, işlenecek sütunları seç. Yerel ajan yalnızca açık iş tanımını ve anonim sütun türlerini kullanarak plan hazırlar. Önizlemeyi onayladığında seçilen değerler tarayıcında şifrelenir.": "Décrivez la tâche et sélectionnez les colonnes. L’agent local prépare le plan uniquement à partir de la description publique et des types de colonnes anonymes. Après approbation de l’aperçu, votre navigateur chiffre les valeurs sélectionnées.",
+  "Sağlayıcı şifreli hesabı başlatır. Teslimi kendi cihazında aç, önce/sonra tablosunda incele ve sonuç kanıtını doğrula. Ödemeyi serbest bırakmak senin onayını gerektirir.": "Le prestataire lance le calcul chiffré. Ouvrez la livraison sur votre appareil, comparez les valeurs avant et après et vérifiez la preuve du résultat. Le déblocage du paiement nécessite votre accord.",
+  "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗": "VÉRIFIER UNE MISSION TERMINÉE ↗",
+  "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ": "JUSQU’À 4 COLONNES · 40 CELLULES · LIMITES ASCII ET DE CIRCUIT APPLICABLES",
+  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Votre navigateur ouvre le résultat et vérifie sa preuve. Les colonnes de texte et de nombres sélectionnées suivent le plan approuvé ; les autres sont conservées."
 }
