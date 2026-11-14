@@ -3,15 +3,24 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import {packageAgentModel} from './package-agent-model.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const target = path.join(root, 'dist');
-const files = ['recipes.html','recipes.js','recipe-csv.mjs','recipe-core.mjs','recipe-client.mjs','nope-landing.css','nope-pixels.svg','nope-logo.svg','nope-display.ttf','PressStart2P-OFL.txt','nope-pixel.ttf','nope-mono.ttf','VT323-OFL.txt','SpaceMono-OFL.txt','workspace.html','workspace.css','workspace.js','workspace-vault.mjs','gc-verify-worker.mjs','csv-browser.js','csv-gc-worker.mjs','gc-core.mjs','gc-client.mjs','verify.html','verify.js','csv.html','csv.js','csv.css','csv-input.mjs','try.html','try.css','try.js','private-sum.mjs','privacy.html','privacy.js','privacy.css','testnet.html', 'testnet.js', 'market.html', 'market.js', 'market.css', 'sealed.mjs', 'index.html', 'app.html', 'demo.html', 'styles.css','landing.js', 'app.js', 'input.mjs', 'demo.js', 'deployment.mjs'];
+const files = ['agent-plan.mjs','plan-core.mjs','plan-client.mjs','agent-model-worker.mjs','agent-model-runtime.mjs','recipes.html','recipes.js','recipe-csv.mjs','recipe-core.mjs','recipe-client.mjs','nope-landing.css','nope-pixels.svg','nope-logo.svg','nope-display.ttf','PressStart2P-OFL.txt','nope-pixel.ttf','nope-mono.ttf','VT323-OFL.txt','SpaceMono-OFL.txt','workspace.html','workspace.css','workspace.js','workspace-vault.mjs','gc-verify-worker.mjs','csv-browser.js','csv-gc-worker.mjs','gc-core.mjs','gc-client.mjs','verify.html','verify.js','csv.html','csv.js','csv.css','csv-input.mjs','try.html','try.css','try.js','private-sum.mjs','privacy.html','privacy.js','privacy.css','testnet.html', 'testnet.js', 'market.html', 'market.js', 'market.css', 'sealed.mjs', 'index.html', 'app.html', 'demo.html', 'styles.css','landing.js', 'app.js', 'input.mjs', 'demo.js', 'deployment.mjs'];
 await fs.rm(target, { recursive: true, force: true });
 await fs.mkdir(target, { recursive: true });
 for (const name of files) {
   const source = path.join(root, 'web', name);
   if (!(await fs.lstat(source)).isFile()) throw new Error(`Not a regular web asset: ${name}`);
   await fs.copyFile(source, path.join(target, name));
+}
+// Only vetted JS/WASM/model manifests enter the deployment, never model weights or caches.
+const plannerAssets = await packageAgentModel();
+const plannerTarget = path.join(target,'agent-model');
+await fs.mkdir(plannerTarget,{recursive:true});
+for (const asset of [...plannerAssets.files.map(f=>f.path),'assets.json']) {
+  if(!/^[a-zA-Z0-9.-]+$/.test(asset)) throw new Error('Invalid planner asset name');
+  await fs.copyFile(path.join(plannerAssets.outDir,asset),path.join(plannerTarget,asset));
 }
 const evidence = JSON.parse(await fs.readFile(path.join(root, 'docs/verification/e2e-local-result.json'), 'utf8'));
 if (evidence.completed !== true || evidence.real_payment !== false || evidence.external_chain !== false || evidence.payment_mode !== 'local_fixture_simulation') {

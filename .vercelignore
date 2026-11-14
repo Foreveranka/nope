@@ -64,3 +64,9 @@
 
 !workspace
 !workspace/**
+
+!planner-runtime
+!planner-runtime/package.json
+!planner-runtime/package-lock.json
+!planner-runtime/model-pack.json
+!scripts/package-agent-model.mjs

@@ -1,0 +1,78 @@
+{
+  "recordedAt": "2026-11-14T02:03:31.752Z",
+  "syntheticOnly": true,
+  "actualPrivateVercelBlob": true,
+  "jobId": "97b26dbaf99e1406aa133b60ec5a2c52",
+  "profile": "nope-csv-plan-gc-v3",
+  "status": "ACCEPTED",
+  "revision": 5,
+  "events": [
+    {
+      "status": "OPEN",
+      "at": "2026-11-14T01:57:02.218Z"
+    },
+    {
+      "status": "OPEN",
+      "at": "2026-11-14T01:58:47.490Z"
+    },
+    {
+      "status": "CLOSED",
+      "at": "2026-11-14T01:59:29.797Z"
+    },
+    {
+      "status": "AWARDED",
+      "at": "2026-11-14T02:00:04.805Z"
+    },
+    {
+      "status": "DELIVERED",
+      "at": "2026-11-14T02:01:09.548Z"
+    },
+    {
+      "status": "ACCEPTED",
+      "at": "2026-11-14T02:02:52.399Z"
+    }
+  ],
+  "taskSha256": "4e31a3e109cb33728daee99b62b5249372d794b30ad09c5b3c8d7f0b80ff37ee",
+  "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+  "programSha256": "ebb7a626bf9a130bdcfd4d75b0f71cbf2fa11b8b3c53c08e4b277c87421c9586",
+  "outputSha256": "9dbe8d7b1aa01fafb7d580991a6cbc4a2ba62db1154c590dcc6768b14f3b4c82",
+  "deliveryVersion": 1,
+  "checks": {
+    "sevenActualRecordsRead": true,
+    "noSyntheticPlaintextOrDecoderInRemoteRecords": true,
+    "finalAcceptancePersisted": true
+  },
+  "executionProof": false,
+  "realPayment": false,
+  "escrow": false,
+  "recordHashes": [
+    {
+      "name": "task",
+      "sha256": "ee1d6dfd56b721c78f0b7ab90d91f01591f0540a501c920b1e8a75f0416cec85"
+    },
+    {
+      "name": "0000",
+      "sha256": "c7e4d9f5e2c75de51f594ee8b37a7c7d8e6d9a42b3283870aba0a93abca16898"
+    },
+    {
+      "name": "0001",
+      "sha256": "69eed95ce777452ee80b5222787e62af5da04781e8c68cc4e8d378d09ab38d38"
+    },
+    {
+      "name": "0002",
+      "sha256": "015b553d6b103b836aa732f2bce1b04e09e9ec0f3b8d3bd481c5d737c9391651"
+    },
+    {
+      "name": "0003",
+      "sha256": "4212f2e6bdef89a23650c78aafe7ee97a55391f305ab583b7d46c95ac06299e3"
+    },
+    {
+      "name": "0004",
+      "sha256": "a9632202b13ac9ffd4a43310b79ad40bf00285ac6a9e4da0836beaffff133679"
+    },
+    {
+      "name": "0005",
+      "sha256": "ef6ad42db44b78ad7d4b0ec8bbf5190b907ce62c779f5f55114c06d120becdc0"
+    }
+  ]
+}

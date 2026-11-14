@@ -1,0 +1,75 @@
+{
+  "recordedAt": "2026-11-14T02:01:38.857Z",
+  "origin": "http://127.0.0.1:8773",
+  "syntheticOnly": true,
+  "realNativeModelProposal": true,
+  "browserInference": false,
+  "model": {
+    "id": "onnx-community/Qwen3-0.6B-ONNX-OPT",
+    "revision": "4799e655597b49210adb5c1ebe5b9d3bd04005a0"
+  },
+  "task": {
+    "version": 1,
+    "goal": "Trim C2 then uppercase C2. Fill missing C3 with 7 and clamp C3 between 10 and 80.",
+    "columns": [
+      {
+        "id": "C2",
+        "type": "text"
+      },
+      {
+        "id": "C3",
+        "type": "number"
+      }
+    ]
+  },
+  "plan": {
+    "version": 1,
+    "taskHash": "0232e6723fc7ca93e5ef8f2baa80e8b4c151fd0b598a8c90190e7be2bcb23afe",
+    "steps": [
+      {
+        "column": "C2",
+        "recipe": {
+          "type": "text",
+          "steps": [
+            {
+              "op": "trim"
+            },
+            {
+              "op": "uppercase"
+            }
+          ]
+        }
+      },
+      {
+        "column": "C3",
+        "recipe": {
+          "type": "number",
+          "steps": [
+            {
+              "op": "fill",
+              "value": 7
+            },
+            {
+              "op": "clamp",
+              "min": 10,
+              "max": 80
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+  "inputBytes": 1454978,
+  "elapsedMs": 4847,
+  "checks": {
+    "noPlaintextInRequest": true,
+    "actualHTTP": true,
+    "localDecode": true,
+    "fullCSVPreserved": true
+  },
+  "inputSha256": "8b9fca36d954a9cdecd96da44085031118c7523a567c6b3ea70c84bf577e75cd",
+  "outputSha256": "457baf5d8c3b7b73699af7a808138fd02b76a90939f2b80256887865ee73699b",
+  "programSha256": "ebb7a626bf9a130bdcfd4d75b0f71cbf2fa11b8b3c53c08e4b277c87421c9586",
+  "executionProof": false
+}

@@ -1,0 +1,21 @@
+{
+  "syntheticOnly": true,
+  "environment": "Actual Chrome localhost UI + pinned browser-local Qwen model + real private Vercel Blob + actual garbled evaluator",
+  "jobId": "97b26dbaf99e1406aa133b60ec5a2c52",
+  "profile": "nope-csv-plan-gc-v3",
+  "model": {"id":"onnx-community/Qwen3-0.6B-ONNX-OPT","revision":"4799e655597b49210adb5c1ebe5b9d3bd04005a0"},
+  "task": {"version":1,"goal":"Trim C2 then uppercase C2. Fill missing C3 with 7 and clamp C3 between 10 and 80.","columns":[{"id":"C2","type":"text"},{"id":"C3","type":"number"}]},
+  "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+  "inputSha256": "4e31a3e109cb33728daee99b62b5249372d794b30ad09c5b3c8d7f0b80ff37ee",
+  "programSha256": "ebb7a626bf9a130bdcfd4d75b0f71cbf2fa11b8b3c53c08e4b277c87421c9586",
+  "outputSha256": "9dbe8d7b1aa01fafb7d580991a6cbc4a2ba62db1154c590dcc6768b14f3b4c82",
+  "checks": {"actualBrowserNeuralInference":true,"manualPreviewApproval":true,"buyerPublish":true,"providerPublicOnlyView":true,"encryptedQuote":true,"buyerLocalQuoteDecrypt":true,"buyerAward":true,"selectedProviderActualEvaluation":true,"providerNeverDisplayedPlaintext":true,"buyerReloadIndexedDBDecode":true,"buyerBeforeAfter":true,"buyerAcceptance":true,"unsupportedTranslationRejectedBeforePublication":true,"noFallbackPlan":true},
+  "observedOutput": {"C2":["ACME","BETA42","GAMMA7"],"C3":[10,80,42]},
+  "observedFailure": {"goal":"For C2, trim leading and trailing spaces and lowercase. For C3, replace empty values with 0 then clamp between 0 and 100.","disposition":"Entire model plan rejected for an unsupported tuple shape; no job published. Native reproduction is in planner-runtime/ui-phrase-evidence.json."},
+  "status": "ACCEPTED",
+  "scope": "Bounded confidential tools, not arbitrary semantic inference",
+  "realPayment": false,
+  "escrow": false,
+  "executionProof": false,
+  "browserBackendDevice": "not independently recorded"
+}

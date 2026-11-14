@@ -317,7 +317,10 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       try {
         const task = currentTask();
         const proposal = await generateAgentPlan(task, { workerFactory: agentWorkerFactory, signal: controller.signal, onProgress: value => {
-          if (revision === draftRevision) planView.textContent = typeof value.message === 'string' ? value.message : 'Yerel model çalışıyor…';
+          if (revision === draftRevision) {
+            const count = Number.isFinite(value.loaded) && Number.isFinite(value.total) && value.total > 0 ? ` · ${Math.round(value.loaded / value.total * 100)}% (${(value.loaded / 1e6).toFixed(1)} / ${(value.total / 1e6).toFixed(1)} MB)` : '';
+            planView.textContent = (typeof value.message === 'string' ? value.message : 'Yerel model çalışıyor…') + count;
+          }
         } });
         if (controller.signal.aborted) fail('Yerel planlama iptal edildi; plan onaylanmadı.');
         if (revision !== draftRevision || source !== dataset || mode.value !== 'agent') fail('Taslak değişti; eski model planı kullanılmadı.');

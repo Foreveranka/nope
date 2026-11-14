@@ -1,0 +1,11 @@
+# Planner versus private execution
+
+The planner is a real language model with a deliberately small input boundary. It can read the public job goal and user-approved aliases/types such as C2:text and C3:number. It cannot infer missing business context from a dataset it never receives. Requests requiring unsupported semantic reasoning over private records must fail or be reformulated, not be falsely reported as completed.
+
+The buyer browser is trusted and reads the file to parse, encrypt, decode and display it. A dedicated planner worker receives a fresh serialized public-task object only; it is not given original column names, row samples, row values, filename, private budget, key handles or decoder material. The garbling client receives private values locally but is separate from the model. The provider and remote evaluator receive typed recipes plus encoded input and tables only.
+
+The model's output is untrusted data. It cannot create tools, execute JavaScript, fetch a URL, add an operation, select a private column not approved for planning or change an input type. Public task, approved plan, compiled programs, encrypted request, encoded output and delivery version are independently bound. A changed goal, schema, file or plan invalidates approval. The service returns no results to the planner. Only the customer opens results.
+
+The worker does not open IndexedDB, but a same-origin dedicated worker is not an OS or hardware permission boundary and technically has same-origin APIs. The exact local boundary is a software architecture property under the honest-client assumption, not hardware isolation from a compromised browser. A browser extension, XSS or malicious replacement app can read the buyer's own data. Random labels, encrypted local decoders, source tests and transcript hashes do not by themselves supply a zero-knowledge proof of execution.
+
+Model weights are inbound public downloads; planning does not send the job to the model host. Runtime/model versions and asset hashes must be pinned and actual generation tested. No API key or paid inference is introduced by the local-model route. A static recipe, canned JSON or keyword parser cannot be labelled a successful LLM generation.

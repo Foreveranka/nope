@@ -5,7 +5,7 @@ import { compileRecipe, estimateRecipe, referenceApply } from './recipe-core.mjs
 const fail = message => { throw new Error(message); };
 const quote = (cell, delimiter, firstHeader) => /["\r\n]/.test(cell) || cell.includes(delimiter) || (firstHeader && /[,;]/.test(cell)) ? `"${cell.replaceAll('"', '""')}"` : cell;
 
-function serialize(dataset, compact = false) {
+export function serializeRecipeCSV(dataset, compact = false) {
   if (!dataset || !Array.isArray(dataset.headers) || !Array.isArray(dataset.rows) || ![',', ';'].includes(dataset.delimiter)) fail('Geçerli bir CSV veri kümesi gerekli.');
   const records = [dataset.headers, ...dataset.rows];
   for (const row of records) {
@@ -22,7 +22,7 @@ function serialize(dataset, compact = false) {
 export function parseRecipeColumn(dataset, column, recipe) {
   // Reuse the original parser for dimensions, UTF-8 size, headers and formula safety,
   // including when this adapter is passed a caller-created dataset.
-  const checked = parseCSV(serialize(dataset, true));
+  const checked = parseCSV(serializeRecipeCSV(dataset, true));
   if (!Number.isInteger(column) || column < 0 || column >= checked.headers.length) fail('Bir sütun seçin.');
   if (recipe?.type !== 'number' && recipe?.type !== 'text') fail('Tarif türü number veya text olmalı.');
   if (recipe.type === 'text' && checked.rows.length > 8) fail('Metin tarifi en fazla 8 veri satırı destekler; satırlar kesilmez.');
@@ -43,7 +43,7 @@ export function applyRecipeOutput(dataset, column, values, recipe) {
   if (!Array.isArray(values) || values.length !== input.length || Array.from(values).some((value, i) => value !== expected[i])) fail('Sonuç, seçili tarif ve tüm satırlarla eşleşmiyor; CSV oluşturulmadı.');
   const rows = dataset.rows.map((row, i) => row.map((cell, j) => j === column ? (recipe.type === 'number' && values[i] === 255 ? '' : String(values[i])) : cell));
   const output = { headers: [...dataset.headers], rows, delimiter: dataset.delimiter };
-  const csv = serialize(output);
+  const csv = serializeRecipeCSV(output);
   // The source, not the BOM/CRLF-normalized export, has the 64 KiB input cap.
   // Recheck formula safety without rejecting exports enlarged by filled cells.
   if ([output.headers, ...output.rows].some(row => row.some(cell => /^[\s\uFEFF]*[=+\-@]/u.test(cell)))) fail('Sonuçta formül benzeri hücre var; CSV oluşturulmadı.');
