@@ -1,0 +1,55 @@
+{
+  "scope": "Historical fund/record snapshot before proof completion and payout",
+  "jobId": "c77599347652ecdfb2362a620afa5e99",
+  "network": "testnet",
+  "contractId": "nope-wallet-44384e2f.testnet",
+  "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
+  "bindingHash": "4755cd41ada96656730808e55720afed04d4cf2ed35dd42fc6c337fe7c435fdd",
+  "buyerAccount": "nope-demo-b-141126.testnet",
+  "providerAccount": "nope-provider-b-141126.testnet",
+  "amountYocto": "1000000000000000000000",
+  "latestVerifiedChainState": "Delivered",
+  "latestIndependentCheckAt": "2026-11-14T08:15:17.291Z",
+  "stages": {
+    "fund": {
+      "final": true,
+      "transactionHash": "Arw9kRs81oqT24cauDLZTGdjxsuJDJSR7q7JVM1iZDPJ",
+      "evidence": "c775-fund-only.json",
+      "approvalClickActorEstablished": false
+    },
+    "record": {
+      "final": true,
+      "transactionHash": "3DLGs2eFGnumfeTQ1CWRppKjttJw6fApEMyX8zXg3nd1",
+      "evidence": "c775-record-only.json",
+      "approvalClickReportedBy": "MAIN",
+      "delivery": {
+        "version": 1,
+        "outputSha256": "7f554e5555de627c820bb26833df35c3ed95c2112f5f9b997592dec95b0835fc"
+      }
+    },
+    "proof": {
+      "browserGenerationStarted": true,
+      "expectedProcessedCellProofs": 6,
+      "verified": false,
+      "evidenceSource": "MAIN browser progress report; generation in progress is not verification"
+    },
+    "acceptance": {
+      "verified": false
+    },
+    "release": {
+      "popupSigningVerified": false,
+      "payoutVerified": false
+    }
+  },
+  "buyerLocalResultCheck": {
+    "passed": true,
+    "processedCells": 6,
+    "changedCells": 4,
+    "evidenceSource": "MAIN actual buyer UI decode/reference check; not an independent SNARK proof"
+  },
+  "resultProofVerified": false,
+  "payoutVerified": false,
+  "rpcTrust": "Public RPC-backed verification, not a light client.",
+  "supersededBy": "c775-full-browser-lifecycle.json",
+  "currentStatusInSuccessor": "PAID"
+}

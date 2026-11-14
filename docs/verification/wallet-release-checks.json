@@ -1,11 +1,16 @@
 {
   "verifiedAt": "2026-11-14T07:47:03.074152+00:00",
   "rootTests": {
+    "snapshotLabel": "post-session-fix full root suite",
+    "sourceCommit": "ae091f8",
     "command": "npm test",
-    "passed": 492,
+    "passed": 494,
     "failed": 0,
     "skipped": 0,
-    "logSha256": "6e871af5e60aa1f842a7c544a3f9711784fe79a87f21149bfd636c5d5e7742b5"
+    "durationMs": 102107.30275,
+    "sourceLog": "runtime/post-session-fix-tests.log",
+    "logSha256": "c25e43b0d455369feff6588ffc6f1ee7ff8b99c4c54a7542cc05af8c1c3e661a",
+    "reportedBy": "MAIN/Jason; existing log inspected, no rerun"
   },
   "contractUnitTests": 13,
   "actualLocalWasmSandbox": true,
@@ -63,12 +68,114 @@
     "liveNestedPageAndRoleLocaleBindings": true
   },
   "actualBrowserWalletMessagePopupSigning": true,
-  "actualBrowserWalletTransactionPopupSigning": false,
+  "actualBrowserWalletTransactionPopupSigning": true,
+  "actualBrowserWalletTransactionPopupScope": "fund, record and release; refund popup untested; detailed browser observations and independent chain checks are separated in the lifecycle evidence",
+  "actualBrowserWalletRecordPopupSigning": true,
+  "actualBrowserWalletReleasePopupSigning": true,
+  "actualBrowserWalletRefundPopupSigning": false,
   "actualProductionPriceMaxLifecycle": {
     "jobId": "39e82e6b469e075d32c5ed019ee924d1",
     "amountYocto": "1000000000000000000000000",
     "finalState": "PAID",
     "freshIndependentPublicProofVerified": true
   },
-  "selectedPlannerColumnCoverageRequired": true
+  "selectedPlannerColumnCoverageRequired": true,
+  "roleSwitchVaultRegression": {
+    "commit": "ae091f8",
+    "command": "node --test workspace/session-role-ui.test.mjs",
+    "passed": 2,
+    "failed": 0,
+    "realVaultValidationAndEncryption": true,
+    "storageAndDOMFixtures": true,
+    "privateJobAndDecoderPreserved": true,
+    "clearedResumeCannotRestoreSession": true,
+    "pendingTransactionLogoutBlocked": true,
+    "actualProductionRoleLogoutPassed": true,
+    "actualBuyerLocalDecoderAndInputHashRestored": true,
+    "actualProviderNEP413ReconnectionPassed": true,
+    "evidenceSource": "MAIN production Chrome observation and targeted local regression; no new root-suite run implied",
+    "includedInLatestRootSnapshot": true
+  },
+  "actualBrowserWalletFundPopupFlow": {
+    "network": "testnet",
+    "contractId": "nope-wallet-44384e2f.testnet",
+    "buyerAccount": "nope-demo-b-141126.testnet",
+    "transactionHash": "Arw9kRs81oqT24cauDLZTGdjxsuJDJSR7q7JVM1iZDPJ",
+    "finalState": "Held",
+    "approvalFlowVerified": true,
+    "approvalClickActorEstablished": false,
+    "biddingClosedQuoteDecryptedProviderSelected": true,
+    "evidenceSource": "MAIN actual production Chrome flow plus Planck independent read-only public RPC verification; approval click actor remains unattributed",
+    "doesNotEstablish": [
+      "record popup signing",
+      "release popup signing",
+      "refund popup signing",
+      "provider payment or computation correctness from funding alone"
+    ],
+    "jobId": "c77599347652ecdfb2362a620afa5e99",
+    "providerAccount": "nope-provider-b-141126.testnet",
+    "amountYocto": "1000000000000000000000",
+    "independentOnchainEvidence": "docs/verification/c775-fund-only.json",
+    "independentExactFundReceiptVerified": true,
+    "sameFinalBlockCodeAndEmptyKeyListVerified": true,
+    "scope": "fund-only historical snapshot"
+  },
+  "previousRootTestSnapshots": [
+    {
+      "snapshotLabel": "before session-role tombstone fix",
+      "commit": "4d1e73a",
+      "recordedAt": "2026-11-14T07:47:03.074152+00:00",
+      "command": "npm test",
+      "passed": 492,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "6e871af5e60aa1f842a7c544a3f9711784fe79a87f21149bfd636c5d5e7742b5"
+    }
+  ],
+  "actualBrowserWalletRecordPopupFlow": {
+    "jobId": "c77599347652ecdfb2362a620afa5e99",
+    "transactionHash": "3DLGs2eFGnumfeTQ1CWRppKjttJw6fApEMyX8zXg3nd1",
+    "finalState": "Delivered",
+    "deliveryVersion": 1,
+    "outputSha256": "7f554e5555de627c820bb26833df35c3ed95c2112f5f9b997592dec95b0835fc",
+    "approvalClickReportedBy": "MAIN",
+    "independentOnchainEvidence": "docs/verification/c775-record-only.json",
+    "independentChecksPassed": 8,
+    "independentChecksTotal": 8,
+    "resultProofVerified": false,
+    "payoutVerified": false,
+    "scope": "record-only historical snapshot"
+  },
+  "currentC775LifecycleEvidence": "docs/verification/c775-full-browser-lifecycle.json",
+  "actualProductionBrowserFullLifecycle": {
+    "jobId": "c77599347652ecdfb2362a620afa5e99",
+    "status": "PAID",
+    "evidence": "docs/verification/c775-full-browser-lifecycle.json",
+    "actualProcessedCellProofsVerified": 6,
+    "rows": 3,
+    "processedCells": 6,
+    "changedCells": 4,
+    "bundleSha256": "978d4618e1677699613885e76500f0499be20ef87d8a8f7235f5e8399b08b007",
+    "releaseTransactionHash": "982fGdLH8Y68kP4HpWd6iN6zbohvimMcqBgTEEtUavaf",
+    "finalNativePayoutYocto": "1000000000000000000000",
+    "providerAccount": "nope-provider-b-141126.testnet",
+    "successfulNonceBoundCallback": true,
+    "sameFinalBlockPinnedCodeAndKeylessPaidHold": true,
+    "independentChecksPassed": 11,
+    "independentChecksTotal": 11,
+    "freshUnauthenticatedSixProofVerificationPassed": true,
+    "actualBrowserPublicVerifierSixProofsAndPaidPassed": true,
+    "explicitBuyerAcceptanceReported": true,
+    "browserRefundPopupTested": false,
+    "directChainRefundVerifiedSeparately": true,
+    "browserObservationSource": "MAIN actual Chrome/Intear walkthrough and public verifier",
+    "independentVerificationSource": "Planck public RPC receipt/state checks and fresh unauthenticated proof verification",
+    "verifiedAt": "2026-11-14T08:21:16.408Z"
+  },
+  "lastApplicationBuild": {
+    "passed": true,
+    "sourceCommit": "ae091f8",
+    "evidenceSource": "MAIN reported successful application build before documentation finalization",
+    "rerunDuringDocumentationUpdate": false
+  }
 }

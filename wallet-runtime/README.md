@@ -187,42 +187,34 @@ supported web path does not use the native logout-bridge WebSocket service.
 
 ## Verification evidence
 
-Recorded 14 November 2026: **20/20 client tests passed** and **489 root tests
-passed**, as recorded in [release checks](../docs/verification/wallet-release-checks.json).
-Client tests cover the real i18n objects against a strict connector label guard,
-buyer recovery recording, immutable intent bounds, redirects, unknown outcomes
-and all three actual transport receiver sources. NEP-413 uses genuine local
-crypto with synthetic keys; window/connector/FullAccess RPC fixtures remain unit
-evidence, not a wallet or chain test.
+The production C775 browser demo completed testnet wallet authentication, sealed
+bidding, buyer funding, encrypted execution, provider delivery recording, six
+browser-generated result proofs, explicit buyer acceptance and Intear payment
+release, ending in FINAL **0.001 testNEAR provider payout**. The buyer checked
+six cells/four changes. All six proofs passed local/server, fresh unauthenticated
+process and live public browser verification. The [C775 lifecycle snapshot](../docs/verification/c775-full-browser-lifecycle.json)
+records all 11 independent checks: exact native provider transfer, successful
+nonce-bound callback and same-block pinned/keyless Paid hold, alongside the
+unchanged six-proof bundle and public Paid binding.
 
-The focused protocol regression executes the actual hash-pinned official executor plus bridge across separate
-VM frames, checking the three popup URLs, login network/key restrictions, exact
-NEP-413 callback/state and transaction bytes. Transport crypto and remote popup
-responses are explicitly stubbed; this is not an external wallet signing test.
-These recorded root results are separate from this sidecar's targeted test run.
+| Check | Evidence |
+| --- | --- |
+| Public six-proof verifier | [C775 verifier](https://veil-procurement.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99), [independent proof snapshot](../docs/verification/c775-public-proof-only.json) |
+| Exact funding and recording | [Fund-only snapshot](../docs/verification/c775-fund-only.json), [record-only snapshot](../docs/verification/c775-record-only.json) |
+| Earlier Node-signed production flow | [One-row HTTP lifecycle](../docs/verification/wallet-funded-http-production.json), separate from browser popup evidence |
+| Direct-chain payout/refund checks | [Financial evidence](../payments/wallet_escrow/verification/live-financial-checks.json) |
+| Regression results | [Release checks](../docs/verification/wallet-release-checks.json): 494 root tests, 20 client tests, 25 focused client/auth tests and two real-vault session tests |
 
-The callback-wire fix passed **25/25 targeted tests** (20 client + 5 auth).
-The auth regression evaluates the original pinned encoder, models the official
-camelCase deserialization, and uses genuine synthetic NEP-413 signatures to
-reproduce the old rejection and verify the corrected wire against the unchanged
-FINAL FullAccess backend. Those tests are local evidence. After deployment of
-`35834c2`, the real official Intear `/connect` and `/sign-message` flow also passed
-in Chrome with a fresh challenge: the app displayed verified testnet account
-`nope-demo-b-141126.testnet`. MAIN recorded that successful wallet authentication
-at `2026-11-14T07:26:24.442742Z` in the linked release checks. Backend verification
-remained strict; this confirms the deployed callback-wire fix in the real popup.
+Intear login/NEP-413, fund, record and release popup flows have passed. Refund
+popup signing remains untested; the direct-chain refund test is separate.
+The public proof-only snapshot proves no payment by itself, and funding/record
+snapshots prove no result correctness by themselves. The typed-result SNARK does
+not establish original CSV provenance, honest garbling, provider execution origin
+or an AES trace; the contract has no on-chain SNARK verifier.
 
-The [production Node HTTP lifecycle](../docs/verification/wallet-funded-http-production.json)
-used generated test-wallet keys locally to authenticate, fund, record and release
-real testnet funds through the deployed API, with encrypted execution and an actual
-SNARK. Job `10b21c73ed75bfd8c47418524932d2bf` reached PAID. This tests signing and
-backend/chain integration, not the third-party popup transport.
-
-Actual Chrome separately passed the built opaque bridge, live wallet picker/cancel
-and the [public SNARK/FINAL chain verifier](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf)
-without the buyer's CSV/private mappings. Real third-party popup login and
-NEP-413 authentication are now verified as described above. External Intear
-transaction-popup signing is **not yet verified**; Node-signed testnet payments
-do not complete that separate interactive check. The SNARK proves typed result correctness under
-precommitted buyer mappings, not execution origin or an AES trace; the contract
-has no on-chain SNARK verifier. See [evidence and trust limits](../docs/verification/wallet-funded-flow.md).
+Unit tests explicitly distinguish genuine synthetic cryptography from mocked
+wallet/DOM/RPC responses. They cover strict label types, immutable intent bytes,
+buyer recovery recording, callback binding, unknown transaction handling,
+transport spoof rejection and the real vault's cleanup/reload behavior. The
+494-test root snapshot includes the session-role fix; the earlier 492-test
+snapshot is retained in release checks. This documentation update reruns no tests.

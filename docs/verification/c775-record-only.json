@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-11-14T08:15:17.291Z",
+  "scope": "record-only",
+  "readOnly": true,
+  "signing": false,
+  "broadcast": false,
+  "network": "testnet",
+  "rpcTrust": "Public RPC-backed verification, not a light client.",
+  "jobId": "c77599347652ecdfb2362a620afa5e99",
+  "transactionHash": "3DLGs2eFGnumfeTQ1CWRppKjttJw6fApEMyX8zXg3nd1",
+  "finalExecutionStatus": "FINAL",
+  "buyerAccount": "nope-demo-b-141126.testnet",
+  "providerAccount": "nope-provider-b-141126.testnet",
+  "amountYocto": "1000000000000000000000",
+  "contractId": "nope-wallet-44384e2f.testnet",
+  "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
+  "blockHash": "21NdxccLSvJEZqq9rBuVxUnMtEJuScwwFXHKADZXAYRo",
+  "blockHeight": 277630955,
+  "recordReceiptId": "6oe9yi53yUmHrtRzHCzz4VXc1yGwFgJ6xgHZMdFZSNJg",
+  "bindingHash": "4755cd41ada96656730808e55720afed04d4cf2ed35dd42fc6c337fe7c435fdd",
+  "delivery": {
+    "version": 1,
+    "outputSha256": "7f554e5555de627c820bb26833df35c3ed95c2112f5f9b997592dec95b0835fc"
+  },
+  "holdAtRecordBlock": {
+    "state": "Delivered",
+    "nonce": "0",
+    "delivery": {
+      "version": 1,
+      "output_hash": "7f554e5555de627c820bb26833df35c3ed95c2112f5f9b997592dec95b0835fc"
+    },
+    "pending": null
+  },
+  "checks": {
+    "exactSelectedProviderSigner": true,
+    "exactRecordCallZeroDeposit": true,
+    "exactVersionAndOutputHash": true,
+    "receiptGraphSuccessful": true,
+    "originalFundTermsUnchanged": true,
+    "contractCodePinned": true,
+    "sameBlockKeyless": true,
+    "holdAtFinalRecordBlock": true
+  },
+  "resultProofVerified": false,
+  "payoutVerified": false,
+  "contractKeyCount": 0,
+  "sourceArtifactSha256": "909adceaeea3d0db444c6ddc682d03b7d81484b7b42857ca143b56fb55e347b7",
+  "evidenceAttribution": "Planck independent read-only public RPC record verification; sanitized documentation copy, no new RPC calls",
+  "doesNotEstablish": [
+    "result-proof verification",
+    "buyer acceptance",
+    "release/refund popup signing",
+    "provider payment"
+  ]
+}

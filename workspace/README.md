@@ -153,18 +153,24 @@ Typed execution supports up to 4 selected columns, 32 numeric or 8 text rows,
 16 tagged ASCII bytes/text cell, 10,000 total gates and 40 processed-cell proofs.
 The proof bundle limit is 1 MiB minus 1 KiB. These are bounded pilot limits.
 
-Recorded 14 November 2026 validation: **486 root tests passed**, including
-**19 wallet-client tests**; [release checks](../docs/verification/wallet-release-checks.json)
-record counts and scope. `npm test` runs the root suite. Fixtures are not chain
-evidence; no test/build rerun is implied by this documentation update.
+Recorded 14 November 2026 validation: latest **494 root tests passed**, with zero
+failures/skips in 102.107 seconds after `ae091f8`, including **20 wallet-client
+tests** and the two real-vault session regressions. The earlier **492-test**
+snapshot at `4d1e73a` is historical; [release checks](../docs/verification/wallet-release-checks.json)
+retain both. `npm test` runs the root suite. Fixtures are not chain evidence;
+no test/build rerun is implied by this documentation update.
 
-Actual production Node signing through HTTP/private Blob completed synthetic
-one-row job `10b21c73ed75bfd8c47418524932d2bf`: test-wallet NEP-413 authentication,
-funding, encrypted execution, delivery recording, real SNARK, buyer acceptance and
-FINAL payout. See [production evidence](../docs/verification/wallet-funded-http-production.json)
-and [verification guide](../docs/verification/wallet-funded-flow.md).
-Live Chrome separately passed wallet picker/cancel and opaque transport checks,
-plus the [independent public SNARK/chain verifier](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf).
-These checks do **not** establish third-party wallet popup login/signing; that
-interactive acceptance check remains uncompleted. Historical sponsor evidence is
-not reclassified as wallet-funded evidence.
+The [production C775 browser lifecycle](../docs/verification/c775-full-browser-lifecycle.json)
+completed wallet authentication, sealed bidding, funding, encrypted execution,
+delivery recording, six actual browser-generated SNARKs, explicit buyer acceptance
+and FINAL **0.001 testNEAR provider payout**. Local/server verification, a fresh
+unauthenticated process and the live public browser verifier verified all six
+proofs. All 11 independent chain/proof checks passed, including the exact native
+transfer, nonce-bound successful callback and same-block pinned/keyless Paid hold.
+The lifecycle snapshot separates browser observations from independent checks. [Open the public verifier](https://veil-procurement.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99)
+without the buyer's session, CSV or witness.
+
+The [earlier Node-signed HTTP lifecycle](../docs/verification/wallet-funded-http-production.json)
+and [direct financial payout/refund tests](../payments/wallet_escrow/verification/live-financial-checks.json)
+remain separate evidence. Browser refund-popup signing is still untested.
+Historical sponsor evidence is not reclassified as wallet-funded evidence.

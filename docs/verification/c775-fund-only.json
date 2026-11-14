@@ -1,0 +1,58 @@
+{
+  "checkedAt": "2026-11-14T08:09:36.857Z",
+  "scope": "fund-only",
+  "readOnly": true,
+  "signing": false,
+  "broadcast": false,
+  "network": "testnet",
+  "rpcTrust": "Public RPC-backed verification, not a light client.",
+  "jobId": "c77599347652ecdfb2362a620afa5e99",
+  "transactionHash": "Arw9kRs81oqT24cauDLZTGdjxsuJDJSR7q7JVM1iZDPJ",
+  "finalExecutionStatus": "FINAL",
+  "buyerAccount": "nope-demo-b-141126.testnet",
+  "providerAccount": "nope-provider-b-141126.testnet",
+  "amountYocto": "1000000000000000000000",
+  "contractId": "nope-wallet-44384e2f.testnet",
+  "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
+  "blockHash": "22UhYaL32C72RBJeAMVGutYRwg9a2yMPmkv752VYpVKG",
+  "blockHeight": 277630210,
+  "fundReceiptId": "6WeynkVnUjtVjMBZBcbLtMyx63JLnf3hGGjd1uU8ZN11",
+  "bindingHash": "4755cd41ada96656730808e55720afed04d4cf2ed35dd42fc6c337fe7c435fdd",
+  "terms": {
+    "job_id": "c77599347652ecdfb2362a620afa5e99",
+    "buyer_commitment": "cab9c7b27ac511f9dca3a338a5acb310a10c5e27ec57e2b076e5af4dd1ebb872",
+    "buyer_account": "nope-demo-b-141126.testnet",
+    "provider": "nope-provider-b-141126.testnet",
+    "amount": "1000000000000000000000",
+    "input_hash": "9bc159265dc6d55de117f1d128df32b50ea3a5479bd323fa54c6210b68d8fc16",
+    "program_hash": "1615b0e32a5261836e5980b299eea6b92059f7e5861d97f8515cab0dbd357810",
+    "plan_hash": "35e25498d1188447cbe53a40197389ab36faccff69f22fd1e7682f1e84a76a0e",
+    "execution_deadline_ns": "1794729952348000000",
+    "review_deadline_ns": "1794816352348000000"
+  },
+  "holdAtFundBlock": {
+    "state": "Held",
+    "nonce": "0",
+    "delivery": null,
+    "pending": null
+  },
+  "checks": {
+    "exactBuyerSigner": true,
+    "exactFundCallAndDeposit": true,
+    "receiptGraphSuccessful": true,
+    "exactTermsAndBinding": true,
+    "contractCodePinned": true,
+    "sameBlockKeyless": true,
+    "holdAtFinalFundingBlock": true
+  },
+  "resultProofVerified": false,
+  "payoutVerified": false,
+  "contractKeyCount": 0,
+  "sourceArtifactSha256": "3611c64fe09a7f0e686622dd206d8927224d9fe7dfb1f9911ae3c1af0b22a858",
+  "evidenceAttribution": "Planck independent public RPC fund verification; sanitized documentation copy, no new RPC calls",
+  "doesNotEstablish": [
+    "record/release/refund popup signing",
+    "result correctness or proof verification",
+    "provider payment"
+  ]
+}

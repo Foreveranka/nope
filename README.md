@@ -6,7 +6,7 @@ Hire an agent to transform a CSV without sending its private rows to the plannin
 
 **NEAR Hackathon 2026 · Privacy & Private AI · Working testnet prototype**
 
-[Open NOPE](https://veil-procurement.vercel.app) · [Enter the application](https://veil-procurement.vercel.app/workspace) · [User documentation / Türkçe dahil 5 dil](https://veil-procurement.vercel.app/docs) · [Verify a completed job](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf)
+[Open NOPE](https://veil-procurement.vercel.app) · [Enter the application](https://veil-procurement.vercel.app/workspace) · [User documentation / Türkçe dahil 5 dil](https://veil-procurement.vercel.app/docs) · [Verify a completed job](https://veil-procurement.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99)
 
 ## What you can try
 
@@ -18,9 +18,9 @@ This repository's current application is `/workspace`. The older Concrete FHE/MP
 
 ### 1. Independently verify an existing result — no wallet or installation
 
-Open [this completed job](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf). The page fetches public encrypted evidence, checks the pinned contract and finalized chain state, then verifies the actual Noir/UltraHonk result proof in your browser. Wait for the explicit success message and `escrowState: Paid` in the details.
+Open [this browser-demo job](https://veil-procurement.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99). The page fetches public encrypted evidence, checks the pinned contract and finalized chain state, then verifies the actual Noir/UltraHonk result proof in your browser. Wait for the explicit success message and `escrowState: Paid` in the details.
 
-No customer session, CSV, decoder or private mapping is needed. This is a real completed testnet job, not a simulated payment. It uses synthetic one-row data and an explicitly authored plan; that particular HTTP test does not claim to demonstrate neural planning.
+No customer session, CSV, decoder or private mapping is needed. This three-row/two-column browser demo has six actual result proofs. The [earlier one-row HTTP run](docs/verification/wallet-funded-http-production.json) used an authored plan and does not demonstrate neural planning.
 
 ### 2. Try the customer/provider application
 
@@ -45,7 +45,7 @@ Use a current desktop Chromium browser, two different funded NEAR **testnet** ac
 
 The first planner use downloads approximately **412.5 MB** of pinned public model files and caches them in the browser. Inference runs locally with Qwen3-0.6B through Transformers.js/ONNX Runtime. Proof generation and verification also load public WASM/SRS assets and can take time. Loading, unsupported operations and failed verification do not silently switch to plaintext processing.
 
-**Verification boundary:** genuine test-wallet signatures, funding, encrypted execution, proof verification and payout passed through the deployed HTTP API. Live Chrome independently verified the public proof and chain binding, and the real wallet selector/cancel path was checked. Signing inside the external Intear wallet popup has not yet passed an interactive end-to-end browser acceptance test. Do not equate that remaining check with the completed API/chain tests.
+**Verified live demo:** [C775](docs/verification/c775-full-browser-lifecycle.json) completed the production Chrome/Intear flow: wallet authentication, sealed bidding, encrypted execution, six verified result proofs, explicit buyer acceptance and **FINAL 0.001 testNEAR provider payout**. A fresh unauthenticated process and the live public browser verifier checked all six proofs and the `Paid` chain binding; independent receipt checks verified the exact native transfer and successful nonce-bound callback. Refund-popup signing remains untested; direct-chain refund checks passed separately.
 
 ## How the system works
 
@@ -120,7 +120,7 @@ npm test
 npm run build
 ```
 
-The recorded root suite passed **492 tests, zero failures and zero skips** on 14 November 2026. It includes genuine local cryptography and explicitly synthetic transport/RPC fixtures; it does not broadcast transactions. The build packages the wallet/planner/proof runtimes and generates `dist/`; it neither deploys nor downloads the planner's model weights.
+The latest recorded root suite passed **494 tests, zero failures and zero skips** in **102.107 seconds** on 14 November 2026, after the `ae091f8` session-role fix. The application build also passed before this documentation-only update. The earlier **492-test** snapshot at `4d1e73a` is retained separately in [release checks](docs/verification/wallet-release-checks.json). Tests include genuine local cryptography and explicitly synthetic transport/RPC fixtures; they do not broadcast transactions. The build packages the wallet/planner/proof runtimes and generates `dist/`; it neither deploys nor downloads the planner's model weights.
 
 Additional proof checks:
 
@@ -129,7 +129,7 @@ node proof-runtime/prepare-crs.mjs
 npm run test:proof
 ```
 
-The first command verifies the checked-in public SRS bytes/hashes offline. The second packages and exercises the proof runtime; its tests are separate from the root 486-test record.
+The first command verifies the checked-in public SRS bytes/hashes offline. The second packages and exercises the proof runtime; its tests are separate from the recorded 494-test root suite.
 
 ### Rebuild the escrow contract separately
 
@@ -162,15 +162,18 @@ The reviewed live deployment is immutable and capacity-limited. See the contract
 
 | Check | Evidence | Meaning |
 | --- | --- | --- |
-| Root regression | [Release checks](docs/verification/wallet-release-checks.json) | 486 passing cases; genuine crypto and synthetic adapters are identified separately |
+| Root regression | [Release checks](docs/verification/wallet-release-checks.json) | Latest 494 passing cases after session-role fix; previous 492 at 4d1e73a retained separately; genuine crypto and synthetic adapters identified |
+| Completed browser lifecycle | [C775 snapshot](docs/verification/c775-full-browser-lifecycle.json) | Six proofs, explicit acceptance, FINAL exact 0.001 testNEAR payout, successful callback and Paid hold; all 11 independent checks pass |
+| Browser funding flow | [C775 fund-only evidence](docs/verification/c775-fund-only.json) | Exact 0.001 testNEAR, FINAL same-block pinned code/empty key list and Held state; no payment or result-proof claim |
+| Browser delivery recording | [C775 record-only evidence](docs/verification/c775-record-only.json) | Exact selected-provider record call, zero deposit, FINAL Delivered v1/output hash; no payment or result-proof claim |
 | Real deployed HTTP lifecycle | [Production run](docs/verification/wallet-funded-http-production.json) | Genuine test-wallet NEP-413, sealed bid, exact buyer deposit, encrypted execution, actual result proof, explicit acceptance and provider payout |
-| Independent public result verification | [Open the verifier](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf) | Passed in live Chrome and a separate unauthenticated Node process without the buyer witness |
+| Independent public result verification | [C775 verifier](https://veil-procurement.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99) | All six proofs and Paid binding passed in live Chrome and a fresh unauthenticated process without the buyer witness |
 | Actual native payout and refund | [Financial checks](payments/wallet_escrow/verification/live-financial-checks.json) | Exact public-testnet provider payment and original-buyer refund; direct contract tests, not computation proofs |
 | Locked deployment | [Independent code/key check](docs/verification/wallet-escrow-independent-deploy.json) | Finalized code, source-WASM hash and empty access-key list |
 | Contract execution/failure cases | [Contract evidence](payments/wallet_escrow/README.md#actual-validation-and-deployment) | 13 contract unit tests and a real local WASM sandbox; local sandbox is not public-chain evidence |
-| Wallet UI | [Wallet runtime](wallet-runtime/README.md) | Real SDK/opaque-bridge loading and live picker/cancel checked; external wallet popup signing remains unverified end to end |
+| Wallet UI | [Wallet runtime](wallet-runtime/README.md) | Real Intear authentication, fund, record and release popup flows checked; refund popup remains untested |
 
-Full chain transaction hashes and proof-scope qualifications are in the [wallet-funded verification report](docs/verification/wallet-funded-flow.md). No screenshot, mocked receipt, hash-only transcript or successful outer transaction is labelled a computation proof or final payout by itself.
+Full chain transaction hashes and proof-scope qualifications are in the [completed browser lifecycle snapshot](docs/verification/c775-full-browser-lifecycle.json). No screenshot, mocked receipt, hash-only transcript or successful outer transaction is labelled a computation proof or final payout by itself.
 
 ## Languages
 
