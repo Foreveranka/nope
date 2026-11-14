@@ -1,0 +1,65 @@
+{
+  "checkedAt": "2026-11-14T06:12:21.468168+00:00",
+  "origin": "https://veil-procurement.vercel.app",
+  "commit": "c216fe52b81250587b26f06e59b277b44883624d",
+  "matchedAssets": [
+    {
+      "path": "workspace.js",
+      "sha256": "3c700addfeb7f6b7c8d6f9fc67b19662f643815e6d833cadc66812f74b9c4c7a"
+    },
+    {
+      "path": "workspace.css",
+      "sha256": "77ac2b18356e5561e5234943d6c2282a2f7a55812a8b97067a32a99e2d68e071"
+    },
+    {
+      "path": "wallet-client.mjs",
+      "sha256": "c6687c59ef503791b53733878af716bc454be8c9ed628572f48e2d5302b33ff7"
+    },
+    {
+      "path": "wallet-pins.mjs",
+      "sha256": "266965a41f528f4c4142b0c80f901c49740b5a2929977ea532ce4f52790046ca"
+    },
+    {
+      "path": "public-proof.mjs",
+      "sha256": "edb25c5c84d9ae06c3aeb70e8e7ee60085b2dba24cc3c08d219d0e7d09d81d64"
+    },
+    {
+      "path": "wallet-runtime/wallet-sdk.js",
+      "sha256": "409454b636d0e96143bf383ce1a2eca134d6bd1ab519ed633f2689adebc2a3fd"
+    },
+    {
+      "path": "wallet-runtime/bridge.js",
+      "sha256": "51a2f08323a1b4dba6b06fc891aa4f1031768b67483344412d4d9841c014f432"
+    },
+    {
+      "path": "wallet-runtime/intear-executor.js",
+      "sha256": "6decc283352af197feff4988628899d19e05f4168a4277fe699bd8a0d6178e34"
+    },
+    {
+      "path": "locales/tr.json",
+      "sha256": "62b03d6bb8a6d951d9d0219749fb2765fa60d7b39be2f6fea6706ea54e5f02ba"
+    },
+    {
+      "path": "locales/en.json",
+      "sha256": "298fd962d22cf7584e586afa20e7fe33ab340fc10951a22960e64505ccf17a59"
+    },
+    {
+      "path": "locales/de.json",
+      "sha256": "8696462bb14f56ad2dcb45e77f9d823439c9aa1be64476ddd8e4e297779507c8"
+    },
+    {
+      "path": "locales/es.json",
+      "sha256": "97c1562fee645777c0ca6d9c799ea279e1e5b2b3f1e26e42c177c5c496d06ca8"
+    },
+    {
+      "path": "locales/fr.json",
+      "sha256": "68efdf59bc297f41189e9e06bfd582b832630d6f96683d2d7ab501a7be07cb42"
+    }
+  ],
+  "bridgeHeadersVerified": true,
+  "deployment": {
+    "mode": "hosted-evidence",
+    "summaryUrl": "/demo-evidence.json"
+  },
+  "phase": "Initial deployed static asset/header check before the wallet label serialization correction; not the final corrected client hash"
+}

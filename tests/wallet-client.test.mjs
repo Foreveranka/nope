@@ -9,6 +9,7 @@ import vm from 'node:vm';
 import {KeyPair,KeyPairSigner,baseEncode} from 'near-api-js';
 import {verifyMessage} from 'near-api-js/nep413';
 import {createWalletClient} from '../web/wallet-client.mjs';
+import {msg} from '../web/i18n.mjs';
 import {patchExecutor} from '../wallet-runtime/sdk-patches.mjs';
 const ORIGIN='https://wallet-unit.invalid',DOMAIN='NOPE:WALLET-ESCROW:V1:testnet';
 const HASH='b'.repeat(64),JOB='a'.repeat(32),GAS='150000000000000';
@@ -27,7 +28,7 @@ function fixture({ids=['buyer.testnet'],network='testnet',policyOverride=policy,
   async signMessage(args){calls.push({kind:'message',args:clone(args)});if(messageMode==='redirect')return;const signed=await signer.signNep413Message(args.signerId,args);return {accountId:signed.accountId,publicKey:signed.publicKey.toString(),signature:signatureFormat==='base58'?'ed25519:'+baseEncode(signed.signature):Buffer.from(signed.signature).toString('base64')};},
   async signAndSendTransaction(args){calls.push({kind:'transaction',args:clone(args)});if(responseMode==='throw')throw Error(errorMessage);if(responseMode==='redirect')return;const p=args.actions[0].params;return {transaction:{hash:baseEncode(new Uint8Array(32).fill(4)),signer_id:args.signerId,receiver_id:args.receiverId,actions:[{FunctionCall:{method_name:p.methodName,args:Buffer.from(JSON.stringify(p.args)).toString('base64'),gas:p.gas,deposit:p.deposit}}]}};}
  };
- const connector={availableWallets:[wallet],whenManifestLoaded:Promise.resolve(),selectWallet:async()=>wallet.manifest.id,connect:async args=>{calls.push({kind:'connect',args:clone(args)});return wallet;},disconnect:async()=>{calls.push({kind:'disconnect'});accounts=[];}};
+ const connector={availableWallets:[wallet],whenManifestLoaded:Promise.resolve(),setLabels(value){if(!value||!['title','cancel','frameTitle','open','prompt'].every(k=>typeof value[k]==='string'&&value[k].trim()))throw Error('Wallet labels required');calls.push({kind:'labels',args:clone(value)});},selectWallet:async()=>wallet.manifest.id,connect:async args=>{calls.push({kind:'connect',args:clone(args)});return wallet;},disconnect:async()=>{calls.push({kind:'disconnect'});accounts=[];}};
  const client=createWalletClient({window:win,network,policy:policyOverride,connectorFactory:async options=>{assert.deepEqual(options,{network:'testnet',autoConnect:false});return connector;},selectAccount:selection});
  const now=Date.now(),context={version:1,purpose:'NOPE:WALLET-AUTH:V1',network:'testnet',accountId:ids[0],sessionId:'c'.repeat(32),role:'buyer',origin:ORIGIN,challengeId:'d'.repeat(64),nonce:Buffer.alloc(32,3).toString('base64'),issuedAt:new Date(now-1000).toISOString(),expiresAt:new Date(now+299000).toISOString()};
  const challenge={challengeId:context.challengeId,network:'testnet',accountId:ids[0],sessionId:context.sessionId,role:context.role,origin:ORIGIN,nonce:context.nonce,issuedAt:context.issuedAt,expiresAt:context.expiresAt,message:canonical(context),recipient:ORIGIN,callbackUrl:ORIGIN+'/settings'};
@@ -47,6 +48,15 @@ test('UNIT: construction never connects/signs, policy exactly5keys/keyless and t
  await assert.rejects(fixture({network:'mainnet'}).client.connect(),code('WALLET_WRONG_NETWORK'));
  await assert.rejects(fixture({ids:['buyer.near']}).client.connect(),code('WALLET_WRONG_NETWORK'));
  const production=createWalletClient({window:f.win,policy:null});await assert.rejects(production.connect(),code('WALLET_POLICY_DISABLED'));
+});
+test('UNIT: real i18n message objects become primitive labels accepted by the strict runtime connector guard',async()=>{
+ assert.equal(typeof msg('Testnet cüzdanı seç'),'object');
+ const f=fixture();assert.equal((await f.client.connect()).accountId,'buyer.testnet');
+ await f.client.connect();
+ const labels=f.calls.filter(c=>c.kind==='labels');assert.equal(labels.length,2);
+ const sources={title:'Testnet cüzdanı seç',cancel:'Cüzdan isteğini iptal et',frameTitle:'Testnet cüzdan bağlantısı',open:'Cüzdanı aç',prompt:'Devam etmek için cüzdanını aç.'};
+ for(const call of labels)for(const [key,source]of Object.entries(sources)){assert.equal(typeof call.args[key],'string');assert.equal(call.args[key],String(msg(source)));}
+ assert.equal(f.calls.filter(c=>c.kind==='message'||c.kind==='transaction').length,0);
 });
 test('UNIT: account selection explicit, never silently first; account switches reject',async()=>{
  const multi=fixture({ids:['buyer.testnet','second.testnet']});await assert.rejects(multi.client.connect(),code('WALLET_ACCOUNT_SELECTION_REQUIRED'));

@@ -47,6 +47,26 @@ storage/gas reserve is not a sponsor source for customer payments.
   encrypted execution, delivery recording, real SNARK, explicit acceptance and
   provider payout. Synthetic one-row data and an authored plan were used;
   this is not a neural-planning or browser-popup signing test.
+- `wallet-funded-http-production.json`: the same synthetic encrypted lifecycle
+  completed through the deployed production HTTP API and real private Blob
+  transport. Job `10b21c73ed75bfd8c47418524932d2bf` reached `PAID`.
+  Funding `C6WTEy1oqwBozSStj8rvH5yhUhGPz1RDGYYr1JLuoDNQ`, recording
+  `8oARvSGNRHthrqSdtwudTXPJT3TZPSYrh4mfh9rCwmer`, and payout
+  `E3eT5ZHop3je6uMei6aoLTD7JdQJbNzUmnfrUHdHU1B1` were separately verified
+  on NEAR testnet. An unauthenticated independent process verified the public
+  SNARK and chain binding. This used generated test wallets, not a user's wallet.
+  The same public job also passed actual Chrome browser verification: the UI
+  showed the independently verified SNARK and FINAL `Paid` chain binding without
+  loading the customer's CSV or private mapping. This is distinct from the
+  uncompleted third-party wallet popup signing check.
+- The first live smoke test caught the missing private-Blob wallet namespace.
+  It was corrected with five narrowly bounded paths; the local HTTP harness now
+  uses the real production adapter over a filesystem transport. A permanent
+  HTTP/Blob regression covers authentication, all wallet namespaces and expired
+  intent retirement. No funds were sent during the failed session attempt.
+- Live Chrome also caught nonprimitive translated labels at the wallet SDK
+  boundary. Labels are now explicitly serialized to strings; a strict runtime
+  label-guard regression reproduces the original failure and passes the fix.
 - `../../payments/wallet_escrow/verification/live-financial-checks.json`:
   actual public testnet exact provider payout and original-buyer refund. These
   direct financial tests do not themselves attest a computation proof.

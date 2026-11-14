@@ -49,7 +49,7 @@ export function createWalletClient({window:win=globalThis.window,network='testne
  const savePending=p=>{try{win.sessionStorage.setItem(PENDING,JSON.stringify(p));check(win.sessionStorage.getItem(PENDING)===JSON.stringify(p),'WALLET_STORAGE_UNAVAILABLE');}catch{fail('WALLET_STORAGE_UNAVAILABLE');}};
  const clearPending=()=>win.sessionStorage.removeItem(PENDING);
  const run=fn=>async(...args)=>{check(!busy,'WALLET_BUSY');enabled();busy=true;try{args=args.map(a=>{jsonData(a);return snapshot(a);});return await fn(...args);}catch(e){if(e instanceof WalletClientError)throw e;const msg=String(e?.message??e);if(/reject|denied|cancel|closed/i.test(msg))fail('WALLET_REJECTED');fail('WALLET_UNAVAILABLE');}finally{busy=false;}};
- const labels=()=>({title:msg('Testnet cüzdanı seç'),cancel:msg('Cüzdan isteğini iptal et'),frameTitle:msg('Testnet cüzdan bağlantısı'),open:msg('Cüzdanı aç'),prompt:msg('Devam etmek için cüzdanını aç.')});
+ const labels=()=>({title:String(msg('Testnet cüzdanı seç')),cancel:String(msg('Cüzdan isteğini iptal et')),frameTitle:String(msg('Testnet cüzdan bağlantısı')),open:String(msg('Cüzdanı aç')),prompt:String(msg('Devam etmek için cüzdanını aç.'))});
  async function connector(){if(!connectorPromise){connectorPromise=(async()=>{if(connectorFactory)return connectorFactory({network:'testnet',autoConnect:false});const sdk=await import('/wallet-runtime/wallet-sdk.js');return sdk.createConnector({window:win,network:'testnet',labels:labels()});})().catch(e=>{connectorPromise=null;throw e;});}const c=await connectorPromise;c.setLabels?.(labels());return c;}
  function saveAccount(a){selected=Object.freeze({...a});win.sessionStorage.setItem(ACCOUNT,JSON.stringify(selected));return {...selected};}
  async function chooseAccounts(w,options={}){
