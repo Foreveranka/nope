@@ -110,6 +110,18 @@ test('unit-only model fixture receives exactly public aliases/types/goal; strict
  await assert.rejects(generateAgentPlan(TASK,{workerFactory:()=>failed}),/runtime unavailable/);assert.ok(failed.done);
 });
 
+test('planner cancellation and bounded timeout terminate the worker without producing an approved plan',async()=>{
+ const controller=new AbortController();let started;
+ const ready=new Promise(resolve=>{started=resolve;});
+ const worker={postMessage(){started();},terminate(){this.done=true;}};
+ const pending=generateAgentPlan(TASK,{workerFactory:()=>worker,signal:controller.signal});
+ await ready;controller.abort();await assert.rejects(pending,/iptal/);assert.ok(worker.done);
+ const timed={postMessage(){},terminate(){this.done=true;}};
+ await assert.rejects(generateAgentPlan(TASK,{workerFactory:()=>timed,timeoutMs:1}),/zaman sınırına/);assert.ok(timed.done);
+ await assert.rejects(generateAgentPlan(TASK,{timeoutMs:900_000}),/zaman sınırı/);
+ let created=false;await assert.rejects(generateAgentPlan(TASK,{signal:controller.signal,workerFactory:()=>{created=true;}}),/iptal/);assert.equal(created,false);
+});
+
 test('approval rechecks local file, public goal/schema, plan and explicit consent before garbling',async()=>{
  const dataset=parseCSV(CSV),proposal=await acceptAgentProposal(TASK,{steps:STEPS});
  const approval={...proposal,datasetSha256:await sha256(JSON.stringify(dataset)),model:{id:'UNIT-ONLY',revision:'fixture'}};
@@ -183,6 +195,20 @@ async function setupAgentUI(buyer){
  await buyer.change('agentColumn1','number');await buyer.change('agentColumn2','text');await buyer.change('agentGoal',TASK.goal);
  buyer.get('title').value='Synthetic agent cleanup';buyer.get('description').value='Separate public description';buyer.get('deadlineISO').value='2026-11-15T15:00';
 }
+
+test('agent UI keeps visible loading progress and cancellation available while all publishing controls are busy',async()=>{
+ const f=await fixture();let started;
+ const ready=new Promise(resolve=>{started=resolve;});
+ const worker={postMessage(){this.onmessage({data:{type:'progress',stage:'download',message:'Downloading unit-fixture bytes 12 / 100'}});started();},terminate(){this.done=true;}};
+ const buyer=browser(f,f.buyer,'/jobs/new',{agentWorkerFactory:()=>worker});await setupAgentUI(buyer);
+ const pending=buyer.all().find(e=>e.textContent==='Yerel ajanla plan üret').fire('click');await ready;
+ assert.equal(buyer.app.state.busy,true);assert.ok(buyer.text().includes('12 / 100'));
+ const cancel=buyer.all().find(e=>e.textContent==='Yerel planlamayı iptal et');assert.equal(cancel.hidden,false);assert.equal(cancel.disabled,false);
+ assert.equal(buyer.all().find(e=>e.type==='submit').disabled,true);
+ await buyer.click('Yerel planlamayı iptal et');await pending;
+ assert.ok(worker.done);assert.equal(buyer.get('agentApprove').checked,false);assert.equal(buyer.get('agentApprove').disabled,true);assert.match(buyer.message(),/iptal/);
+ assert.equal(buyer.calls.filter(c=>c.route==='/jobs'&&c.method==='POST').length,0);
+});
 
 test('agent SPA lifecycle uses unit-only model fixture, real multi-column crypto/server/vault and buyer reference gate',async()=>{
  const f=await fixture(),model=modelFixture(),buyer=browser(f,f.buyer,'/jobs/new',{agentWorkerFactory:model.factory});await setupAgentUI(buyer);

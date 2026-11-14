@@ -41,14 +41,18 @@ const datasetHash = dataset => sha256(JSON.stringify(dataset));
 
 /** Actual dedicated browser worker. workerFactory is an explicit unit-test seam;
  * the production path never synthesizes a plan or falls back to a remote AI. */
-export async function generateAgentPlan(task, { workerFactory = () => new Worker(new URL('./agent-model-worker.mjs', import.meta.url), { type: 'module' }), onProgress = () => {} } = {}) {
+export async function generateAgentPlan(task, { workerFactory = () => new Worker(new URL('./agent-model-worker.mjs', import.meta.url), { type: 'module' }), onProgress = () => {}, signal, timeoutMs = 300_000 } = {}) {
   task = publicTask(task);
+  if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 300_000) throw Error('Geçersiz yerel model zaman sınırı.');
   const taskHash = await publicTaskHash(task);
+  if (signal?.aborted) throw Error('Yerel planlama iptal edildi; plan onaylanmadı.');
   const worker = workerFactory();
-  let timer;
+  let timer, abort;
   try {
     const result = await new Promise((resolve, reject) => {
-      timer = setTimeout(() => reject(Error('Yerel model zaman aşımına uğradı. Tekrar deneyin.')), 15 * 60 * 1000);
+      abort = () => reject(Error('Yerel planlama iptal edildi; plan onaylanmadı.'));
+      signal?.addEventListener('abort', abort, { once: true });
+      timer = setTimeout(() => reject(Error('Yerel model beş dakikalık zaman sınırına ulaştı; plan onaylanmadı. Tekrar deneyin.')), timeoutMs);
       worker.onmessage = event => {
         const value = event.data;
         if (value?.type === 'progress') { try { onProgress(value); } catch {} }
@@ -57,11 +61,15 @@ export async function generateAgentPlan(task, { workerFactory = () => new Worker
         else reject(Error('Yerel modelden beklenmeyen cevap geldi.'));
       };
       worker.onerror = () => reject(Error('Yerel model yüklenemedi veya bu tarayıcıda çalıştırılamadı.'));
+      if (signal?.aborted) { abort(); return; }
       worker.postMessage({ type: 'plan', task, taskHash });
     });
+    if (signal?.aborted) throw Error('Yerel planlama iptal edildi; plan onaylanmadı.');
     if (typeof result.raw !== 'string' || typeof result.model?.id !== 'string' || !result.model.id || typeof result.model.revision !== 'string' || !result.model.revision) throw Error('Model kimliği veya plan cevabı eksik.');
-    return freezePlanData({ ...await acceptAgentProposal(task, result.raw), model: { id: result.model.id, revision: result.model.revision } });
-  } finally { clearTimeout(timer); worker.terminate(); }
+    const checked = await acceptAgentProposal(task, result.raw);
+    if (signal?.aborted) throw Error('Yerel planlama iptal edildi; plan onaylanmadı.');
+    return freezePlanData({ ...checked, model: { id: result.model.id, revision: result.model.revision } });
+  } finally { clearTimeout(timer); signal?.removeEventListener('abort', abort); worker.terminate(); }
 }
 
 /** Recheck the entire local approval immediately before creating ciphertext. */
@@ -135,6 +143,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
   }
   function controlsBusy(busy) {
     doc.querySelectorAll('#workspace-root button, #workspace-root input, #workspace-root select, #workspace-root textarea, #workspace-logout').forEach(node => {
+      if (node.dataset.allowBusy === 'true') return;
       if (busy) { if (node.dataset.wasDisabled === undefined) node.dataset.wasDisabled = String(node.disabled); node.disabled = true; }
       else if (node.dataset.wasDisabled !== undefined) { node.disabled = node.dataset.wasDisabled === 'true'; delete node.dataset.wasDisabled; }
     });
@@ -292,7 +301,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const redact = field(node, 'ASCII rakamları * ile değiştir', { type: 'checkbox', required: false, name: 'recipeRedactDigits' }); redact.checked = false;
     const column = select('İşlenecek sütun', 'column', []);
     const preview = el('div', null, 'stack'); node.append(preview); let dataset = null;
-    let draftRevision = 0, agentApproval = null;
+    let draftRevision = 0, agentApproval = null, planningController = null;
     const agentPanel = el('div', null, 'stack'); node.append(agentPanel); agentPanel.hidden = true;
     paragraph('Yerel model yalnızca herkese açık hedefi, C1…C16 takma adlarını ve seçtiğiniz türleri görür (en fazla 4 seçili sütun). Dosya adı, gerçek başlıklar ve hücreler modele verilmez. İlk kullanımda yaklaşık 412,5 MB model ağırlığı indirilip tarayıcıda önbelleğe alınır. Çıkarım bu tarayıcıda çalışır; çıkarım API’sine veri gönderilmez.', agentPanel);
     const goal = field(agentPanel, 'Herkese açık ajan hedefi — yalnızca C1, C2 gibi takma adları kullanın; gizli veri yazmayın', { type: 'textarea', required: false, maxLength: 1800, name: 'agentGoal' });
@@ -302,16 +311,20 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const generate = button('Yerel ajanla plan üret', async () => {
       if (!dataset || mode.value !== 'agent') fail('Önce CSV seçip ajan modunu açın.');
       invalidateAgent(); const revision = draftRevision, source = dataset;
+      const controller = new AbortController(); planningController = controller;
+      cancelPlanning.hidden = false; cancelPlanning.disabled = false;
       paragraph('Model hazırlanıyor…', planView);
       try {
         const task = currentTask();
-        const proposal = await generateAgentPlan(task, { workerFactory: agentWorkerFactory, onProgress: value => {
+        const proposal = await generateAgentPlan(task, { workerFactory: agentWorkerFactory, signal: controller.signal, onProgress: value => {
           if (revision === draftRevision) planView.textContent = typeof value.message === 'string' ? value.message : 'Yerel model çalışıyor…';
         } });
+        if (controller.signal.aborted) fail('Yerel planlama iptal edildi; plan onaylanmadı.');
         if (revision !== draftRevision || source !== dataset || mode.value !== 'agent') fail('Taslak değişti; eski model planı kullanılmadı.');
         const values = privatePlanInputs(source, proposal.plan);
         estimatePlan(proposal.plan, source.rows.length);
         const fingerprint = await datasetHash(source);
+        if (controller.signal.aborted) fail('Yerel planlama iptal edildi; plan onaylanmadı.');
         if (revision !== draftRevision || source !== dataset || mode.value !== 'agent') fail('Taslak değişti; eski model planı kullanılmadı.');
         agentApproval = freezePlanData({ ...proposal, datasetSha256: fingerprint });
         planView.replaceChildren();
@@ -324,9 +337,12 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
           const input = values[step.column], expected = referenceApply(input, step.recipe);
           table(['Satır', `${step.column} · ÖNCE (yerel)`, 'Beklenen SONRA (yerel)'], input.map((v, i) => [i + 1, displayCell(v, step.recipe), displayCell(expected[i], step.recipe)]), planView);
         }
-        enabled(approve, true); message('Plan doğrulandı. Adımları ve yerel önizlemeyi inceleyip onaylayın.');
+        enabled(approve, true); message('Plan biçimi ve desteklenen işlemler kontrol edildi. Hedefe uygunluğunu, adımları ve yerel önizlemeyi inceleyip onaylayın.');
       } catch (error) { invalidateAgent(); fail(error.message); }
+      finally { if (planningController === controller) planningController = null; cancelPlanning.hidden = true; cancelPlanning.disabled = true; }
     }, agentPanel);
+    const cancelPlanning = el('button', 'Yerel planlamayı iptal et', 'btn secondary'); cancelPlanning.type = 'button'; cancelPlanning.hidden = true; cancelPlanning.disabled = true;
+    cancelPlanning.dataset.allowBusy = 'true'; cancelPlanning.addEventListener('click', () => planningController?.abort()); agentPanel.append(cancelPlanning);
     agentPanel.append(planView);
     const approve = field(agentPanel, 'Bu hedefe ait yukarıdaki planı ve tüm yerel önce/sonra sonuçlarını inceledim; şifreli yürütme için onaylıyorum.', { type: 'checkbox', required: false, name: 'agentApprove' }); approve.checked = false; approve.disabled = true;
     function displayCell(value, recipe) { return value === '' || recipe.type === 'number' && value === 255 ? '(boş)' : value; }
@@ -338,6 +354,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       return publicTask({ version: 1, goal: goal.value, columns: schemaInputs.filter(input => input.value !== 'ignore').map(input => ({ id: input.dataset.alias, type: input.value })) });
     }
     function invalidateAgent() {
+      planningController?.abort();
       draftRevision++; agentApproval = null; approve.checked = false; enabled(approve, false);
       planView.replaceChildren(); if (mode.value === 'agent') enabled(submit, false);
     }
