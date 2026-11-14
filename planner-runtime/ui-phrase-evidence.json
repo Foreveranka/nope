@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-14T01:56:05.562Z",
+  "syntheticOnly": true,
+  "actualNeuralInference": true,
+  "backend": "onnxruntime-node CPU",
+  "model": "onnx-community/Qwen3-0.6B-ONNX-OPT",
+  "revision": "4799e655597b49210adb5c1ebe5b9d3bd04005a0",
+  "dtype": "q4",
+  "runtime": "@huggingface/transformers@4.3.2",
+  "workerSha256": "92e2502b3fe74719ca3b1a697f441c5ace25f3876a36154b0132bd7c4c97ccc6",
+  "promptSha256": "94ee00302d5dc79bdc959438f9eb314ad229054cf803da78ada40d4099214b6a",
+  "task": {
+    "version": 1,
+    "goal": "For C2, trim leading and trailing spaces and lowercase. For C3, replace empty values with 0 then clamp between 0 and 100.",
+    "columns": [
+      {
+        "id": "C2",
+        "type": "text"
+      },
+      {
+        "id": "C3",
+        "type": "number"
+      }
+    ]
+  },
+  "sourceRaw": "{\"operations\":[[\"C2\",\"trim\",\"leading\",\"spaces\"],[\"C2\",\"lowercase\"],[\"C3\",\"fill\",0],[\"C3\",\"clamp\",0,100]]}",
+  "generationError": "Model requested an unsupported operation; entire proposal rejected.",
+  "accepted": false,
+  "exactExpected": false,
+  "elapsedMs": 3971
+}

@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "sourceCommit": "38ce0d9",
+  "recordedAt": "2026-11-14T01:56:25.866Z",
+  "model": "onnx-community/Qwen3-0.6B-ONNX-OPT",
+  "revision": "4799e655597b49210adb5c1ebe5b9d3bd04005a0",
+  "dtype": "q4",
+  "evidenceSha256": "3a26cf6a57b0a5d96d83d1bfc3c3b0d20404da32a160a32d88750b7147923dcc",
+  "files": [
+    {
+      "path": "web/agent-model-worker.mjs",
+      "sha256": "92e2502b3fe74719ca3b1a697f441c5ace25f3876a36154b0132bd7c4c97ccc6",
+      "matchesCommit": "38ce0d9"
+    },
+    {
+      "path": "web/agent-model-runtime.mjs",
+      "sha256": "8bb9e65e73c3264e2ba6d22b4be379b1a5d1146bbf527168cb8bba813a857b27",
+      "matchesCommit": "38ce0d9"
+    },
+    {
+      "path": "planner-runtime/model-pack.json",
+      "sha256": "7bef2ed29bd9b63f8d0b7e82b05dc6c54b2a2ba00b15517ef698798521c4c828",
+      "matchesCommit": "38ce0d9"
+    },
+    {
+      "path": "planner-runtime/package-lock.json",
+      "sha256": "6a7f63a9e6fff1a8bfa990bc1cf3b4e1e717ea24ee62ce7487987ebae3ddfa3f",
+      "matchesCommit": "38ce0d9"
+    },
+    {
+      "path": "planner-runtime/verify-generation.mjs",
+      "sha256": "9803b833617322355b4d09b175d707473f05a59b813469d064b4d1607867a5e5",
+      "matchesCommit": "38ce0d9"
+    }
+  ],
+  "generation": {
+    "max_new_tokens": 256,
+    "do_sample": false,
+    "return_full_text": false
+  },
+  "chatTemplate": {
+    "tokenize": false,
+    "add_generation_prompt": true,
+    "enable_thinking": false
+  },
+  "casePromptHashes": [
+    {
+      "id": "english",
+      "messagesSha256": "e8f12fb9d8a3a6b4e15c89db1ef50cc27b07b012b97add009496eed6f316f0da",
+      "disposition": "validated-exact-expected-plan",
+      "passed": true
+    },
+    {
+      "id": "turkish",
+      "messagesSha256": "5baf154890bf932c1a78890f06f6b24565e8f85eee523e976bb22f2fce4b59b8",
+      "disposition": "validated-exact-expected-plan",
+      "passed": true
+    },
+    {
+      "id": "holdout-english",
+      "messagesSha256": "3acb97ae72fee04e75c56cb0cfd30d57f87059391c2191cdcfe4b7d8a2155272",
+      "disposition": "validated-exact-expected-plan",
+      "passed": true
+    },
+    {
+      "id": "holdout-turkish",
+      "messagesSha256": "f5c31d042c2e3173aabeba63c1f89a481c68dd0fec4fc7fb2c9ae2e4bf695b01",
+      "disposition": "validated-exact-expected-plan",
+      "passed": true
+    },
+    {
+      "id": "unsupported-mixed-english",
+      "messagesSha256": "3f03fb47c85e7e4ae3981d74e7b30145d636dac6054188a732bed4a547dcc148",
+      "disposition": "rejected-malformed-or-unsupported-model-output",
+      "passed": true
+    },
+    {
+      "id": "unsupported-mixed-turkish",
+      "messagesSha256": "25c0cea5c55c71752433bb70aae3479713b4b8cee830d4d538ae94b2b6497e7a",
+      "disposition": "rejected-malformed-or-unsupported-model-output",
+      "passed": true
+    },
+    {
+      "id": "unsupported-translation",
+      "messagesSha256": "1677354a63d1162314300b68de771c264139ca7c64af653dd195554583640730",
+      "disposition": "model-explicit-unsupported",
+      "passed": true
+    },
+    {
+      "id": "unsupported-turkish",
+      "messagesSha256": "a5e785dfe3d98165906e289fc2d175b824f67d60c0000201e8324ad3177791c6",
+      "disposition": "model-explicit-unsupported",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "correctSupported": 4,
+    "explicitUnsupported": 2,
+    "rejectedMalformedOrUnsupported": 2,
+    "passed": 8,
+    "total": 8
+  },
+  "interpretation": "Four exact supported plans; two explicit model refusals; two mixed requests rejected for malformed output. These are not eight correct semantic interpretations. Browser backend behavior is separate."
+}

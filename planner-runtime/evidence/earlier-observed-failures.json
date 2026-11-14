@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "provenance": "Transcribed from actual earlier tool output in this chat, not a recovered original JSON file or a new inference run. The initial generation-evidence.json was overwritten during iteration before freezing.",
+  "model": "onnx-community/Qwen3-0.6B-ONNX-OPT",
+  "revision": "4799e655597b49210adb5c1ebe5b9d3bd04005a0",
+  "dtype": "q4",
+  "backend": "onnxruntime-node CPU",
+  "earlierPromptReference": "45263b0:web/agent-model-worker.mjs (initial nested-JSON prompt, before the flat adapter)",
+  "records": [
+    {
+      "id": "english",
+      "sourceRaw": "{\"steps\":[{\"column\":\"C1\",\"recipe\":{\"op\":\"trim\"}},\"{\"column\":\"C2\",\"recipe\":{\"op\":\"fill\",\"value\":0}},\"{\"column\":\"C2\",\"recipe\":{\"op\":\"clamp\",\"min\":0,\"max\":100}}]}.",
+      "observedValidationError": "Model geçerli JSON üretmedi; plan çalıştırılmadı.",
+      "elapsedMs": 5309
+    },
+    {
+      "id": "turkish",
+      "sourceRaw": "{\"steps\":[{\"column\":\"C1\",\"recipe\":{\"op\":\"trim\"}}],\"status\":\"success\"}",
+      "observedValidationError": "Unexpected recipe protocol fields.",
+      "elapsedMs": 6892
+    },
+    {
+      "id": "unsupported-translation",
+      "sourceRaw": "```json\n{\"steps\":[{\"column\":\"C1\",\"recipe\":{\"type\":\"text\",\"steps\":[{\"op\":\"trim\"}]}]}\n```",
+      "observedValidationError": "Model geçerli JSON üretmedi; plan çalıştırılmadı.",
+      "elapsedMs": 22335
+    },
+    {
+      "id": "unsupported-turkish",
+      "sourceRaw": "```json\n{\"steps\":[{\"column\":\"C1\",\"recipe\":{\"op\":\"lowercase\"}}]}\n```",
+      "observedValidationError": "Unexpected recipe protocol fields.",
+      "elapsedMs": 7254
+    }
+  ],
+  "interpretation": "All four earlier checks failed. Translation examples emitted cleaning recipes instead of explicit semantic refusals. Historical validation errors are preserved as observed; they were not re-evaluated using the current parser."
+}
