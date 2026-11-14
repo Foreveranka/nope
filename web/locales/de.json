@@ -903,5 +903,8 @@
   "Sağlayıcı şifreli hesabı başlatır. Teslimi kendi cihazında aç, önce/sonra tablosunda incele ve sonuç kanıtını doğrula. Ödemeyi serbest bırakmak senin onayını gerektirir.": "Der Anbieter startet die verschlüsselte Berechnung. Öffne die Lieferung auf deinem Gerät, prüfe die Vorher-Nachher-Tabelle und verifiziere den Ergebnisbeweis. Die Zahlung wird nur mit deiner Freigabe ausgezahlt.",
   "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗": "ABGESCHLOSSENEN AUFTRAG PRÜFEN ↗",
   "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ": "BIS ZU 4 SPALTEN · 40 ZELLEN · ASCII-TEXT- UND SCHALTUNGSGRENZEN GELTEN",
-  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Dein Browser öffnet das Ergebnis und verifiziert den Ergebnisbeweis. Ausgewählte Text- und Zahlenspalten werden nach deinem freigegebenen Plan umgewandelt; andere Spalten bleiben erhalten."
+  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Dein Browser öffnet das Ergebnis und verifiziert den Ergebnisbeweis. Ausgewählte Text- und Zahlenspalten werden nach deinem freigegebenen Plan umgewandelt; andere Spalten bleiben erhalten.",
+  "Cüzdan fonlama toplamı: {0} testNEAR + ağ işlem ücreti.": "Gesamte Wallet-Einzahlung: {0} testNEAR + Netzwerkgebühr.",
+  "Hizmet bedeli kabul veya uygun iadeyle aktarılır. Depolama bedeli zincirdeki kayıtların saklanmasını karşılar.": "Der Servicebetrag wird bei Annahme oder berechtigter Rückerstattung übertragen. Die Speichergebühr finanziert die Aufbewahrung der On-Chain-Datensätze.",
+  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Dauerhafte Speicherung des Transaktionsdatensatzes: {0} testNEAR (nicht erstattbar)."
 }

@@ -15,7 +15,7 @@ import {parseCSV} from '../web/csv-input.mjs';
 // through that isolated historical API. New-job cancel/invalidation uses an
 // explicit signed-wallet/v4 capability fixture; complete v4 payment/proof flows
 // are covered by proof-ui, escrow-ui and wallet-ui tests, not a production bypass.
-const POLICY={network:'testnet',contractId:'agent-ui-wallet.testnet',codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const POLICY={network:'testnet',contractId:'agent-ui-wallet.testnet',codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V2:testnet',requireKeyless:true,storageDepositYocto:'40960000000000000000000'};
 const wallet=accountId=>({accountId,network:'testnet',publicKey:'ed25519:'+ '1'.repeat(32),verifiedAt:'2026-11-14T00:00:00Z'});
 const ORIGIN='http://localhost:8712';
 const CSV='private-score,private-name,private-ignore\n209,  Hidden97  ,Retained-A\n,Ab C3,Retained-B\n';

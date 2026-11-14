@@ -1,0 +1,9 @@
+{
+  "jobId": "a33650583ef81efa5edac4f0e50e9b3c",
+  "transactionHash": "BhA6rVwotmR5Upa6sz3eKhXRa6sbNk5L4owxGKezyGUv",
+  "attemptedNonce": "277667309000001",
+  "observedFinalAccessNonce": "277667309000004",
+  "hold": null,
+  "noResend": true,
+  "reason": "Concurrent synthetic harnesses used the same buyer; missing transaction with obsolete nonce. Journals preserved; subsequent checks serialized by shared nonce lease."
+}

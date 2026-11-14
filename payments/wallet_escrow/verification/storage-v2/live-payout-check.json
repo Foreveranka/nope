@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "network": "testnet",
+  "contractId": "nope-wallet-5144c7d4.testnet",
+  "codeHash": "349qhEttcFqG3ezvPHBCoFCyM8X1ZpXzYotgfqFXgN13",
+  "buyer": "nope-buyer-5144c7d4.testnet",
+  "provider": "nope-provider-5144c7d4.testnet",
+  "jobId": "9c8237ae53d550ccd5c516462d3de41f",
+  "bindingHash": "739e39a43dbd0b4dabaa77c89cefbbced918bd2055b780ce56d2b5fc6ba65759",
+  "actualExternalChain": true,
+  "computationProof": false,
+  "transactionHash": "C3HtZ5nFSwh27FDW8LZ1mimt3JoBNZK13LUbq6oHrPqB",
+  "transferReceiptId": "BRWGC65FTzBUasXWBRXAUiSgZS26fYF9HXiABrJwcdjo",
+  "callbackReceiptId": "A1gNS2JMtL5pjcHsiMAWjVxecfPL8kuNjNrkXMhxSff8",
+  "receiver": "nope-provider-5144c7d4.testnet",
+  "amountYocto": "1000000000000000000000",
+  "nonce": "1",
+  "state": "Paid",
+  "finalReceiptGraphConnected": true,
+  "exactNativeTransfer": true,
+  "successfulNonceActionCallback": true
+}

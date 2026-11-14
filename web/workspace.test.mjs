@@ -9,7 +9,7 @@ import { executeTask } from '../workspace/gc.mjs';
 // readonly. Publication, durable recovery, concurrency and encrypted quote
 // transport use explicit wallet/v4 fixtures. Actual v4 proof/signature/finality
 // gates remain in workspace/{proof-ui,escrow-ui,wallet-ui}.test.mjs.
-const POLICY={network:'testnet',contractId:'spa-unit-wallet.testnet',codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const POLICY={network:'testnet',contractId:'spa-unit-wallet.testnet',codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V2:testnet',requireKeyless:true,storageDepositYocto:'40960000000000000000000'};
 const wallet=accountId=>({accountId,network:'testnet',publicKey:'ed25519:'+ '1'.repeat(32),verifiedAt:'2026-11-14T00:00:00Z'});
 const WALLET_IDS={buyer:(await sha256('NOPE:wallet-session:v1:testnet:buyer:spa-buyer.testnet')).slice(0,32),provider:(await sha256('NOPE:wallet-session:v1:testnet:provider:p2.veil-reg-e138f5c88250f821.testnet')).slice(0,32)};
 const CAPABILITY={required:true,enabled:true,network:'testnet',contractId:POLICY.contractId};

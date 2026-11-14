@@ -61,7 +61,8 @@ export function createWalletAuth({store,env=process.env,config,now=Date.now,rpc}
   let limited=true;
   for(let i=0;i<8;i++){const id=sha(`rate:${session.id}:${Math.floor(now()/300000)}:${i}`);if(await store.create(`${WALLET_ROOT}challenges/${id}.json`,{rate:true})){limited=false;break;}}
   check(!limited,'WALLET_CHALLENGE_LIMIT',429);
-  const challengeId=randomBytes(32).toString('hex'),nonce=randomBytes(32).toString('base64'),issuedAt=new Date(now()).toISOString(),expiresAt=new Date(now()+300000).toISOString();
+  const issuedAtMs=now();
+  const challengeId=randomBytes(32).toString('hex'),nonce=randomBytes(32).toString('base64'),issuedAt=new Date(issuedAtMs).toISOString(),expiresAt=new Date(issuedAtMs+300000).toISOString();
   const context={version:1,purpose:'NOPE:WALLET-AUTH:V1',network:'testnet',accountId,sessionId:session.id,role:session.role,origin,challengeId,nonce,issuedAt,expiresAt};
   const value={challengeId,network:'testnet',accountId,sessionId:session.id,role:session.role,origin,nonce,issuedAt,expiresAt,message:canonical(context),recipient:origin,callbackUrl:origin+'/settings'};
   check(await store.create(`${WALLET_ROOT}challenges/${challengeId}.json`,value),'WALLET_CHALLENGE_COLLISION',503);return Object.freeze(value);

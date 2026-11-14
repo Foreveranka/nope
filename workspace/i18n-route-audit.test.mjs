@@ -22,7 +22,7 @@ const workspaceSource=JSON.parse(await readFile(new URL('../web/locales/workspac
 await initI18n({document:{},window:{},storage:{getItem:()=> 'en'},fetch:async url=>({ok:true,json:async()=>dictionaries[new URL(url).pathname.split('/').at(-1).slice(0,-5)]})});
 const ID='a'.repeat(32),TX='2'.repeat(44),BINDING='b'.repeat(64),CONTRACT='route-audit.testnet';
 const wallet=accountId=>({accountId,publicKey:'ed25519:'+ '1'.repeat(32),network:'testnet',verifiedAt:'2026-11-14T00:00:00Z'});
-const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V2:testnet',requireKeyless:true,storageDepositYocto:'40960000000000000000000'};
 const WALLET_CAPABILITY={required:true,enabled:true,network:'testnet',contractId:CONTRACT};
 const BUYER={id:'route-audit-buyer',role:'buyer',displayName:'Metin',wallet:wallet('route-buyer.testnet')},PROVIDER={id:'route-audit-provider',role:'provider',displayName:'Sayı',paymentAccount:'route-supplier.testnet',wallet:wallet('route-supplier.testnet')};
 const FUTURE=String((BigInt(Date.now())+86400000n)*1000000n),PAST=String((BigInt(Date.now())-86400000n)*1000000n),AMOUNT='1000000000000000000000';

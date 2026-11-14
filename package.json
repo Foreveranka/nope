@@ -1,5 +1,5 @@
 {
-  "name": "near-private-procurement",
+  "name": "nope",
   "version": "0.2.0",
   "description": "NEAR \u00fczerinde gizli tekliflerle i\u015f sat\u0131n alma ve m\u00fc\u015fteri verisini a\u00e7\u0131k h\u00e2liyle y\u00fcr\u00fct\u00fcc\u00fcye vermeden hesaplatma projesinin uygulamas\u0131.",
   "scripts": {
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Foreveranka/veil-procurement.git"
+    "url": "git+https://github.com/Foreveranka/nope.git"
   },
   "keywords": [],
   "author": "",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/Foreveranka/veil-procurement/issues"
+    "url": "https://github.com/Foreveranka/nope/issues"
   },
-  "homepage": "https://github.com/Foreveranka/veil-procurement#readme",
+  "homepage": "https://github.com/Foreveranka/nope#readme",
   "dependencies": {
     "@vercel/blob": "2.9.0",
     "near-api-js": "7.5.3"

@@ -72,7 +72,7 @@
         {
           "id": "escrow",
           "title": "Depósito con cartera en NEAR testnet",
-          "text": "El cliente deposita el importe exacto elegido de testNEAR desde su propia cartera en el contrato. Cada trabajo tiene un saldo separado; no se retira de un fondo compartido de clientes. El proveedor firma el registro de entrega y el cliente firma la liberación o un reembolso permitido en su cartera. NOPE nunca recibe la clave privada de la cartera. El contrato no verifica SNARK; esa comprobación se realiza fuera de la cadena.",
+          "text": "El cliente deposita el importe exacto elegido de testNEAR desde su propia cartera en el contrato. Cada trabajo tiene un saldo separado; no se retira de un fondo compartido de clientes. El proveedor firma el registro de entrega y el cliente firma la liberación o un reembolso permitido en su cartera. NOPE nunca recibe la clave privada de la cartera. El contrato no verifica SNARK; esa comprobación se realiza fuera de la cadena. Además del precio del servicio, el cliente deposita el cargo mostrado por el almacenamiento permanente del registro del trabajo. El precio del servicio permanece en custodia; el cargo de almacenamiento no es reembolsable. Cada trabajo paga su propio almacenamiento; no existe una cuota compartida fija de 50 trabajos. Revisa el total y la comisión de red adicional antes de firmar.",
           "code": "",
           "href": ""
         }
@@ -325,7 +325,7 @@
         {
           "id": "sponsor",
           "title": "¿Qué ocurre si la cartera o la red no están disponibles?",
-          "text": "Los trabajos nuevos requieren el depósito testnet configurado con cartera; no recurren al fondo patrocinado ni a un flujo de pago anterior. Tu cartera necesita testNEAR suficiente para el importe elegido y las comisiones. La cancelación, el fallo y las transacciones inciertas tienen estados separados; nada se considera terminado sin verificación. Los trabajos patrocinados antiguos son de solo lectura.",
+          "text": "Los trabajos nuevos requieren el depósito testnet configurado con cartera; no recurren al fondo patrocinado ni a un flujo de pago anterior. Tu cartera necesita testNEAR suficiente para el importe elegido y las comisiones. La cancelación, el fallo y las transacciones inciertas tienen estados separados; nada se considera terminado sin verificación. Los trabajos patrocinados antiguos son de solo lectura. Se necesita suficiente testNEAR para el precio del servicio, el cargo de almacenamiento separado y la comisión de red; el almacenamiento permanente no es reembolsable.",
           "code": "",
           "href": ""
         }

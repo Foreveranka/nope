@@ -3,7 +3,7 @@
  * connectorFactory is an explicitly injected UNIT seam, never a signing fallback. */
 import {WALLET_ESCROW_POLICY} from './wallet-pins.mjs';
 import {msg} from './i18n.mjs';
-const DOMAIN='NOPE:WALLET-ESCROW:V1:testnet';
+const DOMAIN='NOPE:WALLET-ESCROW:V2:testnet';
 const METHODS=Object.freeze({fund:'fund',record:'record_delivery',release:'accept_and_release',refund:'refund'});
 const TERMS=['job_id','buyer_commitment','buyer_account','provider','amount','input_hash','program_hash','plan_hash','execution_deadline_ns','review_deadline_ns'];
 const GAS='150000000000000',MAX_AMOUNT=10n**24n,U64=(1n<<64n)-1n;
@@ -30,7 +30,7 @@ function publicKey(s){check(typeof s==='string'&&s.startsWith('ed25519:'),'WALLE
 function signature(s){return typeof s==='string'&&s.startsWith('ed25519:')?b64(base58(s.slice(8),64)):(base64(s,64,'WALLET_INVALID_SIGNATURE'),s);}
 function chainHash(s){check(typeof s==='string'&&s.length>=32&&s.length<=44,'WALLET_INVALID_TRANSACTION');base58(s,32);return s;}
 async function digest(crypto,text){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),b=>b.toString(16).padStart(2,'0')).join('');}
-function policyObject(policy){exact(policy,['network','contractId','codeHash','domain','requireKeyless'],'WALLET_POLICY_DISABLED');check(policy.network==='testnet'&&policy.requireKeyless===true&&policy.domain===DOMAIN&&account(policy.contractId)&&policy.contractId.endsWith('.testnet'),'WALLET_POLICY_DISABLED');chainHash(policy.codeHash);return snapshot(policy);}
+function policyObject(policy){exact(policy,['network','contractId','codeHash','domain','requireKeyless','storageDepositYocto',...(policy?.admissionPublicKey!==undefined?['admissionPublicKey']:[])],'WALLET_POLICY_DISABLED');check(policy.storageDepositYocto==='40960000000000000000000'&&policy.network==='testnet'&&policy.requireKeyless===true&&policy.domain===DOMAIN&&account(policy.contractId)&&policy.contractId.endsWith('.testnet'),'WALLET_POLICY_DISABLED');if(policy.admissionPublicKey!==undefined)check(hex(policy.admissionPublicKey,64)&&policy.admissionPublicKey!=='0'.repeat(64),'WALLET_POLICY_DISABLED');chainHash(policy.codeHash);return snapshot(policy);}
 function boundsObject(b){
  const required=['action','jobId','bindingHash','accountId','contractId','buyerAccount'];
  const optional=['network','provider','amountYocto','version','outputHash','buyerCommitment','inputHash','programHash','planHash','executionDeadlineNs','reviewDeadlineNs','expectedArgs','gas','deposit'];
@@ -97,16 +97,22 @@ export function createWalletClient({window:win=globalThis.window,network='testne
   check(v.action===b.action&&v.bindingHash===b.bindingHash&&b.accountId===a.accountId&&account(b.buyerAccount)&&hex(b.jobId,32)&&b.contractId===p.contractId&&(!b.network||b.network==='testnet'));
   exact(v.transaction,['signerId','receiverId','actions']);check(v.transaction.signerId===a.accountId&&v.transaction.receiverId===p.contractId);
   const actions=v.transaction.actions;check(Array.isArray(actions)&&actions.length===1&&Object.keys(actions).length===1);exact(actions[0],['type','params']);check(actions[0].type==='FunctionCall');
-  const call=actions[0].params;exact(call,['methodName','args','gas','deposit']);check(call.methodName===METHODS[v.action]&&call.gas===GAS&&decimal(call.deposit)&&BigInt(call.deposit)<=MAX_AMOUNT);
+  const call=actions[0].params;exact(call,['methodName','args','gas','deposit']);check(call.methodName===METHODS[v.action]&&call.gas===GAS&&decimal(call.deposit)&&BigInt(call.deposit)<=MAX_AMOUNT+BigInt(p.storageDepositYocto));
   if(b.gas!==undefined)check(call.gas===b.gas);if(b.deposit!==undefined)check(call.deposit===b.deposit);
   if(v.action==='fund'){
-   check(a.accountId===b.buyerAccount);exact(call.args,['terms']);const t=call.args.terms;exact(t,TERMS);check(TERMS.every(k=>typeof t[k]==='string'));
-   check(t.job_id===b.jobId&&t.buyer_account===b.buyerAccount&&account(t.provider)&&t.provider!==t.buyer_account&&t.provider!==p.contractId&&decimal(t.amount)&&BigInt(t.amount)>=1n&&BigInt(t.amount)<=MAX_AMOUNT&&call.deposit===t.amount);
+   check(a.accountId===b.buyerAccount);exact(call.args,['terms',...(p.admissionPublicKey?['admission_signature']:[])]);const t=call.args.terms;exact(t,TERMS);check(TERMS.every(k=>typeof t[k]==='string'));
+   check(t.job_id===b.jobId&&t.buyer_account===b.buyerAccount&&account(t.provider)&&t.provider!==t.buyer_account&&t.provider!==p.contractId&&decimal(t.amount)&&BigInt(t.amount)>=1n&&BigInt(t.amount)<=MAX_AMOUNT&&call.deposit===(BigInt(t.amount)+BigInt(p.storageDepositYocto)).toString());
    check(t.provider===b.provider&&t.amount===b.amountYocto);for(const k of ['buyer_commitment','input_hash','program_hash','plan_hash'])check(hex(t[k],64));
    for(const k of ['execution_deadline_ns','review_deadline_ns'])check(/^[1-9][0-9]{0,19}$/.test(t[k])&&BigInt(t[k])<=U64);
    check(BigInt(t.execution_deadline_ns)>BigInt(now())*1000000n&&BigInt(t.review_deadline_ns)>BigInt(t.execution_deadline_ns)&&BigInt(t.review_deadline_ns)<=BigInt(now()+30*86400000)*1000000n);
    for(const [key,bound]of [['buyer_commitment','buyerCommitment'],['input_hash','inputHash'],['program_hash','programHash'],['plan_hash','planHash'],['execution_deadline_ns','executionDeadlineNs'],['review_deadline_ns','reviewDeadlineNs']])if(b[bound]!==undefined)check(t[key]===b[bound]);
    check(await digest(crypto,JSON.stringify([p.domain,p.contractId,...TERMS.map(k=>t[k])]))===v.bindingHash);
+   if(p.admissionPublicKey){
+    check(hex(call.args.admission_signature,128));
+    const raw=s=>Uint8Array.from(s.match(/../g),x=>parseInt(x,16));
+    const key=await crypto.subtle.importKey('raw',raw(p.admissionPublicKey),{name:'Ed25519'},false,['verify']);
+    check(await crypto.subtle.verify('Ed25519',key,raw(call.args.admission_signature),new TextEncoder().encode('NOPE:WALLET-ADMISSION:V1\0'+v.bindingHash)));
+   }
   }else{
    check(call.deposit==='0');const delivered=v.action==='record'||v.action==='release';exact(call.args,delivered?['buyer_account','job_id','version','output_hash']:['buyer_account','job_id']);
    check(call.args.buyer_account===b.buyerAccount&&call.args.job_id===b.jobId);

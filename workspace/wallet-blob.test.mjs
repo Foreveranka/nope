@@ -14,7 +14,7 @@ import {createWalletEscrow,WALLET_ESCROW_KIND,WALLET_ESCROW_DOMAIN} from './wall
 // wallet broadcasts or funds. This specifically prevents a permissive test store
 // from masking production wallet namespace validation failures.
 const H=n=>baseEncode(Buffer.alloc(32,n)),BLOCK=H(2),TX=H(4),TIME=1700000000000;
-const POLICY={network:'testnet',domain:WALLET_ESCROW_DOMAIN,contractId:'wallet-blob.testnet',codeHash:H(3),requireKeyless:true};
+const POLICY={network:'testnet',domain:WALLET_ESCROW_DOMAIN,contractId:'wallet-blob.testnet',codeHash:H(3),requireKeyless:true,storageDepositYocto:'40960000000000000000000'};
 function transport(){
  const records=new Map(),calls=[];
  const client={async put(path,body,options){calls.push({method:'put',path,options});if(records.has(path))throw Error('occupied');records.set(path,body);},async get(path,options){calls.push({method:'get',path,options});return records.has(path)?{statusCode:200,stream:new Blob([records.get(path)]).stream()}:null;},async list(options){calls.push({method:'list',options});return{blobs:[...records.keys()].filter(p=>p.startsWith(options.prefix)).map(pathname=>({pathname})),hasMore:false};}};
@@ -52,7 +52,7 @@ test('production Blob adapter supports actual HTTP wallet session/challenge/veri
  const job={id:'a'.repeat(32),buyerId:buyer.session.id,buyerWallet:buyer.session.wallet,status:'AWARDED',createdAt:new Date(TIME).toISOString(),taskHash:'b'.repeat(64),programHash:'c'.repeat(64),planSha256:'d'.repeat(64),selectedOffer:{providerId:provider.session.id,paymentAccount:provider.session.wallet.accountId,wallet:provider.session.wallet,amountYocto:'1000000000000000000000'},payment:{kind:WALLET_ESCROW_KIND,network:'testnet',contractId:POLICY.contractId,status:'NOT_FUNDED',awardedAtISO:new Date(TIME).toISOString()}};
  const fund=await escrow.prepare(job,'fund',buyer.session);job.payment=fund.payment;
  const unknown=await escrow.confirm(job,'fund',TX,buyer.session);assert.equal(unknown.status,'UNKNOWN');job.payment=unknown;
- const ctx=escrow.context(job);hold={terms:ctx.terms,binding_hash:ctx.bindingHash,state:'Held',nonce:'0',delivery:null,pending:null,last_transfer_failure_nonce:null};job.payment=await escrow.refresh(job,buyer.session);assert.equal(job.payment.status,'HELD');
+ const ctx=escrow.context(job);hold={terms:ctx.terms,binding_hash:ctx.bindingHash,storage_deposit_yocto:'40960000000000000000000',state:'Held',nonce:'0',delivery:null,pending:null,last_transfer_failure_nonce:null};job.payment=await escrow.refresh(job,buyer.session);assert.equal(job.payment.status,'HELD');
  job.status='DELIVERED';job.delivery={version:1,outputSha256:'e'.repeat(64)};const record=await escrow.prepare(job,'record',provider.session);job.payment=record.payment;job.payment=await escrow.refresh(job,provider.session);assert.equal(job.payment.status,'UNKNOWN');
  now=TIME+3*86400000;job.payment=await escrow.refresh(job,buyer.session);assert.equal(job.payment.status,'HELD');assert.equal(job.payment.operation.status,'EXPIRED');
  const markers=[...b.records.entries()].filter(([p,v])=>p.startsWith(ROOT+'wallet/intents/')&&JSON.parse(v).kind==='EXPIRED_RECORD_INTENT');assert.equal(markers.length,1);assert.equal(JSON.parse(markers[0][1]).intentId,record.intent.id);

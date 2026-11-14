@@ -1,4 +1,4 @@
-<img src="web/nope-logo.svg" width="64" height="64" alt="NOPE logo">
+![NOPE — Private work. Verifiable results.](docs/assets/nope-banner.svg)
 
 # NOPE — Network of Private Execution
 
@@ -8,7 +8,7 @@ Hire an agent to transform a CSV without sending its private rows to the plannin
 
 [Open NOPE](https://nope-workspace.vercel.app) · [Enter the application](https://nope-workspace.vercel.app/workspace) · [User documentation / Türkçe dahil 5 dil](https://nope-workspace.vercel.app/docs) · [Verify a completed job](https://nope-workspace.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99)
 
-The canonical URL is [nope-workspace.vercel.app](https://nope-workspace.vercel.app). The [old URL](https://veil-procurement.vercel.app) remains usable for existing browser sessions and local vault data. Browser storage does not move between origins: use the old URL for existing CSV/decoder/witness data; a fresh wallet login on the new URL can recover wallet-owned job access, but cannot recover that local data.
+The canonical URL is [nope-workspace.vercel.app](https://nope-workspace.vercel.app). Browser vault data is origin-specific: a fresh wallet login can recover wallet-owned job access, but cannot recover a CSV, decoder or witness stored on a different origin. Existing sessions should keep their original tab until that work is complete.
 
 ## Independent code review
 
@@ -55,7 +55,7 @@ Use a current desktop Chromium browser, two different funded NEAR **testnet** ac
 3. Set `score` / `C2` to Number and leave the other columns unselected. Use the public goal: `Fill C2 blanks with 7 and clamp C2 to 0..100.` The local planner should propose supported operations; review them rather than assuming the model interpreted your goal correctly. For that approved plan, the local preview is `7, 100, 42`, while the other fields remain unchanged.
 4. Approve the plan and preview, then encrypt and publish. The optional budget is a private local note, not an enforced spending limit; review the selected price before signing. Do not include confidential data in the public title, description or goal.
 5. In the provider profile, choose Provider, connect a different testnet wallet, open the job and submit an encrypted price bid. For this walkthrough use **0.001 testNEAR**. Other providers cannot decrypt it.
-6. The customer closes bidding, decrypts the bids locally and selects a provider. The selected provider and price now become public. Approve the exact deposit in the customer wallet; execution stays blocked until funding is finalized.
+6. The customer closes bidding, decrypts the bids locally and selects a provider. The selected provider and price now become public. Review the service price, non-refundable **0.04096 testNEAR** storage charge and total, then approve the exact deposit in the customer wallet; execution stays blocked until funding is finalized.
 7. The selected provider opens Delivery, initiates the encrypted calculation and signs delivery recording for its exact version and output hash.
 8. The customer reviews the in-app before/after result, generates the proof, waits for verification and explicitly accepts that delivery. Then the customer signs payment release. Wait for the finalized provider transfer; a wallet's send response alone is not payment evidence.
 
@@ -93,15 +93,16 @@ Sealed bids do not cryptographically force the customer to choose the lowest pri
 ## Customer-funded NEAR escrow
 
 - Network: **NEAR testnet**.
-- Immutable shared contract: **`nope-wallet-44384e2f.testnet`**.
-- Pinned code hash: **`6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy`**.
+- Immutable shared contract: **`nope-wallet-5144c7d4.testnet`**.
+- Pinned code hash: **`349qhEttcFqG3ezvPHBCoFCyM8X1ZpXzYotgfqFXgN13`**.
 - Contract access keys were removed and the FINAL empty key list was independently checked. There is no application admin withdrawal/upgrade method.
 - The shared contract keeps an independent liability for each `(buyer account, job ID)`. Customer deposits do not finance other jobs. Its separately bootstrapped storage/gas reserve is not a sponsor payment pool.
+- Contract-level Ed25519 admission binds an exact selected job, parties, price and deadlines. The server admission key cannot accept, refund or withdraw; it is separate from all wallet keys. Direct unsigned funding cannot consume shared slots. This is application admission, not Sybil resistance; prepaid per-job storage removes the shared free-capacity dependency.
 - The buyer signs `fund`; the provider or buyer can record exact delivery metadata; only the original buyer signs `accept_and_release` or an eligible `refund`.
 - Execution is allowed for 24 hours from award; the review/refund boundary is 48 hours from award. Acceptance/release must be within the review window; refund is available strictly after it, subject to final contract state. Refund is a wallet action, not an automatic timer payment.
-- The immutable contract accepts at most **1 testNEAR per job** and retains at most **50 jobs permanently**. The application result-proof adapter accepts the same exact **1 yoctoNEAR–1 testNEAR** selected-price range. Prices remain canonical decimal strings committed into the final proof context; real endpoint proofs cover both boundaries and reject a changed price. Native fees are additional; the user reviews them in the wallet. A larger deployment requires a new reviewed contract address.
+- The service price is **1 yoctoNEAR–1 testNEAR**. Funding attaches that price plus **0.04096 testNEAR** for the permanent job record; this storage charge is **not refunded**. Payout or an eligible refund transfers the service price only. Network transaction fees are additional. Each job prepays its own bounded storage in an independently keyed `LookupMap`; there is **no shared permanent 50-job capacity**. The UI separates service price, storage charge and total before signing.
 - Unknown submission outcomes are observed without automatic signing or rebroadcast. Transfers use nonce/action-bound callbacks; failed transfers restore liabilities and other jobs remain protected.
-- Legacy direct-transfer and sponsor jobs are historical read-only records in the current application.
+- Legacy direct-transfer, sponsor and retired-wallet jobs are historical read-only records. The completed C775 run keeps its original contract binding; the public verifier retains its pinned historical policy. Before cutover, a FINAL inventory confirmed zero outstanding liabilities or pending transfers on that old contract. [Migration evidence](payments/wallet_escrow/verification/admission-v1/legacy-before-cutover.json).
 
 No mainnet deployment, real-money payment support or automatic dispute arbitration is claimed. The contract records the commitments and delivery and enforces payment authorization; it **does not execute the SNARK verifier on-chain**.
 
@@ -125,8 +126,8 @@ This does **not** prove original CSV provenance, honest initial garbling/mapping
 Prerequisites: **Node.js 22.22.2 or newer** (recorded local verification used 25.6.0), npm, and Python 3.9+ for packaging the historical companion download during the web build. Rust/native FHE/MPC tooling is not required to run the current JavaScript regression suite or web build.
 
 ```sh
-git clone https://github.com/Foreveranka/veil-procurement.git
-cd veil-procurement
+git clone https://github.com/Foreveranka/nope.git
+cd nope
 npm ci
 npm ci --prefix planner-runtime --ignore-scripts
 npm ci --prefix proof-runtime --ignore-scripts
@@ -136,7 +137,7 @@ npm test
 npm run build
 ```
 
-The latest recorded root suite passed **494 tests, zero failures and zero skips** in **102.107 seconds** on 14 November 2026, after the `ae091f8` session-role fix. The application build also passed before this documentation-only update. The earlier **492-test** snapshot at `4d1e73a` is retained separately in [release checks](docs/verification/wallet-release-checks.json). Tests include genuine local cryptography and explicitly synthetic transport/RPC fixtures; they do not broadcast transactions. The build packages the wallet/planner/proof runtimes and generates `dist/`; it neither deploys nor downloads the planner's model weights.
+The post-remediation root suite passed **507 tests, zero failures and zero skips** in **95.245 seconds** on 14 November 2026. The application build and all five locale catalogs also passed. [Current release checks](docs/verification/public-release-checks.json) record scope and remaining deployment checks; the earlier 494/492-test snapshots remain historical. Tests include genuine local cryptography and explicitly synthetic transport/RPC fixtures; they do not broadcast transactions. The build packages the wallet/planner/proof runtimes and generates `dist/`; it neither deploys nor downloads the planner's model weights.
 
 Additional proof checks:
 
@@ -178,18 +179,24 @@ The reviewed live deployment is immutable and capacity-limited. See the contract
 
 | Check | Evidence | Meaning |
 | --- | --- | --- |
-| Root regression | [Release checks](docs/verification/wallet-release-checks.json) | Latest 494 passing cases after session-role fix; previous 492 at 4d1e73a retained separately; genuine crypto and synthetic adapters identified |
+| Root regression | [Release checks](docs/verification/wallet-release-checks.json) | Historical 494/492 snapshots; [post-remediation checks](docs/verification/public-release-checks.json) record 507 passing cases with crypto and synthetic adapters separated |
 | Completed browser lifecycle | [C775 snapshot](docs/verification/c775-full-browser-lifecycle.json) | Six proofs, explicit acceptance, FINAL exact 0.001 testNEAR payout, successful callback and Paid hold; all 11 independent checks pass |
 | Browser funding flow | [C775 fund-only evidence](docs/verification/c775-fund-only.json) | Exact 0.001 testNEAR, FINAL same-block pinned code/empty key list and Held state; no payment or result-proof claim |
 | Browser delivery recording | [C775 record-only evidence](docs/verification/c775-record-only.json) | Exact selected-provider record call, zero deposit, FINAL Delivered v1/output hash; no payment or result-proof claim |
 | Real deployed HTTP lifecycle | [Production run](docs/verification/wallet-funded-http-production.json) | Genuine test-wallet NEP-413, sealed bid, exact buyer deposit, encrypted execution, actual result proof, explicit acceptance and provider payout |
 | Independent public result verification | [C775 verifier](https://nope-workspace.vercel.app/verify?id=c77599347652ecdfb2362a620afa5e99) | All six proofs and Paid binding passed in live Chrome and a fresh unauthenticated process without the buyer witness |
-| Actual native payout and refund | [Financial checks](payments/wallet_escrow/verification/live-financial-checks.json) | Exact public-testnet provider payment and original-buyer refund; direct contract tests, not computation proofs |
-| Locked deployment | [Independent code/key check](docs/verification/wallet-escrow-independent-deploy.json) | Finalized code, source-WASM hash and empty access-key list |
-| Contract execution/failure cases | [Contract evidence](payments/wallet_escrow/README.md#actual-validation-and-deployment) | 13 contract unit tests and a real local WASM sandbox; local sandbox is not public-chain evidence |
+| Actual native payout and refund | [V2 financial checks](payments/wallet_escrow/verification/storage-v2/live-financial-checks.json) | Exact public-testnet provider payment and original-buyer refund; direct contract tests, not computation proofs |
+| Locked deployment | [V2 code/key check](payments/wallet_escrow/verification/storage-v2/deployment-public.json) | Finalized code, source-WASM hash and empty access-key list |
+| Contract execution/failure cases | [Contract evidence](payments/wallet_escrow/README.md#actual-validation-and-deployment) | 18 current contract unit tests and a real keyless WASM sandbox; local sandbox is not public-chain evidence |
 | Wallet UI | [Wallet runtime](wallet-runtime/README.md) | Real Intear authentication, fund, record and release popup flows checked; refund popup remains untested |
 
 Full chain transaction hashes and proof-scope qualifications are in the [completed browser lifecycle snapshot](docs/verification/c775-full-browser-lifecycle.json). No screenshot, mocked receipt, hash-only transcript or successful outer transaction is labelled a computation proof or final payout by itself.
+
+## Security review and release boundaries
+
+The pre-public review identified and addressed three availability paths: direct unauthorised consumption of contract slots, anonymous consumption of a shared session allowance, and provider refreshes consuming customer revisions. The admission service is not Sybil-proof; independently keyed records prepay their storage instead of consuming a fixed shared allowance. A separate clock regression fixes intermittent NEP-413 challenge rejection. See the [release security notes](docs/RELEASE-SECURITY.md), source and executable regressions; this is not an exhaustive third-party audit or a guarantee of security.
+
+The recorded C775 browser/video run predates the V2 storage charge and keeps its original proof/contract binding. New jobs show the separate retained-storage charge before funding. The [V2 maximum-price HTTP run](docs/verification/wallet-funded-http-local-storage-v2-price-max.json) independently verifies the new total and payout on real testnet; it uses a local HTTP server and authored plan, not the production browser/model.
 
 ## Languages
 
@@ -204,7 +211,7 @@ The product, job creation, bidding, delivery, payment screens and documentation 
 - `docs/verification/wallet-*`: current wallet-funded integration evidence.
 - `engine/`, `mpc/`, `cloud/`, `service/`, `contracts/registry/`, `payments/testnet_escrow/` and older routes: earlier FHE, MPC, cloud and payment experiments. Their evidence remains scoped to those historical runs; they are not independent production operators or the current customer-funded contract.
 
-Earlier project/component names such as Veil and the existing GitHub/Vercel URLs remain for compatibility. [Archived prototype notes](docs/archive/LEGACY-PROTOTYPES.md) preserve the previous README's historical material. The current architecture is the six-component flow above; the shipped browser evaluator uses garbled circuits, not Concrete FHE or a distributed MPC auction.
+Historical evidence retains the original deployment identifiers and signed commitments. These records are not rewritten during a brand or domain migration. [Archived prototype notes](docs/archive/LEGACY-PROTOTYPES.md) preserve the previous README's historical material. The current architecture is the six-component flow above; the shipped browser evaluator uses garbled circuits, not Concrete FHE or a distributed MPC auction.
 
 Libraries, templates, AI assistance, model weights, fonts and upstream wallet code are attributed in [third-party notices](THIRD_PARTY_NOTICES.md). AI coding/planning assistance does not replace the stated tests or prove untested features. This repository contains both the historical prototypes and the current work; this README separates their scope instead of counting old evidence as current validation.
 
@@ -212,4 +219,4 @@ Libraries, templates, AI assistance, model weights, fonts and upstream wallet co
 
 Original NOPE code and documentation are licensed under the [MIT License](LICENSE). Third-party dependencies, model weights, fonts and vendored upstream code retain their own licenses/terms; the project license does not relicense them. See [third-party notices](THIRD_PARTY_NOTICES.md).
 
-Private keys, seeds, local vaults, `.env*`, invitations, recovery journals and `runtime/` are excluded from Git and the allowlisted deployment. Source updates on `main` trigger the existing Vercel deployment; changing the repository's GitHub visibility and submitting a hackathon entry are separate actions.
+Private keys, seeds, local vaults, `.env*`, invitations, recovery journals and `runtime/` are excluded from Git and the allowlisted deployment. Source updates on `main` trigger the NOPE Vercel deployment. A hackathon submission or social post is a separate action.

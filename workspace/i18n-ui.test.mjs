@@ -42,7 +42,7 @@ class Element {
 const descendants=node=>[node,...node.children.flatMap(descendants)];
 const ID='a'.repeat(32),CONTRACT='i18n-escrow.testnet';
 const wallet=accountId=>({accountId,publicKey:'ed25519:'+ '1'.repeat(32),network:'testnet',verifiedAt:'2026-11-14T00:00:00Z'});
-const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V2:testnet',requireKeyless:true,storageDepositYocto:'40960000000000000000000'};
 const WALLET_CAPABILITY={required:true,enabled:true,network:'testnet',contractId:CONTRACT};
 const BUYER={id:'i18n-unit-buyer',role:'buyer',displayName:'Metin',wallet:wallet('i18n-buyer.testnet')},PROVIDER={id:'i18n-unit-provider',role:'provider',displayName:'Sayı',paymentAccount:'i18n-fixture.testnet',wallet:wallet('i18n-fixture.testnet')};
 const JOB={id:ID,buyerId:BUYER.id,buyerWallet:structuredClone(BUYER.wallet),payment:{kind:'WALLET_TESTNET_ESCROW',network:'testnet',status:'NOT_FUNDED',contractId:CONTRACT},title:'Sayı',description:'Metin',status:'OPEN',profile:PROOF_PROFILE,rowCount:2,deadlineISO:'2099-12-01T18:30:00Z',offers:[],publicTask:{version:1,goal:'Metin',columns:[{id:'C1',type:'number'}]}};

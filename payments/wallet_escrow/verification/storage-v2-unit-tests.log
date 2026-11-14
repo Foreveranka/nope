@@ -1,0 +1,244 @@
+   Compiling nope-wallet-escrow v0.1.0 (/Users/mete/near-private-procurement/payments/wallet_escrow)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.62s
+     Running unittests src/lib.rs (../testnet_escrow/target/debug/deps/nope_wallet_escrow-90b42f39eb826014)
+
+running 18 tests
+
+thread 'tests::customer_deposit_cannot_pay_storage_or_cover_another_hold' (26295028) panicked at src/lib.rs:269:9:
+preserve payment liabilities, prepaid storage and gas buffer
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:108:5:
+invalid lowercase hex
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::admitted_funding_replay_and_admission_key_has_no_payment_authority' (26295024) panicked at src/lib.rs:171:9:
+job already funded in buyer namespace
+test tests::binding_tuple_exact_order_and_wallet_identity ... ok
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::delivery_auth_strict_versions_and_exact_acceptance' (26295029) panicked at src/lib.rs:193:9:
+buyer or selected provider only
+
+thread 'tests::checked_nonce_exhaustion_and_gas_reject_before_new_pending' (26295027) panicked at src/lib.rs:277:9:
+attach at least 100 Tgas
+
+thread 'tests::admitted_funding_replay_and_admission_key_has_no_payment_authority' (26295024) panicked at src/lib.rs:258:28:
+assertion `left == right` failed: buyer wallet only
+  left: AccountId("admission-signer.testnet")
+ right: AccountId("buyer.testnet")
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::callback_private_nonce_action_and_uncertain_result_guards' (26295026) panicked at src/lib.rs:221:23:
+assertion `left == right` failed: self callback only
+  left: AccountId("other.testnet")
+ right: AccountId("wallet-escrow.testnet")
+
+thread 'tests::admitted_funding_replay_and_admission_key_has_no_payment_authority' (26295024) panicked at src/lib.rs:258:28:
+assertion `left == right` failed: buyer wallet only
+  left: AccountId("admission-signer.testnet")
+ right: AccountId("buyer.testnet")
+test tests::admitted_funding_replay_and_admission_key_has_no_payment_authority ... ok
+
+thread 'tests::checked_nonce_exhaustion_and_gas_reject_before_new_pending' (26295027) panicked at src/lib.rs:280:52:
+nonce exhausted
+test tests::checked_nonce_exhaustion_and_gas_reject_before_new_pending ... ok
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::callback_private_nonce_action_and_uncertain_result_guards' (26295026) panicked at src/lib.rs:225:9:
+assertion `left == right` failed: stale callback nonce
+  left: U64(1)
+ right: U64(0)
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::callback_private_nonce_action_and_uncertain_result_guards' (26295026) panicked at src/lib.rs:225:62:
+assertion `left == right` failed: callback action mismatch
+  left: Payout
+ right: Refund
+
+thread 'tests::initialization_requires_explicit_nonzero_admission_key' (26295033) panicked at src/lib.rs:108:5:
+invalid lowercase hex
+
+thread 'tests::initialization_requires_explicit_nonzero_admission_key' (26295033) panicked at src/lib.rs:143:9:
+assertion `left != right` failed: nonzero admission public key required
+  left: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+ right: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+thread 'tests::initialization_requires_explicit_nonzero_admission_key' (26295033) panicked at src/lib.rs:108:5:
+invalid lowercase hex
+test tests::initialization_requires_explicit_nonzero_admission_key ... ok
+
+thread 'tests::customer_deposit_cannot_pay_storage_or_cover_another_hold' (26295028) panicked at src/lib.rs:269:9:
+preserve payment liabilities, prepaid storage and gas buffer
+test tests::customer_deposit_cannot_pay_storage_or_cover_another_hold ... ok
+
+thread 'tests::delivery_auth_strict_versions_and_exact_acceptance' (26295029) panicked at src/lib.rs:198:9:
+assertion `left == right` failed: strict next version required
+  left: 4
+ right: 3
+test tests::callback_private_nonce_action_and_uncertain_result_guards ... ok
+
+thread 'tests::funding_is_exact_wallet_deposit_not_sponsor_credit' (26295032) panicked at src/lib.rs:160:9:
+assertion `left == right` failed: buyer wallet must fund
+  left: AccountId("other.testnet")
+ right: AccountId("buyer.testnet")
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::funding_is_exact_wallet_deposit_not_sponsor_credit' (26295032) panicked at src/lib.rs:169:9:
+assertion `left == right` failed: attach exact price plus nonrefundable storage deposit
+  left: 0
+ right: 41960000000000000000000
+MAX_RECORD serialized_hold=654 storage_key=102 runtime_overhead=40 actual_storage_delta=796 reserved=4096
+test tests::largest_borsh_record_and_storage_key_fit_full_lifecycle_reservation ... ok
+
+thread 'tests::delivery_auth_strict_versions_and_exact_acceptance' (26295029) panicked at src/lib.rs:258:28:
+assertion `left == right` failed: buyer wallet only
+  left: AccountId("provider.testnet")
+ right: AccountId("buyer.testnet")
+
+thread 'tests::funding_is_exact_wallet_deposit_not_sponsor_credit' (26295032) panicked at src/lib.rs:169:9:
+assertion `left == right` failed: attach exact price plus nonrefundable storage deposit
+  left: 1000000000000000000000
+ right: 41960000000000000000000
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::failed_payout_restores_delivered_without_spending_other_job' (26295030) panicked at src/lib.rs:225:9:
+assertion `left == right` failed: stale callback nonce
+  left: U64(2)
+ right: U64(1)
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::delivery_auth_strict_versions_and_exact_acceptance' (26295029) panicked at src/lib.rs:208:9:
+assertion `left == right` failed: latest delivery mismatch
+  left: Some(Delivery { version: 2, output_hash: "6666666666666666666666666666666666666666666666666666666666666666" })
+ right: Some(Delivery { version: 1, output_hash: "5555555555555555555555555555555555555555555555555555555555555555" })
+
+thread 'tests::delivery_auth_strict_versions_and_exact_acceptance' (26295029) panicked at src/lib.rs:208:9:
+assertion `left == right` failed: latest delivery mismatch
+  left: Some(Delivery { version: 2, output_hash: "6666666666666666666666666666666666666666666666666666666666666666" })
+ right: Some(Delivery { version: 2, output_hash: "7777777777777777777777777777777777777777777777777777777777777777" })
+test tests::delivery_auth_strict_versions_and_exact_acceptance ... ok
+
+thread 'tests::funding_is_exact_wallet_deposit_not_sponsor_credit' (26295032) panicked at src/lib.rs:169:9:
+assertion `left == right` failed: attach exact price plus nonrefundable storage deposit
+  left: 41959999999999999999999
+ right: 41960000000000000000000
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+test tests::failed_payout_restores_delivered_without_spending_other_job ... ok
+
+thread 'tests::funding_is_exact_wallet_deposit_not_sponsor_credit' (26295032) panicked at src/lib.rs:169:9:
+assertion `left == right` failed: attach exact price plus nonrefundable storage deposit
+  left: 41960000000000000000001
+ right: 41960000000000000000000
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+
+thread 'tests::public_job_preemption_isolated_by_buyer_namespace' (26295037) panicked at src/lib.rs:258:28:
+assertion `left == right` failed: buyer wallet only
+  left: AccountId("other.testnet")
+ right: AccountId("buyer.testnet")
+test tests::public_job_preemption_isolated_by_buyer_namespace ... ok
+
+thread 'tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity' (26295023) panicked at src/lib.rs:166:9:
+application admission required
+test tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity ... ok
+test tests::refund_failure_restores_delivered_and_allows_only_fresh_nonce ... ok
+
+thread 'tests::funding_is_exact_wallet_deposit_not_sponsor_credit' (26295032) panicked at src/lib.rs:171:9:
+job already funded in buyer namespace
+test tests::funding_is_exact_wallet_deposit_not_sponsor_credit ... ok
+
+thread 'tests::payout_freezes_job_and_terminal_callback_is_exactly_once' (26295035) panicked at src/lib.rs:214:9:
+only nonterminal nonpending hold refundable
+
+thread 'tests::refund_transfer_failure_then_success_preserves_all_liabilities' (26295039) panicked at src/lib.rs:215:9:
+review deadline not passed
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:167:9:
+amount outside pilot bounds
+
+thread 'tests::payout_freezes_job_and_terminal_callback_is_exactly_once' (26295035) panicked at src/lib.rs:206:9:
+assertion `left == right` failed: latest delivered state required
+  left: PayoutPending
+ right: Delivered
+
+thread 'tests::refund_transfer_failure_then_success_preserves_all_liabilities' (26295039) panicked at src/lib.rs:258:28:
+assertion `left == right` failed: buyer wallet only
+  left: AccountId("other.testnet")
+ right: AccountId("buyer.testnet")
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:167:9:
+amount outside pilot bounds
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:108:5:
+invalid lowercase hex
+
+thread 'tests::payout_freezes_job_and_terminal_callback_is_exactly_once' (26295035) panicked at src/lib.rs:224:42:
+not transfer pending
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:108:5:
+invalid lowercase hex
+
+thread 'tests::payout_freezes_job_and_terminal_callback_is_exactly_once' (26295035) panicked at src/lib.rs:214:9:
+only nonterminal nonpending hold refundable
+test tests::payout_freezes_job_and_terminal_callback_is_exactly_once ... ok
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:108:5:
+invalid lowercase hex
+
+thread 'tests::refund_transfer_failure_then_success_preserves_all_liabilities' (26295039) panicked at src/lib.rs:225:62:
+assertion `left == right` failed: callback action mismatch
+  left: Refund
+ right: Payout
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:174:9:
+invalid deadlines
+test tests::refund_transfer_failure_then_success_preserves_all_liabilities ... ok
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:174:9:
+invalid deadlines
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:175:9:
+deadline exceeds 30 days
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:121:5:
+testnet named or implicit account required
+
+thread 'tests::terms_limits_hashes_and_deadlines_fail_closed' (26295040) panicked at src/lib.rs:122:5:
+assertion `left != right` failed: escrow cannot be a payment party
+  left: AccountId("wallet-escrow.testnet")
+ right: AccountId("wallet-escrow.testnet")
+test tests::terms_limits_hashes_and_deadlines_fail_closed ... ok
+
+thread 'tests::prepaid_records_have_no_shared_permanent_capacity' (26295036) panicked at src/lib.rs:195:9:
+execution deadline passed
+test tests::prepaid_records_have_no_shared_permanent_capacity ... ok
+test tests::four_thousand_distinct_wallets_pay_own_storage_without_global_state_growth ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 52.02s
+

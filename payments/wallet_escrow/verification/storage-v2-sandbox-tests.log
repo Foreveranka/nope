@@ -1,0 +1,11 @@
+   Compiling nope-wallet-escrow-vm-tests v0.1.0 (/Users/mete/near-private-procurement/payments/wallet_escrow/sandbox)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.97s
+     Running tests/lifecycle.rs (../testnet_escrow/target/debug/deps/lifecycle-e4a79913f68d32b5)
+
+running 1 test
+LOCAL_SANDBOX actual keyless Wasm: exact wallet funding, namespace preemption defense, strict delivery, buyer-only payout, actual native provider credit, buyer refund, failed payout AND failed refund callbacks, nonce2 retry, cross-job liabilities preserved; no public-chain claim.
+FINAL_CONFIG {"account_balance":"6402929158201073200000000","admission_public_key":"ea4a6c63e29c520abef5507b132ec5f9954776aebebe7b92421eea691446d22c","callback_gas_tgas":20,"contract_id":"wallet-escrow.testnet","domain":"NOPE:WALLET-ESCROW:V2:testnet","gas_buffer":"100000000000000000000000","hold_count":"5","liabilities":"200000000000000000000000","max_hold_amount":"1000000000000000000000000","max_horizon_ns":"2592000000000000","min_hold_amount":"1","min_transfer_gas_tgas":100,"network":"testnet","on_account_liabilities":"200000000000000000000000","pending_outgoing":"0","storage_bytes_per_hold":"4096","storage_deposit_refundable":false,"storage_deposit_yocto":"40960000000000000000000","storage_deposits":"204800000000000000000000","storage_headroom_bytes":131072,"storage_reserve":"3769470000000000000000000","total_deposited":"500000000000000000000000","total_paid":"100000000000000000000000","total_refunded":"200000000000000000000000"}
+test keyless_wallet_deposits_namespace_payout_refund_and_real_failure_callbacks ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.03s
+

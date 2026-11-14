@@ -1,9 +1,19 @@
 /** Buyer-wallet TESTNET escrow. Read-only RPC, immutable intents; NEVER broadcasts. */
-import {createHash} from 'node:crypto';
+import {createHash,createPrivateKey,createPublicKey,sign} from 'node:crypto';
 import {testnetAccount,transactionHash} from './payment.mjs';
 import {WALLET_ROOT,createWalletRPC,canonical,chainHash,decodeBase64} from './wallet-auth.mjs';
 export const WALLET_ESCROW_KIND='WALLET_TESTNET_ESCROW';
-export const WALLET_ESCROW_DOMAIN='NOPE:WALLET-ESCROW:V1:testnet';
+export const WALLET_ESCROW_DOMAIN='NOPE:WALLET-ESCROW:V2:testnet';
+export const ADMISSION_DOMAIN='NOPE:WALLET-ADMISSION:V1\0';
+export function signWalletAdmission(bindingHash,publicKey,env=process.env){
+ check(hex(bindingHash)&&hex(publicKey)&&publicKey!=='0'.repeat(64),'WALLET_ADMISSION_CONFIG',503);
+ try{
+  const key=createPrivateKey({key:Buffer.from(env.NOPE_WALLET_ADMISSION_KEY||'','base64'),format:'der',type:'pkcs8'});
+  const pub=createPublicKey(key).export({format:'der',type:'spki'});
+  check(key.asymmetricKeyType==='ed25519'&&pub.subarray(-32).toString('hex')===publicKey,'WALLET_ADMISSION_CONFIG',503);
+  return sign(null,Buffer.from(ADMISSION_DOMAIN+bindingHash),key).toString('hex');
+ }catch{fail('WALLET_ADMISSION_CONFIG',503);}
+}
 const GAS='150000000000000',METHODS={fund:'fund',record:'record_delivery',release:'accept_and_release',refund:'refund'};
 const HASH_FIELDS={fund:'fundTransactionHash',record:'recordTransactionHash',release:'releaseTransactionHash',refund:'refundTransactionHash'};
 const PENDING={fund:'FUNDING_PENDING',record:'RECORD_PENDING',release:'PAYOUT_PENDING',refund:'REFUND_PENDING'};
@@ -29,6 +39,8 @@ export function walletTermsForJob(job,contractId){
 export function createWalletEscrow({store,env=process.env,config,now=Date.now,rpc}={}){
  if(!config)return null;
  config=Object.freeze(structuredClone(config));
+ check(config.storageDepositYocto==='40960000000000000000000','WALLET_STORAGE_POLICY',503);
+ if(config.admissionPublicKey!==undefined)check(hex(config.admissionPublicKey)&&config.admissionPublicKey!=='0'.repeat(64),'WALLET_ADMISSION_CONFIG',503);
  check(config.network==='testnet'&&config.domain===WALLET_ESCROW_DOMAIN&&testnetAccount(config.contractId)&&chainHash(config.codeHash)&&config.requireKeyless===true&&store&&typeof store.read==='function'&&typeof store.create==='function','WALLET_ESCROW_CONFIG',503);
  rpc??=createWalletRPC(config);const contractId=config.contractId;
  function context(job){check(job.payment?.kind===WALLET_ESCROW_KIND&&job.payment.contractId===contractId,'WALLET_ESCROW_JOB_REQUIRED');return walletTermsForJob(job,contractId);}
@@ -48,6 +60,7 @@ export function createWalletEscrow({store,env=process.env,config,now=Date.now,rp
   check(result.block_hash===account.block_hash&&Array.isArray(result.result)&&result.result.length<=16384&&result.result.every(b=>Number.isInteger(b)&&b>=0&&b<=255),'WALLET_HOLD_UNVERIFIED',503);
   const hold=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(result.result)));
   if(hold!==null){
+   check(hold.storage_deposit_yocto===config.storageDepositYocto,'WALLET_STORAGE_BINDING_MISMATCH');
    check(equal(hold.terms,ctx.terms)&&hold.binding_hash===ctx.bindingHash&&['Held','Delivered','PayoutPending','RefundPending','Paid','Refunded'].includes(hold.state)&&uint(hold.nonce),'WALLET_HOLD_BINDING_MISMATCH');
    check(hold.last_transfer_failure_nonce===null||uint(hold.last_transfer_failure_nonce),'WALLET_HOLD_INVALID');
    if(hold.delivery!==null)check(Number.isInteger(hold.delivery?.version)&&hold.delivery.version>0&&hold.delivery.version<=0xffffffff&&hex(hold.delivery.output_hash),'WALLET_HOLD_INVALID');
@@ -77,8 +90,8 @@ export function createWalletEscrow({store,env=process.env,config,now=Date.now,rp
   return action==='refund'&&['AWARDED','DELIVERED','REVISION','ACCEPTED'].includes(job.status)&&['HELD','RELEASE_READY'].includes(payment.status)&&ns>review;
  }
  function intentFor(job,action,ctx,signerId){
-  const args=action==='fund'?{terms:ctx.terms}:['record','release'].includes(action)?{buyer_account:ctx.terms.buyer_account,job_id:job.id,...delivery(job)}:{buyer_account:ctx.terms.buyer_account,job_id:job.id};
-  const transaction={signerId,receiverId:contractId,actions:[{type:'FunctionCall',params:{methodName:METHODS[action],args,gas:GAS,deposit:action==='fund'?ctx.terms.amount:'0'}}]};
+  const args=action==='fund'?{terms:ctx.terms,...(config.admissionPublicKey?{admission_signature:signWalletAdmission(ctx.bindingHash,config.admissionPublicKey,env)}:{})}:['record','release'].includes(action)?{buyer_account:ctx.terms.buyer_account,job_id:job.id,...delivery(job)}:{buyer_account:ctx.terms.buyer_account,job_id:job.id};
+  const transaction={signerId,receiverId:contractId,actions:[{type:'FunctionCall',params:{methodName:METHODS[action],args,gas:GAS,deposit:action==='fund'?(BigInt(ctx.terms.amount)+BigInt(config.storageDepositYocto)).toString():'0'}}]};
   const value={action,network:'testnet',bindingHash:ctx.bindingHash,transaction};return{id:sha(canonical(value)),...value};
  }
  async function intentRecord(job,action,session){
@@ -160,15 +173,16 @@ export function createWalletEscrow({store,env=process.env,config,now=Date.now,rp
   const block=await rpc('block',{block_id:snap.blockHash}),header=block?.header;
   check(header?.hash===snap.blockHash&&String(header.height)===snap.blockHeight&&uint(String(header.timestamp_nanosec)),'WALLET_FINAL_TIME_UNVERIFIED',503);
   if(BigInt(header.timestamp_nanosec)<=BigInt(ctx.terms.review_deadline_ns))return null;
-  const retired={version:1,kind:'EXPIRED_RECORD_INTENT',intentId:intent.id,jobId:job.id,buyerAccount:ctx.terms.buyer_account,codeHash:config.codeHash,blockHash:snap.blockHash,expiredAtNs:String(header.timestamp_nanosec),holdNonce:h.nonce};
+  let retired={version:1,kind:'EXPIRED_RECORD_INTENT',intentId:intent.id,jobId:job.id,buyerAccount:ctx.terms.buyer_account,codeHash:config.codeHash,blockHash:snap.blockHash,expiredAtNs:String(header.timestamp_nanosec),holdNonce:h.nonce};
   const path=retirementPath(intent.id);
   if(!await store.create(path,retired)){
    const prior=await store.read(path);
    check(prior?.version===1&&prior.kind===retired.kind&&prior.intentId===intent.id&&prior.jobId===job.id&&prior.buyerAccount===ctx.terms.buyer_account&&prior.codeHash===config.codeHash&&chainHash(prior.blockHash)&&uint(prior.expiredAtNs)&&BigInt(prior.expiredAtNs)>BigInt(ctx.terms.review_deadline_ns)&&uint(prior.holdNonce),'WALLET_INTENT_INTEGRITY',503);
+   retired=prior;
   }
   // Keep the old intent/claim immutable. Its retirement marker prevents a late
   // record confirmation from resurrecting UNKNOWN over a buyer's new refund.
-  return{...payment,operation:{...op,status:'EXPIRED',code:'WALLET_RECORD_WINDOW_EXPIRED',expiredAtBlockHash:snap.blockHash,holdNonce:h.nonce}};
+  return{...payment,operation:{...op,status:'EXPIRED',code:'WALLET_RECORD_WINDOW_EXPIRED',expiredAtBlockHash:retired.blockHash,holdNonce:retired.holdNonce}};
  }
  async function observe(job,intent,hash){
   const ctx=context(job),operation={action:intent.action,intentId:intent.id,transactionHash:hash,status:'UNKNOWN'};

@@ -1,0 +1,94 @@
+✔ offline testnet deployment admits only pinned Wasm, constructor and finite receiver/method-scoped online key (2.221084ms)
+✔ free faucet request contains only the fresh testnet account and its public key, never a signing key (2.117416ms)
+✔ OFFLINE funding screen discloses nonrefundable storage and the separate total before signing (334.761625ms)
+✔ OFFLINE wallet flow separates award, funding, execution, recording, v4 acceptance and release; only final chain fixture is PAID (301.129541ms)
+✔ OFFLINE unheld, unverified, expired or unknown funds cannot execute, even through a retained disabled button (3.568834ms)
+✔ OFFLINE latest chain record/version/hash gates both decisions; full local v4 proof additionally gates acceptance (279.417292ms)
+✔ OFFLINE revision requires a fresh delivery record and fresh proof, never another deposit (223.644834ms)
+✔ OFFLINE expired hold refunds explicitly to the immutable customer wallet, never sponsor/provider; finality still required (5.542917ms)
+✔ OFFLINE signed wallet cancellation does not confirm, pay or silently retry; a new signature needs explicit user action (26.553542ms)
+✔ OFFLINE unknown wallet broadcast blocks all new actions across refresh and reload, without inferred safe resume (27.723584ms)
+✔ OFFLINE lost confirm response only reconfirms the same hash or refreshes; never prepares/broadcasts again (25.714458ms)
+✔ OFFLINE redirected signature remains pending without confirm or resend and survives a page load (23.979917ms)
+✔ OFFLINE wrong session/active wallet or missing signed capability never prepares or sends (28.963083ms)
+✔ OFFLINE same buyer wallet owns immutable jobs across session IDs; session ID alone never grants wallet ownership (29.759625ms)
+✔ OFFLINE stale prepared job, amount, buyer, binding or delivery never reaches the wallet signer (5.336667ms)
+✔ OFFLINE pending polling refreshes only, is bounded, stops on navigation and never retries a signature (18.820458ms)
+✔ OFFLINE invalid chain/explorer metadata and contradictory terminal states cannot display finalized payment or enable signatures (3.138167ms)
+✔ OFFLINE all legacy sponsor/direct routes are readonly, including offers, award, execute, decisions and receipts (78.393042ms)
+✔ OFFLINE stale legacy resume hints never authorize a new signature, including unknown/sent/expired operations (7.366708ms)
+✔ OFFLINE offer bound is 1 testNEAR; former sponsor 0.01 cap never applies and legacy offers stay readonly (4.086792ms)
+✔ OFFLINE finalized PAID in confirm or subsequent GET replaces pending state without another transaction (7.242334ms)
+✔ OFFLINE immutable wallet snapshots must match the linked testnet buyer and selected provider (4.895917ms)
+✖ OFFLINE actual wallet-client validates fund intent, immutable bounds and exact encoded args before the fixture connector broadcasts (14.93025ms)
+✔ OFFLINE missing public task/program commitments never reach a real wallet-client connector or confirmation (1.58975ms)
+✔ OFFLINE a self-consistent server fund intent cannot replace the actual local encrypted task commitments (24.71425ms)
+✖ OFFLINE actual wallet-client rejects altered method/schema, undefined args, deposit and hashes before the synthetic connector is invoked (12.818334ms)
+✖ OFFLINE missing local task needs explicit funding acknowledgement; refund needs no local data (1.117ms)
+✔ new-job and offer forms require an explicit session-bound signed wallet connection for both roles (16.006708ms)
+✔ cancelled wallet authentication cannot unlock jobs/offers or submit a verify response (1.413ms)
+✔ wrong returned wallet identity or unstable authenticated session never unlocks a new-job form (1.183917ms)
+✔ a redirected authentication remains unverified and does not invent an account or publish a job (0.510542ms)
+✔ disabled or mismatched deployment capability offers no wallet connection, manual preparation or sponsor fallback (1.611083ms)
+✔ wallet auth failures expose only allowlisted localized guidance in all five languages and preserve forms without retrying (160.651708ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 30
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1612.760667
+
+✖ failing tests:
+
+test at workspace/escrow-ui.test.mjs:286:1
+✖ OFFLINE actual wallet-client validates fund intent, immutable bounds and exact encoded args before the fixture connector broadcasts (14.93025ms)
+  AssertionError [ERR_ASSERTION]: Cüzdan işlemi tamamlanamadı veya sonucu belirsiz. Yeni imza istemeden mevcut işlemi kontrol edin.{"calls":[{"route":"/session","method":"GET"},{"route":"/jobs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","method":"GET"},{"route":"/jobs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","method":"GET"}],"errors":[{"stage":"currentAccount","code":"WALLET_POLICY_DISABLED","message":"WALLET_POLICY_DISABLED"}],"sends":[]}
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/mete/near-private-procurement/workspace/escrow-ui.test.mjs:287:113)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at workspace/escrow-ui.test.mjs:304:1
+✖ OFFLINE actual wallet-client rejects altered method/schema, undefined args, deposit and hashes before the synthetic connector is invoked (12.818334ms)
+  AssertionError [ERR_ASSERTION]: malformed prepared intent reaches actual validator
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/mete/near-private-procurement/workspace/escrow-ui.test.mjs:306:193)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at workspace/escrow-ui.test.mjs:310:1
+✖ OFFLINE missing local task needs explicit funding acknowledgement; refund needs no local data (1.117ms)
+  AssertionError [ERR_ASSERTION]: Cüzdan işlemi tamamlanamadı veya sonucu belirsiz. Yeni imza istemeden mevcut işlemi kontrol edin.
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/mete/near-private-procurement/workspace/escrow-ui.test.mjs:312:190)
+      at async Test.run (node:internal/test_runner/test:1125:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

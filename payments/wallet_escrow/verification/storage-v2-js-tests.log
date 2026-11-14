@@ -1,0 +1,48 @@
+✔ UNIT: construction never connects/signs, policy exactly5keys/keyless and testnet only (59.321334ms)
+✔ UNIT: real i18n message objects become primitive labels accepted by the strict runtime connector guard (1.276083ms)
+✔ UNIT: account selection explicit, never silently first; account switches reject (1.212667ms)
+✔ UNIT + REAL LOCAL NEP413 crypto: exact server nonce/message/recipient/callback verified independently (28.087334ms)
+✔ UNIT: base58 Ed25519 signatures normalize to backendcanonicalbase64 (2.733208ms)
+✔ UNIT: altered/expired/chosen-account challenge blocked before SDK signing (6.138584ms)
+✔ UNIT transaction seam: exact4methods/funder/provider/zero-otherdeposit and unchanged JSONbytes (15.824125ms)
+✔ UNIT: buyer recovery record accepts the exact buyer while preserving immutable delivery args bytes (0.986416ms)
+✔ UNIT: buyer recovery record rejects other signers or changed bounds and never grants provider payout rights (9.324542ms)
+✔ UNIT: arbitraryactions/receivers/amounts/args/roles/deposits/gas rejected without signing (17.964875ms)
+✔ UNIT: arguments snapshotted before async account lookup; no duplicate sends afterunknown/closed (5.5615ms)
+✔ UNIT: wallet cannot mutate the approved transaction used to check its returned outcome (3.147666ms)
+✔ UNIT redirectfixture: publicpending survives reload, callback scrubbed, no auto signing/finality (4.351292ms)
+✔ UNIT callbackfixture: challenge account/state/signature strict; malformedduplicates scrub too (4.621916ms)
+✔ UNIT: expired challenge can restart; transaction error callbacks never clear unknown pending (6.955959ms)
+✔ UNIT: disconnect only clears adapter keys and wallet state, never workspace session (1.750625ms)
+✔ UNIT published SDK transformed by actual bundler: result source/cap/protocol/method/id/status cannot be spoofed (4.428333ms)
+✔ UNIT actual iframe transport: only null-origin exactframe+cap+method accepted; opaque sandbox retained (1.334208ms)
+✔ UNIT actual static child bridge: parent source+origin+cap, expected method and message type protected (4.502334ms)
+✔ UNIT pinned official Intear executor + actual bridge: popup URL/network/NEP413 state/transaction bytes survive separate frames (16.9265ms)
+✔ admission signature is verified before any wallet transaction, binds exact terms and pinned key (13.697917ms)
+✔ V2 requires exact price plus retained storage at both price bounds; rejects price-only, overpayment and missing policy (34.65475ms)
+✔ wallet proof verifier pins namespace, exact customer deposit terms and immutable keyless contract (556.79575ms)
+✔ wallet proof rejects admin keys, wrong code, mixed final blocks and evidence-provided deployment pins (9.99925ms)
+✔ V2 public verification binds the retained nonrefundable reservation and reports total funding separately from price (22.669291ms)
+✔ production Blob adapter supports actual HTTP wallet session/challenge/verify and escrow intents, transaction claims and record retirement (154.180291ms)
+✔ wallet Blob whitelist rejects traversal, wrong IDs, extra suffixes and unknown namespaces before contacting transport (1.41575ms)
+✔ wallet records retain 1MiB/private/immutable bounds and cannot use the legacy task 3MiB allowance (13.019541ms)
+✔ wallet API requires verified owners, exact funding before encrypted execution, final record per revision, real proof before acceptance, and wallet-only refund recovery (1284.877541ms)
+✔ wallet terms bind original buyer namespace, verified provider, exact amount/program and deadline with contract tuple order (3.999167ms)
+✔ FINAL pinned code and same-block empty contract key list are mandatory; user wallet still owns FullAccess keys (2.183833ms)
+✔ lost wallet transaction hash reconciles matching FINAL fund/record state without inventing a verified receipt or rebroadcasting (1.597417ms)
+✔ FINAL confirmation checks exact signer/account/action/serialized args/deposit and receipt closure; stale delivery never authorizes release (5.362375ms)
+✔ release and refund validate exact native recipient/amount and nonce-bound private callback; refund always returns to original buyer (4.033542ms)
+✔ verified account ownership is required in every action, and an attacker namespace or newer output cannot stand in for original terms (0.295541ms)
+✔ lost release/refund hashes cannot turn an unchanged FINAL hold into permission to sign again (2.303792ms)
+✔ unsigned provider record retires only after FINAL review expiry and permits a separate buyer refund with exact nonce-bound receipt (2.254416ms)
+✔ record retirement refuses stale FINAL time and every in-flight monetary state; an unrelated buyer cannot acquire the refund intent (2.102333ms)
+✔ application admission is deterministic, exact binding-bound and fails closed on absent or wrong key (3.251083ms)
+✔ V2 storage policy and permanent hold reservation fail closed independently of matching price terms (0.551542ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1582.183042

@@ -10,8 +10,8 @@ import {patchIntearExecutor} from '../wallet-runtime/sdk-patches.mjs';
 // are explicit offline fixtures, not evidence of live wallet ownership.
 class Store{records=new Map();async read(p){return structuredClone(this.records.get(p)??null);}async create(p,v){if(this.records.has(p))return false;this.records.set(p,structuredClone(v));return true;}}
 const ORIGIN='http://localhost:8712',SESSION={id:'a'.repeat(32),role:'buyer'},POLICY={network:'testnet',contractId:'wallet-fixture.testnet',codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet'};
-function fixture(){const store=new Store(),key=KeyPair.fromRandom('ed25519'),rpcCalls=[];let time=1700000000000,permission='FullAccess',chain='testnet';
- const auth=createWalletAuth({store,env:{NOPE_WORKSPACE_ORIGIN:ORIGIN},config:POLICY,now:()=>time,rpc:async(method,params)=>{rpcCalls.push({method,params});return method==='status'?{chain_id:chain}:{block_hash:'2'.repeat(44),permission};}});
+function fixture({clockStep=0}={}){const store=new Store(),key=KeyPair.fromRandom('ed25519'),rpcCalls=[];let time=1700000000000,permission='FullAccess',chain='testnet';
+ const auth=createWalletAuth({store,env:{NOPE_WORKSPACE_ORIGIN:ORIGIN},config:POLICY,now:()=>{const value=time;time+=clockStep;return value;},rpc:async(method,params)=>{rpcCalls.push({method,params});return method==='status'?{chain_id:chain}:{block_hash:'2'.repeat(44),permission};}});
  async function request(session=SESSION,accountId='buyer.testnet'){return auth.challenge({session,accountId,origin:ORIGIN});}
  async function proof(c,changes={}){const signer=KeyPairSigner.fromSecretKey(key.toString());const result=await signMessage({signerAccount:{accountId:c.accountId,getSigner:()=>signer},payload:{message:c.message,nonce:new Uint8Array(Buffer.from(c.nonce,'base64')),recipient:c.recipient,callbackUrl:c.callbackUrl,...changes}});return{challengeId:c.challengeId,accountId:c.accountId,publicKey:result.publicKey.toString(),signature:Buffer.from(result.signature).toString('base64')};}
  const verify=(input,session=SESSION,origin=ORIGIN)=>auth.verify({session,origin,...input});return{store,key,auth,request,proof,verify,rpcCalls,setTime:t=>time=t,setPermission:v=>permission=v,setChain:v=>chain=v};
@@ -21,6 +21,11 @@ test('NEP-413 actual SDK signature links exact session/account/testnet/origin wi
  const input=await f.proof(c),wallet=await f.verify(input);assert.deepEqual(await f.auth.get(SESSION),wallet);assert.equal(wallet.accountId,'buyer.testnet');assert.equal(wallet.publicKey,f.key.getPublicKey().toString());
  assert.deepEqual(f.rpcCalls.at(-1).params,{request_type:'view_access_key',account_id:'buyer.testnet',public_key:input.publicKey,finality:'final'});
  const disk=JSON.stringify([...f.store.records]);assert.ok(!disk.includes(f.key.toString()));assert.ok(!disk.includes(input.signature));assert.equal(wallet.network,'testnet');
+});
+test('challenge lifetime remains exact when clock advances between every read',async()=>{
+ const f=fixture({clockStep:1}),c=await f.request();
+ assert.equal(Date.parse(c.expiresAt)-Date.parse(c.issuedAt),300000);
+ assert.equal((await f.verify(await f.proof(c))).accountId,c.accountId);
 });
 test('actual pinned Intear callback wire mismatch fails auth; camelCase wire preserves required callback with genuine synthetic NEP413 crypto',async()=>{
  const f=fixture(),c=await f.request();

@@ -13,7 +13,7 @@ async function fixture(){return pending??=(async()=>{
  const delivery={...await wrapProofPlanResult(p.request,await evaluatePlanRequest(p.request.task)),version:1};
  const terms={job_id:jobId,buyer_commitment:buyerCommitment,buyer_account:buyer,provider:'provider-wallet.testnet',amount:'1000000000000000000000',input_hash:await hashProofPlanRequest(p.request),program_hash:await hashProofPlanProgram(plan),plan_hash:await hashPlan(plan),execution_deadline_ns:'1994794400000000000',review_deadline_ns:'1994880800000000000'};
  const bindingHash=await sha256(JSON.stringify([POLICY.domain,POLICY.contractId,...Object.values(terms)]));
- const hold={terms,binding_hash:bindingHash,state:'Delivered',delivery:{version:1,output_hash:delivery.outputSha256}};
+ const hold={storage_deposit_yocto:POLICY.storageDepositYocto,terms,binding_hash:bindingHash,state:'Delivered',delivery:{version:1,output_hash:delivery.outputSha256}};
  const evidence={version:1,network:'testnet',jobId,walletBuyerAccount:buyer,task:p.request,delivery,binding:{jobId,version:1,contractId:POLICY.contractId,bindingHash,provider:terms.provider,amountYocto:terms.amount}};
  return{hold,evidence};
 })();}
@@ -38,4 +38,11 @@ test('wallet proof rejects admin keys, wrong code, mixed final blocks and eviden
  for(const opts of [{keys:[{public_key:'unit-deploy-key',access_key:{permission:'FullAccess'}}]},{code:'wrong'},{block:'2'.repeat(43)}])await assert.rejects(verifyPublicChainBinding(evidence,{fetcher:rpc(hold,opts)}));
  const changed=structuredClone(evidence);changed.binding.contractId='unreviewed.testnet';changed.policy={...POLICY,contractId:'unreviewed.testnet'};assert.throws(()=>validatePublicEvidence(changed));
  const missing=structuredClone(evidence);delete missing.walletBuyerAccount;await assert.rejects(verifyPublicChainBinding(missing,{fetcher:rpc(hold)}));
+});
+
+
+test('V2 public verification binds the retained nonrefundable reservation and reports total funding separately from price',async()=>{
+ const {hold,evidence}=await fixture();const f=await verifyPublicChainBinding(evidence,{fetcher:rpc(hold)});
+ assert.equal(f.storageDepositYocto,POLICY.storageDepositYocto);assert.equal(f.totalFundingYocto,(BigInt(hold.terms.amount)+BigInt(POLICY.storageDepositYocto)).toString());assert.equal(f.storageDepositRefundable,false);
+ for(const amount of [undefined,'0','40960000000000000000001']){const h=structuredClone(hold);if(amount===undefined)delete h.storage_deposit_yocto;else h.storage_deposit_yocto=amount;await assert.rejects(verifyPublicChainBinding(evidence,{fetcher:rpc(h)}));}
 });

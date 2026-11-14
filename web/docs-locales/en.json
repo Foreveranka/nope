@@ -72,7 +72,7 @@
         {
           "id": "escrow",
           "title": "NEAR testnet wallet escrow",
-          "text": "The buyer deposits the exact selected testNEAR amount from their own wallet into the contract. Each job has a separate balance ledger; there are no withdrawals from a shared customer pool. The provider signs delivery recording; the buyer signs release or an eligible refund in their wallet. NOPE never receives the wallet private key. The contract does not verify SNARKs; that check runs off chain.",
+          "text": "The buyer deposits the exact selected testNEAR amount from their own wallet into the contract. Each job has a separate balance ledger; there are no withdrawals from a shared customer pool. The provider signs delivery recording; the buyer signs release or an eligible refund in their wallet. NOPE never receives the wallet private key. The contract does not verify SNARKs; that check runs off chain. In addition to the service price, the buyer deposits the displayed charge for permanent job-record storage. The service price remains escrowed; the storage charge is non-refundable. Each job pays for its own storage; there is no shared fixed 50-job allowance. Check the total and additional network transaction fee before signing.",
           "code": "",
           "href": ""
         }
@@ -325,7 +325,7 @@
         {
           "id": "sponsor",
           "title": "What if the wallet or network is unavailable?",
-          "text": "New jobs require configured testnet wallet escrow; they never fall back to the sponsor pool or an older payment flow. Your wallet needs enough testNEAR for the selected amount and transaction fees. Cancellation, failure and uncertain transactions have separate UI states; none counts as completion without verification. Old sponsored jobs are read only.",
+          "text": "New jobs require configured testnet wallet escrow; they never fall back to the sponsor pool or an older payment flow. Your wallet needs enough testNEAR for the selected amount and transaction fees. Cancellation, failure and uncertain transactions have separate UI states; none counts as completion without verification. Old sponsored jobs are read only. Enough testNEAR is required for the selected service price, separate storage charge and network transaction fee; permanent-record storage is non-refundable.",
           "code": "",
           "href": ""
         }

@@ -17,7 +17,7 @@ import {parseCSV} from '../web/csv-input.mjs';
 // The adapter synthesizes only the known responses below: no signer/key, model,
 // prover, RPC, real contract, broadcast or independent chain verification.
 const ID='a'.repeat(32),TX='2'.repeat(44),KIND='WALLET_TESTNET_ESCROW',CONTRACT='wallet-ui.testnet';
-const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V2:testnet',requireKeyless:true,storageDepositYocto:'40960000000000000000000'};
 const CAPABILITY={required:true,enabled:true,network:'testnet',contractId:CONTRACT};
 const wallet=accountId=>({accountId,publicKey:'ed25519:'+ '1'.repeat(32),network:'testnet',verifiedAt:'2026-11-14T00:00:00Z'});
 const BUYER={id:(await sha256('NOPE:wallet-session:v1:testnet:buyer:buyer-ui.testnet')).slice(0,32),role:'buyer',displayName:'Fixture buyer',wallet:wallet('buyer-ui.testnet')};
@@ -39,7 +39,7 @@ function termsFor(j){return{job_id:j.id,buyer_commitment:j.buyerCommitment,buyer
 function intentFor(j,action){
  assert.ok(['fund','record','release','refund'].includes(action));
  const args=action==='fund'?{terms:termsFor(j)}:{buyer_account:j.buyerWallet.accountId,job_id:j.id,...(['record','release'].includes(action)?{version:j.delivery.version,output_hash:j.delivery.outputSha256}:{})};
- return{id:'c'.repeat(64),action,network:'testnet',bindingHash:j.payment.bindingHash,transaction:{signerId:action==='record'?j.selectedOffer.paymentAccount:j.buyerWallet.accountId,receiverId:CONTRACT,actions:[{type:'FunctionCall',params:{methodName:{fund:'fund',record:'record_delivery',release:'accept_and_release',refund:'refund'}[action],args,gas:'150000000000000',deposit:action==='fund'?j.selectedOffer.amountYocto:'0'}}]}};
+ return{id:'c'.repeat(64),action,network:'testnet',bindingHash:j.payment.bindingHash,transaction:{signerId:action==='record'?j.selectedOffer.paymentAccount:j.buyerWallet.accountId,receiverId:CONTRACT,actions:[{type:'FunctionCall',params:{methodName:{fund:'fund',record:'record_delivery',release:'accept_and_release',refund:'refund'}[action],args,gas:'150000000000000',deposit:action==='fund'?(BigInt(j.selectedOffer.amountYocto)+BigInt(POLICY.storageDepositYocto)).toString():'0'}}]}};
 }
 async function fixture({status='AWARDED',payment={},delivery=false,recorded=false}={}){
  const c=await cryptoFixture(),salt='d'.repeat(64),amountYocto='1000000000000000000000';
@@ -143,6 +143,16 @@ function browser(f,{identity=BUYER,path='/payments?id='+ID,local=true,hook,final
 }
 const writes=h=>h.calls.filter(c=>c.method==='POST');
 const signs=h=>h.sends.map(x=>x.intent.action);
+
+test('OFFLINE funding screen discloses nonrefundable storage and the separate total before signing',async()=>{
+ const f=await fixture({status:'AWARDED'});
+ const h=browser(f,{walletPolicy:{...POLICY,storageDepositYocto:'40960000000000000000000'}});await h.app.start();
+ const total=(BigInt(f.job.selectedOffer.amountYocto)+40960000000000000000000n).toString();
+ const {formatNearAmount}=await import('../web/workspace-vault.mjs');
+ assert.ok(h.text().includes('0.04096 testNEAR (iade edilmez)'));
+ assert.ok(h.text().includes(formatNearAmount(total)+' testNEAR + ağ işlem ücreti'));
+ assert.equal(h.sends.length,0);assert.equal(h.broadcasts.length,0);
+});
 
 test('OFFLINE wallet flow separates award, funding, execution, recording, v4 acceptance and release; only final chain fixture is PAID',async()=>{
  const f=await fixture({status:'CLOSED'}),buyer=browser(f,{path:'/job?id='+ID});await buyer.app.start();

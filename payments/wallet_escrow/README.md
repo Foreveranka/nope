@@ -1,4 +1,89 @@
-# Customer wallet-funded escrow (testnet only)
+# Wallet-funded testnet escrow V2
+
+## Current storage-prepaid deployment — 14 November 2026
+
+Active contract: `nope-wallet-5144c7d4.testnet`; code hash
+`349qhEttcFqG3ezvPHBCoFCyM8X1ZpXzYotgfqFXgN13`.
+Domain: `NOPE:WALLET-ESCROW:V2:testnet`.
+Deployment and key removal were confirmed at the same FINAL block
+`2XTWmjrXaitsZNpriTdJzboH7yc5F2KFhSSrh8vKMx2i`, before any customer funding.
+Public source/build/deployment records are under `verification/storage-v2/`.
+
+Every `fund({terms,admission_signature})` attaches **exactly** the selected
+`terms.amount` **plus** a fixed reservation of 4096 bytes multiplied by
+`env::storage_byte_cost()`. At the pinned testnet storage cost this is
+`40960000000000000000000` yoctoNEAR, or **0.04096 testNEAR**. The policy field is
+`storageDepositYocto`. The maximum selected price remains 1 testNEAR, so maximum
+attached funding is **1.04096 testNEAR**, before network fees. Underpayment,
+price-only funding and overpayment all fail; failed transactions do not create a hold.
+
+The storage reservation is **nonrefundable**, retained for the permanent record.
+It is not payment credit, not a provider fee and not included in the refundable
+or releasable liability. Payout/refund transfers **only** the immutable selected
+price. There is no administrative withdrawal, price top-up, upgrade or allocation
+method. The constructor still pins the existing Ed25519 admission key, but
+admission is no longer the sole defense against resource exhaustion.
+
+`near_sdk::store::LookupMap` stores each buyer/job key independently; the global
+Borsh state has constant size. There is **no global hold capacity limit** and no
+shared finite admission allocator. The `U64` `hold_count` is informational only.
+Each new hold fully prepays its maximum later state. The maximum Borsh hold is
+654 bytes, its prefixed Borsh key 102 bytes, and NEAR's per-record runtime overhead
+40 bytes: **796 bytes total**, independently measured against the VM storage
+delta. This covers maximum 64-byte accounts, 32-character job ID, fixed hashes,
+U128 price, U64 deadlines/nonce, maximum delivery and failure/pending states.
+The 4096-byte reservation leaves room above that upper bound; future holds cannot
+consume earlier buyers' storage or payment liabilities. Solvency separately
+reserves base code/state headroom, all per-hold reservations and the gas buffer.
+
+Terms and their ordered binding tuple are unchanged; the new V2 domain and
+immutable new code/address separate the storage-funded protocol from V1. The
+hold adds `storage_deposit_yocto`. `get_config` exposes `storage_bytes_per_hold`,
+`storage_deposit_yocto`, `storage_deposits`, `storage_deposit_refundable:false`,
+and string `hold_count`. `total_deposited`, `liabilities`, `total_paid` and
+`total_refunded` still count selected prices only. The browser, server intents
+and independent public verifier pin the storage charge and distinguish total
+funding from price.
+
+The server admission key was reused from ignored mode0600
+`runtime/admission-v1/admission-key.json`; no secret was added to frontend or
+source, and no server credential change was necessary. New isolated contract,
+buyer and provider keys are under ignored mode0600 `runtime/storage-v2/`.
+`provision.mjs` requires source/Wasm checks and passing package unit/sandbox
+logs before deployment and removes every contract access key before deposits.
+Only free testnet faucet accounts and synthetic transactions are used.
+
+## Cutover and verification
+
+A fresh same-FINAL-block read-only inventory of `nope-wallet-66e1273c.testnet`
+confirmed exactly three terminal holds, zero liabilities and no pending
+transfers before V2 deployment; see `verification/storage-v2/legacy-before-cutover.json`.
+Historical verifier policies retain **both** `nope-wallet-44384e2f.testnet` and
+`nope-wallet-66e1273c.testnet`. Historical bindings and C775 evidence are not
+rewritten. Retired jobs remain read-only through the application.
+
+- `verification/storage-v2-unit-tests.log`: 18 unit tests, including 4,001
+  independently paying buyers with constant serialized global state, 128 buyers
+  reaching terminal refund and a subsequent new successful fund, maximum storage
+  sizing, exact deposits, callback failures, cross-job solvency and authorization.
+- `verification/storage-v2-sandbox-tests.log`: actual keyless compiled-Wasm
+  lifecycle with native price-only payout/refund, retained storage charges,
+  real failed payout/refund callbacks and safe nonce retry.
+- `verification/storage-v2-js-tests.log`: wallet, server, Blob and public-verifier
+  regressions, including minimum/maximum price-plus-storage deposits and rejection
+  of missing, altered or noncanonical storage charges.
+- `check-live.mjs`: explicit synthetic public-testnet payout/refund checks; not
+  part of npm test or build. Public results live in `verification/storage-v2/`.
+
+The protocol schema describes V2. The following original deployment material is
+historical V1 evidence and its old exact-price-only ABI/capacity are not active.
+
+## Original interface and historical deployment evidence
+
+The original account and receipt evidence below refers to the retired deployment;
+it is preserved as historical evidence. For new funding, include the admission
+signature described above and use the current pinned contract.
+
 
 See `protocol.schema.json` for exact public methods, terms, namespace, binding
 tuple and limits. This is new code, separate from the sponsor escrow.
@@ -42,7 +127,7 @@ empty key list before customer funding; otherwise deployment-key trust remains.
 
 | Method | Arguments | Attached deposit | Result |
 | --- | --- | --- | --- |
-| `fund` | `{terms}` | Exactly `terms.amount` | `Hold` |
+| `fund` | `{terms,admission_signature}` | Exactly `terms.amount` | `Hold` |
 | `record_delivery` | `{buyer_account,job_id,version,output_hash}` | 0 | `Hold` |
 | `accept_and_release` | Same delivery arguments | 0 | Promise to callback JSON boolean |
 | `refund` | `{buyer_account,job_id}` | 0 | Promise to callback JSON boolean |
@@ -87,7 +172,7 @@ hash with `EXPERIMENTAL_tx_status`, not another transfer.
   upgrade of the locked contract. No generic trustless-application claim follows:
   the UI, session/offer/proof integration and RPC still have separate boundaries.
 
-## Actual validation and deployment
+## Historical validation and original deployment
 
 `verification/unit-tests.log`:13 SDK-host unit tests passed. They exercise exact
 deposits, namespaces, hashes, limits, authorization, strict versions, deadlines,

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://nope.invalid/wallet-escrow-v1-call.schema.json",
-  "title": "NOPE customer wallet-funded testnet escrow v1",
+  "$id": "https://nope.invalid/wallet-escrow-v2-call.schema.json",
+  "title": "NOPE storage-prepaid customer wallet-funded testnet escrow v2",
   "oneOf": [
     {
       "type": "object",
@@ -16,10 +16,15 @@
           "properties": {
             "terms": {
               "$ref": "#/$defs/terms"
+            },
+            "admission_signature": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{128}$"
             }
           },
           "required": [
-            "terms"
+            "terms",
+            "admission_signature"
           ]
         }
       },
@@ -317,7 +322,7 @@
     }
   },
   "x-protocol": {
-    "domain": "NOPE:WALLET-ESCROW:V1:testnet",
+    "domain": "NOPE:WALLET-ESCROW:V2:testnet",
     "namespace": [
       "buyer_account",
       "job_id"
@@ -350,14 +355,15 @@
       "review_deadline_ns"
     ],
     "limits": {
-      "max_jobs": 50,
       "max_hold_amount": "1000000000000000000000000",
       "min_hold_amount": "1",
       "max_horizon_ns": "2592000000000000",
       "storage_headroom_bytes": 131072,
       "gas_buffer_yocto": "100000000000000000000000",
       "min_transfer_gas_tgas": 100,
-      "callback_gas_tgas": 20
+      "callback_gas_tgas": 20,
+      "storage_bytes_per_hold": 4096,
+      "storage_deposit_yocto": "40960000000000000000000"
     },
     "methods": {
       "fund": {
@@ -367,13 +373,18 @@
           "properties": {
             "terms": {
               "$ref": "#/$defs/terms"
+            },
+            "admission_signature": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{128}$"
             }
           },
           "required": [
-            "terms"
+            "terms",
+            "admission_signature"
           ]
         },
-        "deposit": "exact terms.amount",
+        "deposit": "exact terms.amount + 4096 * env::storage_byte_cost(); storage component nonrefundable",
         "caller": "predecessor == terms.buyer_account; never idempotent; duplicate namespace/job rejects"
       },
       "record_delivery": {
@@ -528,7 +539,7 @@
     ],
     "deadlines": "now < execution < review <= now+30days; record <= execution; payout <= review; refund strictly > review",
     "accounting": "total_deposited == liabilities + total_paid + total_refunded; pending_outgoing <= liabilities; each pending holds one nonce/action; transfers spend only immutable per-hold amount",
-    "storage": "Existing contract balance pays storage/gas buffer, never customer payment pool. No owner withdrawal, top-up allocation, upgrade method or sponsor pool. Successful funding attaches exactly the liability amount.",
+    "storage": "Persistent near_sdk::store::LookupMap keyed by buyer/job; no global capacity allocator. Each fund prepays 4096 bytes at env::storage_byte_cost independently of price; reservation retained permanently, never refundable. Global Borsh state is constant size; hold_count is a U64 informational count only. Retained fees and the separately prefunded base storage/gas reserve cannot pay other liabilities.",
     "delivery": "First version 1; exact same version/hash is idempotent; changes require strict next version. Buyer may record for recovery: record only commits public metadata and cannot change payee, amount, buyer or release authority.",
     "callbacks": "Private self callback keyed by buyer_account/job_id/nonce/action. Native transfer success (empty result) terminalizes exactly once. Definitive failure restores pre-transfer Held/Delivered and leaves liabilities unchanged. Unknown outcome stays pending; never time-based resend/refund.",
     "funding": "Duplicate job only within buyer namespace rejects and transaction receipt failure refunds attached deposit. Other buyers cannot occupy your namespace. Obtain authoritative intended buyer from immutable application job/payment; never discover buyer by untrusted first fund.",
@@ -548,7 +559,15 @@
       "nonce": "U64 decimal string initially0",
       "delivery": "null|{version:u32,output_hash:hex64}",
       "last_transfer_failure_nonce": "null|U64 decimal string",
-      "pending": "null|{action:payout|refund,previous_state:Held|Delivered}"
+      "pending": "null|{action:payout|refund,previous_state:Held|Delivered}",
+      "storage_deposit_yocto": "U128 decimal string: nonrefundable reservation paid on fund"
+    },
+    "configShape": {
+      "hold_count": "U64 string, informational only",
+      "storage_bytes_per_hold": "U64 string = 4096",
+      "storage_deposit_yocto": "U128 string = 4096 * current env::storage_byte_cost()",
+      "storage_deposits": "U128 string, cumulative retained storage charges",
+      "storage_deposit_refundable": false
     }
   }
 }

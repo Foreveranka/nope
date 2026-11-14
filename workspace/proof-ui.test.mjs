@@ -14,7 +14,7 @@ import {executeTask} from './gc.mjs';
 // This file is NOT evidence of actual SNARK proving, model accuracy or chain use.
 const ID='a'.repeat(32),CONTRACT='proof-ui.testnet',BINDING='b'.repeat(64);
 const wallet=accountId=>({accountId,publicKey:'ed25519:'+ '1'.repeat(32),network:'testnet',verifiedAt:'2026-11-14T00:00:00Z'});
-const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V2:testnet',requireKeyless:true,storageDepositYocto:'40960000000000000000000'};
 const WALLET_CAPABILITY={required:true,enabled:true,network:'testnet',contractId:CONTRACT};
 const BUYER={id: (await sha256('NOPE:wallet-session:v1:testnet:buyer:proof-buyer.testnet')).slice(0,32),role:'buyer',displayName:'Unit buyer',wallet:wallet('proof-buyer.testnet')};
 const TASK={version:1,goal:'Fill C1 blanks with 7.',columns:[{id:'C1',type:'number'}]};

@@ -1,6 +1,6 @@
 # NOPE — current application map
 
-The current application is the browser-based `/workspace` flow, not the original local Python prototype. Canonical hosted origin: `https://nope-workspace.vercel.app`. The old `https://veil-procurement.vercel.app` origin stays available for pre-existing browser vaults; local CSVs, decoders and witnesses do not transfer between origins.
+The current application is the browser-based `/workspace` flow, not the original local Python prototype. Canonical hosted origin: `https://nope-workspace.vercel.app`. The prior origin stays available for pre-existing browser vaults; local CSVs, decoders and witnesses do not transfer between origins.
 
 Start with `README.md` for the supported workflow, proof statement, limitations and reproducible commands. Current implementation:
 - `web/workspace.js`, `web/agent-plan.mjs`, `web/workspace-vault.mjs`: local CSV, anonymous-schema planning, bounded plan approval, encryption/decryption and private witness.

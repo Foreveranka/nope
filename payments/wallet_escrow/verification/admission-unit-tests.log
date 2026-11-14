@@ -1,0 +1,24 @@
+   Compiling nope-wallet-escrow v0.1.0 (/Users/mete/near-private-procurement/payments/wallet_escrow)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.80s
+     Running unittests src/lib.rs (../testnet_escrow/target/debug/deps/nope_wallet_escrow-90b42f39eb826014)
+
+running 16 tests
+test tests::binding_tuple_exact_order_and_wallet_identity ... ok
+test tests::admitted_funding_replay_and_admission_key_has_no_payment_authority ... ok
+test tests::checked_nonce_exhaustion_and_gas_reject_before_new_pending ... ok
+test tests::customer_deposit_cannot_pay_storage_or_cover_another_hold ... ok
+test tests::initialization_requires_explicit_nonzero_admission_key ... ok
+test tests::delivery_auth_strict_versions_and_exact_acceptance ... ok
+test tests::callback_private_nonce_action_and_uncertain_result_guards ... ok
+test tests::failed_payout_restores_delivered_without_spending_other_job ... ok
+test tests::public_job_preemption_isolated_by_buyer_namespace ... ok
+test tests::funding_is_exact_wallet_deposit_not_sponsor_credit ... ok
+test tests::admission_rejects_unsigned_wrong_key_and_changed_terms_before_capacity ... ok
+test tests::refund_failure_restores_delivered_and_allows_only_fresh_nonce ... ok
+test tests::payout_freezes_job_and_terminal_callback_is_exactly_once ... ok
+test tests::refund_transfer_failure_then_success_preserves_all_liabilities ... ok
+test tests::terms_limits_hashes_and_deadlines_fail_closed ... ok
+test tests::exact_deadline_boundary_and_permanent_capacity ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.88s
+

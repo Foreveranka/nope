@@ -3,7 +3,9 @@
  * with a freshly generated synthetic key, never a customer or project key. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createHash} from 'node:crypto';
+import {createHash,generateKeyPairSync,sign} from 'node:crypto';
+const admission=generateKeyPairSync('ed25519');
+const admissionPublicKey=admission.publicKey.export({format:'der',type:'spki'}).subarray(-32).toString('hex');
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
 import {KeyPair,KeyPairSigner,baseEncode} from 'near-api-js';
@@ -11,9 +13,9 @@ import {verifyMessage} from 'near-api-js/nep413';
 import {createWalletClient} from '../web/wallet-client.mjs';
 import {msg} from '../web/i18n.mjs';
 import {patchExecutor,patchIntearExecutor} from '../wallet-runtime/sdk-patches.mjs';
-const ORIGIN='https://wallet-unit.invalid',DOMAIN='NOPE:WALLET-ESCROW:V1:testnet';
+const ORIGIN='https://wallet-unit.invalid',DOMAIN='NOPE:WALLET-ESCROW:V2:testnet';
 const HASH='b'.repeat(64),JOB='a'.repeat(32),GAS='150000000000000';
-const policy={network:'testnet',contractId:'unit-escrow.testnet',codeHash:baseEncode(new Uint8Array(32).fill(9)),domain:DOMAIN,requireKeyless:true};
+const policy={network:'testnet',contractId:'unit-escrow.testnet',codeHash:baseEncode(new Uint8Array(32).fill(9)),domain:DOMAIN,requireKeyless:true,storageDepositYocto:'40960000000000000000000',admissionPublicKey};
 const sha=s=>createHash('sha256').update(s).digest('hex');
 const canonical=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,x[k]])):x);
 const clone=structuredClone;
@@ -37,9 +39,9 @@ function fixture({ids=['buyer.testnet'],network='testnet',policyOverride=policy,
 function prepared(action='fund',accountId=action==='record'?'provider.testnet':'buyer.testnet'){
  const amount='1000000000000000000000000',terms={job_id:JOB,buyer_commitment:'c'.repeat(64),buyer_account:'buyer.testnet',provider:'provider.testnet',amount,input_hash:'d'.repeat(64),program_hash:'e'.repeat(64),plan_hash:'f'.repeat(64),execution_deadline_ns:String(BigInt(Date.now()+86400000)*1000000n),review_deadline_ns:String(BigInt(Date.now()+172800000)*1000000n)};
  const bindingHash=sha(JSON.stringify([DOMAIN,policy.contractId,...Object.values(terms)]));
- const args=action==='fund'?{terms}:action==='refund'?{buyer_account:terms.buyer_account,job_id:JOB}:{buyer_account:terms.buyer_account,job_id:JOB,version:2,output_hash:HASH};
+ const args=action==='fund'?{terms,admission_signature:sign(null,Buffer.from('NOPE:WALLET-ADMISSION:V1\0'+bindingHash),admission.privateKey).toString('hex')}:action==='refund'?{buyer_account:terms.buyer_account,job_id:JOB}:{buyer_account:terms.buyer_account,job_id:JOB,version:2,output_hash:HASH};
  const method={fund:'fund',record:'record_delivery',release:'accept_and_release',refund:'refund'}[action];
- return {intent:{id:'f'.repeat(64),action,network:'testnet',bindingHash,transaction:{signerId:accountId,receiverId:policy.contractId,actions:[{type:'FunctionCall',params:{methodName:method,args,gas:GAS,deposit:action==='fund'?amount:'0'}}]}},bounds:{action,jobId:JOB,bindingHash,accountId,contractId:policy.contractId,buyerAccount:terms.buyer_account,provider:terms.provider,amountYocto:amount,version:2,outputHash:HASH,expectedArgs:clone(args)}};
+ return {intent:{id:'f'.repeat(64),action,network:'testnet',bindingHash,transaction:{signerId:accountId,receiverId:policy.contractId,actions:[{type:'FunctionCall',params:{methodName:method,args,gas:GAS,deposit:action==='fund'?(BigInt(amount)+BigInt(policy.storageDepositYocto)).toString():'0'}}]}},bounds:{action,jobId:JOB,bindingHash,accountId,contractId:policy.contractId,buyerAccount:terms.buyer_account,provider:terms.provider,amountYocto:amount,version:2,outputHash:HASH,expectedArgs:clone(args)}};
 }
 const code=c=>e=>e?.code===c;
 test('UNIT: construction never connects/signs, policy exactly5keys/keyless and testnet only',async()=>{
@@ -112,7 +114,7 @@ test('UNIT: arbitraryactions/receivers/amounts/args/roles/deposits/gas rejected 
  for(const action of ['record','release','refund']){const x=prepared(action),f=fixture({ids:[x.bounds.accountId]});await f.client.connect();x.intent.transaction.actions[0].params.deposit='1';await assert.rejects(f.client.sendTransaction(x.intent,x.bounds));assert.equal(f.calls.filter(c=>c.kind==='transaction').length,0);}
 });
 test('UNIT: arguments snapshotted before async account lookup; no duplicate sends afterunknown/closed',async()=>{
- const f=fixture();await f.client.connect();const x=prepared();const pending=f.client.sendTransaction(x.intent,x.bounds);x.intent.transaction.actions[0].params.deposit='999';const result=await pending;assert.ok(result.transactionHash);assert.equal(f.calls.find(c=>c.kind==='transaction').args.actions[0].params.deposit,x.bounds.amountYocto);
+ const f=fixture();await f.client.connect();const x=prepared();const pending=f.client.sendTransaction(x.intent,x.bounds);x.intent.transaction.actions[0].params.deposit='999';const result=await pending;assert.ok(result.transactionHash);assert.equal(f.calls.find(c=>c.kind==='transaction').args.actions[0].params.deposit,(BigInt(x.bounds.amountYocto)+BigInt(policy.storageDepositYocto)).toString());
  const unknown=fixture();await unknown.client.connect();unknown.responseAs('throw','User rejected the transaction');const a=prepared();await assert.rejects(unknown.client.sendTransaction(a.intent,a.bounds),code('WALLET_TRANSACTION_UNKNOWN'));assert.ok(unknown.storage.getItem('nope.wallet.client.v1.pending'));await assert.rejects(unknown.client.sendTransaction(a.intent,a.bounds),code('WALLET_PENDING_OPERATION'));assert.equal(unknown.calls.filter(c=>c.kind==='transaction').length,1);
 });
 test('UNIT: wallet cannot mutate the approved transaction used to check its returned outcome',async()=>{
@@ -248,4 +250,31 @@ test('UNIT pinned official Intear executor + actual bridge: popup URL/network/NE
   const count=opened.length,closed=await frame();assert.deepEqual(JSON.parse(JSON.stringify(await closed.signIn({network:'mainnet'}))),[]);assert.equal(opened.length,count);
   await assert.rejects(sign.signMessage({network:'mainnet',signerId:'buyer.testnet'}),/Wallet account changed/);assert.equal(opened.length,count);
  }finally{for(const id of timers)clearInterval(id);}
+});
+
+test('admission signature is verified before any wallet transaction, binds exact terms and pinned key',async()=>{
+ for(const change of [p=>delete p.intent.transaction.actions[0].params.args.admission_signature,p=>p.intent.transaction.actions[0].params.args.admission_signature='00'.repeat(64),p=>{const a=p.intent.transaction.actions[0].params.args;a.terms.review_deadline_ns=String(BigInt(a.terms.review_deadline_ns)+1n);p.intent.bindingHash=sha(JSON.stringify([DOMAIN,policy.contractId,...Object.values(a.terms)]));p.bounds.bindingHash=p.intent.bindingHash;p.bounds.expectedArgs=clone(a);}]){
+  const f=fixture();await f.client.connect();const p=prepared();change(p);await assert.rejects(f.client.sendTransaction(p.intent,p.bounds));assert.equal(f.calls.filter(c=>c.kind==='transaction').length,0);
+ }
+ const f=fixture({policyOverride:{...policy,admissionPublicKey:generateKeyPairSync('ed25519').publicKey.export({format:'der',type:'spki'}).subarray(-32).toString('hex')}});await f.client.connect();const p=prepared();await assert.rejects(f.client.sendTransaction(p.intent,p.bounds));assert.equal(f.calls.filter(c=>c.kind==='transaction').length,0);
+});
+
+
+test('V2 requires exact price plus retained storage at both price bounds; rejects price-only, overpayment and missing policy',async()=>{
+ for(const amount of ['1','1000000000000000000000000']){
+  const p=prepared(),a=p.intent.transaction.actions[0].params;
+  a.args.terms.amount=amount;p.bounds.amountYocto=amount;
+  p.intent.bindingHash=sha(JSON.stringify([DOMAIN,policy.contractId,...Object.values(a.args.terms)]));p.bounds.bindingHash=p.intent.bindingHash;
+  a.args.admission_signature=sign(null,Buffer.from('NOPE:WALLET-ADMISSION:V1\0'+p.intent.bindingHash),admission.privateKey).toString('hex');
+  p.bounds.expectedArgs=clone(a.args);a.deposit=(BigInt(amount)+BigInt(policy.storageDepositYocto)).toString();
+  const good=fixture();await good.client.connect();assert.ok((await good.client.sendTransaction(p.intent,p.bounds)).transactionHash);
+  for(const wrong of [amount,(BigInt(a.deposit)-1n).toString(),(BigInt(a.deposit)+1n).toString()]){
+   const f=fixture();await f.client.connect();const bad=clone(p);bad.intent.transaction.actions[0].params.deposit=wrong;
+   await assert.rejects(f.client.sendTransaction(bad.intent,bad.bounds));assert.equal(f.calls.filter(x=>x.kind==='transaction').length,0);
+  }
+ }
+ for(const amount of [undefined,'0','040960000000000000000000','40960000000000000000001']){
+  const p={...policy};if(amount===undefined)delete p.storageDepositYocto;else p.storageDepositYocto=amount;
+  await assert.rejects(fixture({policyOverride:p}).client.connect(),code('WALLET_POLICY_DISABLED'));
+ }
 });

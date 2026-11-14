@@ -2,11 +2,13 @@
 //! admin withdrawal, automatic dispute ruling or on-chain SNARK verifier.
 use near_sdk::json_types::{U64, U128};
 use near_sdk::{AccountId, Gas, NearToken, PanicOnDefault, Promise, env, near, serde_json};
-use std::collections::BTreeMap;
+use near_sdk::store::LookupMap;
 
-const DOMAIN: &str = "NOPE:WALLET-ESCROW:V1:testnet";
+const DOMAIN: &str = "NOPE:WALLET-ESCROW:V2:testnet";
+const ADMISSION_DOMAIN: &str = "NOPE:WALLET-ADMISSION:V1\0";
 const MAX_HOLD: u128 = 10u128.pow(24);
-const MAX_JOBS: usize = 50;
+// Every permanent record, including its largest later lifecycle state, is prepaid.
+const STORAGE_BYTES_PER_HOLD: u64 = 4096;
 const MAX_HORIZON_NS: u64 = 30 * 24 * 60 * 60 * 1_000_000_000;
 const STORAGE_HEADROOM: u64 = 131072;
 const GAS_BUFFER: u128 = 10u128.pow(23);
@@ -51,6 +53,7 @@ pub struct PendingTransfer { pub action: Action, pub previous_state: State }
 pub struct Hold {
     pub terms: Terms,
     pub binding_hash: String,
+    pub storage_deposit_yocto: U128,
     pub state: State,
     pub nonce: U64,
     pub delivery: Option<Delivery>,
@@ -60,14 +63,18 @@ pub struct Hold {
 
 #[near(serializers = [json])]
 pub struct Config {
+    pub admission_public_key: String,
     pub domain: String,
     pub network: String,
     pub contract_id: AccountId,
-    pub max_holds: u32,
+    pub storage_bytes_per_hold: U64,
+    pub storage_deposit_yocto: U128,
+    pub storage_deposits: U128,
+    pub storage_deposit_refundable: bool,
     pub max_hold_amount: U128,
     pub min_hold_amount: U128,
     pub max_horizon_ns: U64,
-    pub hold_count: u32,
+    pub hold_count: U64,
     pub total_deposited: U128,
     pub liabilities: U128,
     pub total_paid: U128,
@@ -85,7 +92,11 @@ pub struct Config {
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
 pub struct WalletEscrow {
-    holds: BTreeMap<String, Hold>,
+    admission_public_key: [u8; 32],
+    holds: LookupMap<String, Hold>,
+    hold_count: u64,
+    initial_storage_usage: u64,
+    storage_deposits: u128,
     total_deposited: u128,
     liabilities: u128,
     total_paid: u128,
@@ -96,6 +107,15 @@ pub struct WalletEscrow {
 fn hex(value: &str, len: usize) {
     assert!(value.len() == len && value.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)), "invalid lowercase hex");
 }
+fn decode_hex<const N: usize>(value: &str) -> [u8;N] {
+    hex(value,N*2);
+    let mut out=[0;N];
+    for (i, byte) in out.iter_mut().enumerate() {
+        *byte=u8::from_str_radix(&value[i*2..i*2+2],16).expect("hex byte");
+    }
+    out
+}
+fn encode_hex(value: &[u8]) -> String { value.iter().map(|b|format!("{b:02x}")).collect() }
 fn account(value: &AccountId) {
     let s = value.as_str();
     assert!(s.ends_with(".testnet") || s.len() == 64 && s.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)), "testnet named or implicit account required");
@@ -115,17 +135,19 @@ fn binding(t: &Terms) -> String {
 #[near]
 impl WalletEscrow {
     #[init]
-    pub fn new() -> Self {
+    pub fn new(admission_public_key: String) -> Self {
         no_deposit();
         assert_eq!(env::predecessor_account_id(), env::current_account_id(), "self initialization only");
         assert!(env::current_account_id().as_str().ends_with(".testnet"), "testnet deployment account required");
-        let value = Self { holds:BTreeMap::new(),total_deposited:0,liabilities:0,total_paid:0,total_refunded:0,pending_outgoing:0 };
+        let admission_public_key = decode_hex::<32>(&admission_public_key);
+        assert_ne!(admission_public_key, [0;32], "nonzero admission public key required");
+        let value = Self { admission_public_key,holds:LookupMap::new(b"h"),hold_count:0,initial_storage_usage:env::storage_usage(),storage_deposits:0,total_deposited:0,liabilities:0,total_paid:0,total_refunded:0,pending_outgoing:0 };
         value.solvent(0, 0);
         value
     }
 
     pub fn get_config(&self) -> Config {
-        Config { domain:DOMAIN.into(),network:"testnet".into(),contract_id:env::current_account_id(),max_holds:MAX_JOBS as u32,max_hold_amount:U128(MAX_HOLD),min_hold_amount:U128(1),max_horizon_ns:U64(MAX_HORIZON_NS),hold_count:self.holds.len() as u32,total_deposited:U128(self.total_deposited),liabilities:U128(self.liabilities),total_paid:U128(self.total_paid),total_refunded:U128(self.total_refunded),pending_outgoing:U128(self.pending_outgoing),on_account_liabilities:U128(self.liabilities.checked_sub(self.pending_outgoing).expect("liability invariant")),account_balance:U128(env::account_balance().as_yoctonear()),storage_reserve:U128(Self::storage_reserve()),gas_buffer:U128(GAS_BUFFER),storage_headroom_bytes:STORAGE_HEADROOM,min_transfer_gas_tgas:TRANSFER_TGAS,callback_gas_tgas:CALLBACK_TGAS }
+        Config { admission_public_key:encode_hex(&self.admission_public_key),domain:DOMAIN.into(),network:"testnet".into(),contract_id:env::current_account_id(),storage_bytes_per_hold:U64(STORAGE_BYTES_PER_HOLD),storage_deposit_yocto:U128(Self::storage_deposit()),storage_deposits:U128(self.storage_deposits),storage_deposit_refundable:false,max_hold_amount:U128(MAX_HOLD),min_hold_amount:U128(1),max_horizon_ns:U64(MAX_HORIZON_NS),hold_count:U64(self.hold_count),total_deposited:U128(self.total_deposited),liabilities:U128(self.liabilities),total_paid:U128(self.total_paid),total_refunded:U128(self.total_refunded),pending_outgoing:U128(self.pending_outgoing),on_account_liabilities:U128(self.liabilities.checked_sub(self.pending_outgoing).expect("liability invariant")),account_balance:U128(env::account_balance().as_yoctonear()),storage_reserve:U128(self.storage_reserve(self.hold_count)),gas_buffer:U128(GAS_BUFFER),storage_headroom_bytes:STORAGE_HEADROOM,min_transfer_gas_tgas:TRANSFER_TGAS,callback_gas_tgas:CALLBACK_TGAS }
     }
 
     pub fn get_hold(&self, buyer_account: AccountId, job_id: String) -> Option<Hold> {
@@ -133,25 +155,34 @@ impl WalletEscrow {
     }
 
     #[payable]
-    pub fn fund(&mut self, terms: Terms) -> Hold {
+    pub fn fund(&mut self, terms: Terms, admission_signature: String) -> Hold {
         account(&terms.buyer_account); account(&terms.provider);
         assert_eq!(env::predecessor_account_id(), terms.buyer_account, "buyer wallet must fund");
         hex(&terms.job_id,32);
         for h in [&terms.buyer_commitment,&terms.input_hash,&terms.program_hash,&terms.plan_hash] { hex(h,64); }
+        let binding_hash = binding(&terms);
+        let signature = decode_hex::<64>(&admission_signature);
+        let message = format!("{ADMISSION_DOMAIN}{binding_hash}");
+        assert!(env::ed25519_verify(&signature, message.as_bytes(), &self.admission_public_key), "application admission required");
         assert!(terms.amount.0 > 0 && terms.amount.0 <= MAX_HOLD, "amount outside pilot bounds");
-        assert_eq!(env::attached_deposit().as_yoctonear(), terms.amount.0, "attach exact terms.amount");
+        let storage_deposit=Self::storage_deposit();
+        assert_eq!(env::attached_deposit().as_yoctonear(), terms.amount.0.checked_add(storage_deposit).expect("funding overflow"), "attach exact price plus nonrefundable storage deposit");
         let namespace = key(&terms.buyer_account,&terms.job_id);
         assert!(!self.holds.contains_key(&namespace), "job already funded in buyer namespace");
-        assert!(self.holds.len() < MAX_JOBS, "permanent hold capacity reached");
+        let hold_count=self.hold_count.checked_add(1).expect("hold counter overflow");
         let now = env::block_timestamp();
         assert!(now < terms.execution_deadline_ns.0 && terms.execution_deadline_ns.0 < terms.review_deadline_ns.0, "invalid deadlines");
         assert!(terms.review_deadline_ns.0.checked_sub(now).expect("deadline underflow") <= MAX_HORIZON_NS, "deadline exceeds 30 days");
         let liabilities = self.liabilities.checked_add(terms.amount.0).expect("liability overflow");
         let deposited = self.total_deposited.checked_add(terms.amount.0).expect("deposit overflow");
-        self.solvent(liabilities,self.pending_outgoing);
-        let hold = Hold { binding_hash:binding(&terms),terms,state:State::Held,nonce:U64(0),delivery:None,last_transfer_failure_nonce:None,pending:None };
+        let storage_deposits=self.storage_deposits.checked_add(storage_deposit).expect("storage deposit overflow");
+        self.solvent_for_count(liabilities,self.pending_outgoing,hold_count);
+        let hold = Hold { binding_hash,storage_deposit_yocto:U128(storage_deposit),terms,state:State::Held,nonce:U64(0),delivery:None,last_transfer_failure_nonce:None,pending:None };
         self.liabilities=liabilities; self.total_deposited=deposited;
+        self.hold_count=hold_count; self.storage_deposits=storage_deposits;
         self.holds.insert(namespace,hold.clone());
+        self.holds.flush();
+        self.solvent(self.liabilities,self.pending_outgoing);
         self.accounting(); hold
     }
 
@@ -225,13 +256,19 @@ impl WalletEscrow {
         assert_eq!(&hold.terms.buyer_account,buyer,"buyer namespace mismatch"); hold.clone()
     }
     fn buyer(hold:&Hold) { assert_eq!(env::predecessor_account_id(),hold.terms.buyer_account,"buyer wallet only"); }
-    fn storage_reserve()->u128 {
-        u128::from(env::storage_usage().checked_add(STORAGE_HEADROOM).expect("storage overflow")).checked_mul(env::storage_byte_cost().as_yoctonear()).expect("storage cost overflow")
+    fn storage_deposit()->u128 {
+        u128::from(STORAGE_BYTES_PER_HOLD).checked_mul(env::storage_byte_cost().as_yoctonear()).expect("storage cost overflow")
     }
-    fn solvent(&self,liabilities:u128,pending:u128) {
-        let required=liabilities.checked_sub(pending).expect("pending exceeds liabilities").checked_add(Self::storage_reserve()).and_then(|v|v.checked_add(GAS_BUFFER)).expect("balance overflow");
-        assert!(env::account_balance().as_yoctonear()>=required,"separately prefund storage/gas; preserve all wallet liabilities");
+    fn storage_reserve(&self,count:u64)->u128 {
+        let bytes=self.initial_storage_usage.checked_add(STORAGE_HEADROOM).and_then(|n|count.checked_mul(STORAGE_BYTES_PER_HOLD).and_then(|v|n.checked_add(v))).expect("storage overflow");
+        assert!(env::storage_usage()<=bytes,"prepaid storage bound exceeded");
+        u128::from(bytes).checked_mul(env::storage_byte_cost().as_yoctonear()).expect("storage cost overflow")
     }
+    fn solvent_for_count(&self,liabilities:u128,pending:u128,count:u64) {
+        let required=liabilities.checked_sub(pending).expect("pending exceeds liabilities").checked_add(self.storage_reserve(count)).and_then(|v|v.checked_add(GAS_BUFFER)).expect("balance overflow");
+        assert!(env::account_balance().as_yoctonear()>=required,"preserve payment liabilities, prepaid storage and gas buffer");
+    }
+    fn solvent(&self,liabilities:u128,pending:u128) { self.solvent_for_count(liabilities,pending,self.hold_count); }
     fn accounting(&self) {
         assert_eq!(self.total_deposited,self.liabilities.checked_add(self.total_paid).and_then(|v|v.checked_add(self.total_refunded)).expect("accounting overflow"),"deposit accounting invariant");
         assert!(self.pending_outgoing<=self.liabilities,"pending liability invariant");

@@ -107,9 +107,13 @@ test('per-client jobs quota persists across buyer sessions without collecting IP
  const second=await f.session('buyer','Second',f.buyer.cookie);assert.equal((await f.call('/jobs',{who:second,method:'POST',body:f.body})).status,429);
  assert.ok(!JSON.stringify([...f.store.records]).includes('127.0.0.1'));
 });
-test('global daily sessions cap uses immutable competing claim slots',async()=>{
+test('anonymous fresh-cookie sessions cannot consume a global customer admission allowance',async()=>{
  const f=await setup();const replies=await Promise.all(Array.from({length:55},(_,i)=>f.call('/session',{method:'POST',body:{role:'buyer',displayName:'Synthetic '+i}})));
- assert.equal(replies.filter(r=>r.status===201).length,46);assert.equal(replies.filter(r=>r.status===429).length,9);
+ assert.equal(replies.filter(r=>r.status===201).length,55);
+ assert.equal((await f.call('/session',{method:'POST',body:{role:'buyer',displayName:'Legitimate next customer'}})).status,201);
+ const cookie=f.buyer.cookie;
+ for(let i=0;i<9;i++)assert.equal((await f.call('/session',{method:'POST',body:{role:'buyer',displayName:'Same browser'},cookie})).status,201);
+ assert.equal((await f.call('/session',{method:'POST',body:{role:'buyer',displayName:'Same browser'},cookie})).status,429);
 });
 const HASH='3'.repeat(44),BLOCK='4'.repeat(44);
 function rpcFixture(job,{mutate=()=>{},error=false}={}){

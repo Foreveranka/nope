@@ -72,7 +72,7 @@
         {
           "id": "escrow",
           "title": "Wallet-Treuhand auf NEAR Testnet",
-          "text": "Der Kunde zahlt den exakt gewählten testNEAR-Betrag aus seiner eigenen Wallet in den Vertrag ein. Jeder Auftrag hat ein eigenes Guthabenkonto; es gibt keine Abhebung aus einem gemeinsamen Kundenpool. Der Anbieter signiert den Liefernachweis, der Kunde die Freigabe oder eine zulässige Erstattung in seiner Wallet. NOPE erhält niemals den privaten Wallet-Schlüssel. Der Vertrag prüft keine SNARKs; diese Prüfung erfolgt außerhalb der Blockchain.",
+          "text": "Der Kunde zahlt den exakt gewählten testNEAR-Betrag aus seiner eigenen Wallet in den Vertrag ein. Jeder Auftrag hat ein eigenes Guthabenkonto; es gibt keine Abhebung aus einem gemeinsamen Kundenpool. Der Anbieter signiert den Liefernachweis, der Kunde die Freigabe oder eine zulässige Erstattung in seiner Wallet. NOPE erhält niemals den privaten Wallet-Schlüssel. Der Vertrag prüft keine SNARKs; diese Prüfung erfolgt außerhalb der Blockchain. Zusätzlich zum Servicepreis zahlt der Käufer die angezeigte Gebühr für die dauerhafte Speicherung des Auftrags. Der Servicepreis bleibt im Escrow; die Speichergebühr ist nicht erstattbar. Jeder Auftrag finanziert seinen eigenen Speicher; es gibt kein gemeinsames festes Kontingent von 50 Aufträgen. Prüfen Sie vor dem Signieren den Gesamtbetrag und die zusätzliche Netzwerkgebühr.",
           "code": "",
           "href": ""
         }
@@ -325,7 +325,7 @@
         {
           "id": "sponsor",
           "title": "Was passiert bei fehlender Wallet oder Netzverbindung?",
-          "text": "Neue Aufträge benötigen die konfigurierte Testnet-Wallet-Treuhand; ein Rückfall auf den Sponsorenpool oder ältere Zahlungsabläufe erfolgt nicht. Deine Wallet braucht genug testNEAR für den gewählten Betrag und Gebühren. Abbruch, Fehler und unklare Transaktionen werden getrennt angezeigt; ohne Prüfung gilt nichts als abgeschlossen. Alte gesponserte Aufträge sind nur lesbar.",
+          "text": "Neue Aufträge benötigen die konfigurierte Testnet-Wallet-Treuhand; ein Rückfall auf den Sponsorenpool oder ältere Zahlungsabläufe erfolgt nicht. Deine Wallet braucht genug testNEAR für den gewählten Betrag und Gebühren. Abbruch, Fehler und unklare Transaktionen werden getrennt angezeigt; ohne Prüfung gilt nichts als abgeschlossen. Alte gesponserte Aufträge sind nur lesbar. Es werden genügend testNEAR für Servicepreis, separate Speichergebühr und Netzwerkgebühr benötigt; dauerhafte Datenspeicherung ist nicht erstattbar.",
           "code": "",
           "href": ""
         }

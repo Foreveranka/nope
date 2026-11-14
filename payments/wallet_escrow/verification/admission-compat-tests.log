@@ -1,0 +1,18 @@
+✔ requested public job identity cannot be replaced by a different valid evidence bundle (339.618917ms)
+✔ public verifier derives exact ciphertext/plan/output/award bindings from a pinned finalized contract snapshot (69.36025ms)
+✔ oversized public RPC/evidence bytes are rejected before JSON parsing (0.384208ms)
+✔ wallet proof verifier pins namespace, exact customer deposit terms and immutable keyless contract (389.284542ms)
+✔ wallet proof rejects admin keys, wrong code, mixed final blocks and evidence-provided deployment pins (9.473375ms)
+✔ NEP-413 actual SDK signature links exact session/account/testnet/origin with a FINAL FullAccess query (39.519375ms)
+✔ actual pinned Intear callback wire mismatch fails auth; camelCase wire preserves required callback with genuine synthetic NEP413 crypto (16.643583ms)
+✔ challenge claims are single-use under concurrent verification and account binding is immutable (5.572625ms)
+✔ expiry, session, role, origin, network, callback and signature substitution fail closed without linking (18.301084ms)
+✔ nonce and canonical challenge fields resist private-store tampering; challenge storage is bounded (3.814875ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 503.222125

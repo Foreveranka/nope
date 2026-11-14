@@ -903,5 +903,8 @@
   "Sağlayıcı şifreli hesabı başlatır. Teslimi kendi cihazında aç, önce/sonra tablosunda incele ve sonuç kanıtını doğrula. Ödemeyi serbest bırakmak senin onayını gerektirir.": "The provider starts the encrypted computation. Open the delivery on your device, review the before-and-after table and verify the result proof. Releasing payment requires your approval.",
   "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗": "VERIFY A COMPLETED JOB ↗",
   "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ": "UP TO 4 COLUMNS · 40 CELLS · ASCII TEXT AND CIRCUIT LIMITS APPLY",
-  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Your browser opens the result and verifies the result proof. Selected text and number columns follow your approved plan; other columns are preserved."
+  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Your browser opens the result and verifies the result proof. Selected text and number columns follow your approved plan; other columns are preserved.",
+  "Cüzdan fonlama toplamı: {0} testNEAR + ağ işlem ücreti.": "Total wallet funding: {0} testNEAR + network transaction fee.",
+  "Hizmet bedeli kabul veya uygun iadeyle aktarılır. Depolama bedeli zincirdeki kayıtların saklanmasını karşılar.": "The service amount is transferred on acceptance or eligible refund. The storage charge pays to retain the on-chain records.",
+  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Persistent transaction-record storage: {0} testNEAR (non-refundable)."
 }

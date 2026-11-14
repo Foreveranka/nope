@@ -63,7 +63,7 @@ export function linkedWallet(session) {
   return wallet?.network === 'testnet' && testnetAccount(wallet.accountId) && typeof wallet.publicKey === 'string' && /^ed25519:[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(wallet.publicKey) && typeof wallet.verifiedAt === 'string' && Number.isFinite(Date.parse(wallet.verifiedAt)) ? wallet : null;
 }
 export function walletCapabilityMatches(value, policy = WALLET_ESCROW_POLICY) {
-  return Boolean(policy && policy.network === 'testnet' && policy.requireKeyless === true && testnetAccount(policy.contractId) && TX_HASH.test(policy.codeHash) && policy.domain === 'NOPE:WALLET-ESCROW:V1:testnet' && value?.required === true && value.enabled === true && value.network === 'testnet' && value.contractId === policy.contractId);
+  return Boolean(policy && policy.network === 'testnet' && policy.requireKeyless === true && testnetAccount(policy.contractId) && TX_HASH.test(policy.codeHash) && policy.domain === 'NOPE:WALLET-ESCROW:V2:testnet' && policy.storageDepositYocto === '40960000000000000000000' && value?.required === true && value.enabled === true && value.network === 'testnet' && value.contractId === policy.contractId);
 }
 export function walletApiError(code) {
   if (code === 'WALLET_CHALLENGE_EXPIRED') return msg('Cüzdan doğrulama isteğinin süresi doldu. Hesap bağlamayı yeniden başlatıp yeni mesajı imzala.');
@@ -866,6 +866,12 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     paragraph(msg`Durum: ${legacy ? payment.status : trusted ? escrowStatuses[payment.status] : msg('Bilinmeyen veya eksik testnet ödeme bilgisi · yalnızca durum kontrolü')}`,panel,trusted && payment.status === 'PAID' ? 'badge' : 'muted');
     if (job.selectedOffer) {
       paragraph(msg`Herkese açık seçilen tutar: ${formatNearAmount(job.selectedOffer.amountYocto)} testNEAR`,panel);
+      if (walletJob(job) && payment.contractId === walletPolicy?.contractId && /^[1-9][0-9]{0,24}$/.test(walletPolicy.storageDepositYocto || '')) {
+        const storageCost=walletPolicy.storageDepositYocto,total=(BigInt(job.selectedOffer.amountYocto)+BigInt(storageCost)).toString();
+        paragraph(msg`Kalıcı işlem kaydı depolaması: ${formatNearAmount(storageCost)} testNEAR (iade edilmez).`,panel);
+        paragraph(msg`Cüzdan fonlama toplamı: ${formatNearAmount(total)} testNEAR + ağ işlem ücreti.`,panel);
+        paragraph(msg('Hizmet bedeli kabul veya uygun iadeyle aktarılır. Depolama bedeli zincirdeki kayıtların saklanmasını karşılar.'),panel);
+      }
       paragraph(msg`Testnet alıcısı: ${job.selectedOffer.paymentAccount}`,panel);
     }
     if (walletJob(job) && job.buyerWallet?.accountId) paragraph(msg`Müşteri cüzdanı: ${job.buyerWallet.accountId}`,panel);

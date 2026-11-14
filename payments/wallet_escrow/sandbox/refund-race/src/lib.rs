@@ -7,9 +7,9 @@ pub struct ClosingBuyer {}
 #[near]
 impl ClosingBuyer {
  #[init] pub fn new()->Self{Self{}}
- pub fn fund_job(&self,escrow:AccountId,terms:Value)->Promise{
+ pub fn fund_job(&self,escrow:AccountId,terms:Value,admission_signature:String)->Promise{
   assert_eq!(env::predecessor_account_id(),env::current_account_id());
-  Promise::new(escrow).function_call("fund",serde_json::to_vec(&json!({"terms":terms})).unwrap(),NearToken::from_millinear(100),Gas::from_tgas(50))
+  Promise::new(escrow).function_call("fund",serde_json::to_vec(&json!({"terms":terms,"admission_signature":admission_signature})).unwrap(),NearToken::from_yoctonear(100_000_000_000_000_000_000_000+40_960_000_000_000_000_000_000),Gas::from_tgas(50))
  }
  pub fn refund_and_delete(&self,escrow:AccountId,job_id:String,beneficiary:AccountId)->Promise{
   assert_eq!(env::predecessor_account_id(),env::current_account_id());

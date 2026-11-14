@@ -903,5 +903,8 @@
   "Sağlayıcı şifreli hesabı başlatır. Teslimi kendi cihazında aç, önce/sonra tablosunda incele ve sonuç kanıtını doğrula. Ödemeyi serbest bırakmak senin onayını gerektirir.": "Le prestataire lance le calcul chiffré. Ouvrez la livraison sur votre appareil, comparez les valeurs avant et après et vérifiez la preuve du résultat. Le déblocage du paiement nécessite votre accord.",
   "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗": "VÉRIFIER UNE MISSION TERMINÉE ↗",
   "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ": "JUSQU’À 4 COLONNES · 40 CELLULES · LIMITES ASCII ET DE CIRCUIT APPLICABLES",
-  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Votre navigateur ouvre le résultat et vérifie sa preuve. Les colonnes de texte et de nombres sélectionnées suivent le plan approuvé ; les autres sont conservées."
+  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Votre navigateur ouvre le résultat et vérifie sa preuve. Les colonnes de texte et de nombres sélectionnées suivent le plan approuvé ; les autres sont conservées.",
+  "Cüzdan fonlama toplamı: {0} testNEAR + ağ işlem ücreti.": "Dépôt total du portefeuille : {0} testNEAR + frais de réseau.",
+  "Hizmet bedeli kabul veya uygun iadeyle aktarılır. Depolama bedeli zincirdeki kayıtların saklanmasını karşılar.": "Le montant du service est transféré lors de l’acceptation ou d’un remboursement admissible. Les frais de stockage couvrent la conservation des registres sur la chaîne.",
+  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Stockage permanent du registre de transaction : {0} testNEAR (non remboursable)."
 }

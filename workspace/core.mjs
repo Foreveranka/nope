@@ -23,6 +23,8 @@ export const quoteCommitment=(jobId,providerId,amountYocto,salt)=>sha(JSON.strin
 export const ESCROW_KIND='SPONSORED_TESTNET_ESCROW';
 const GUEST_ID=Symbol('original guest session');
 const walletPayment=j=>j.payment?.kind===WALLET_ESCROW_KIND;
+// A newer FINAL block is an observation, not a new business transition.
+const paymentState=p=>{const {stateBlockHash,...state}=p;return canonical(state);};
 const escrowPayment=j=>j.payment?.kind===ESCROW_KIND||walletPayment(j);
 const walletOwner=(s,j)=>s.role==='buyer'&&s.wallet?.network==='testnet'&&s.wallet.accountId===j.buyerWallet?.accountId;
 const owner=(s,j)=>walletPayment(j)?walletOwner(s,j):s.id===j.buyerId||s[GUEST_ID]===j.buyerId;
@@ -103,7 +105,10 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
   return facts;
  }
  async function history(id){const records=[];for(let n=0;n<256;n++){const r=await store.read(path(id,n));if(r===null)break;if(r?.job?.id!==id||r.job.revision!==n||r.previousHash!==(n?sha(canonical(records[n-1])):null))fail(503,'LEDGER_INTEGRITY');records.push(r);}return records;}
- async function commit(records,job,actorId){
+ async function commit(records,job,actorId,buyerAccess=actorId===job.buyerId){
+  // Preserve customer-only room for proof/acceptance/settlement/recovery. A
+  // counterparty cannot spend the final 32 revisions, even on distinct facts.
+  if(!buyerAccess&&job.revision>=224)fail(409,'REVISION_LIMIT');
   const at=new Date(now()).toISOString();job.updatedAt=at;job.events=[...(job.events||[]),{stage:job.status,status:job.status,at,actorId}];
   if(job.events.length>256)fail(409,'REVISION_LIMIT');
   if(job.revision>=256)fail(409,'REVISION_LIMIT');const record={job,previousHash:records.length?sha(canonical(records.at(-1))):null};
@@ -122,12 +127,9 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
    const found=await store.read(p);if(found?.kind===kind&&found.operation===operation)return;
   }fail(429,'GUEST_QUOTA');
  }
- async function daySessionClaim(){
-  // Daily global claim slots share the constrained client-slot namespace, no IP collection.
-  const day=sha('daily-session-cap:'+new Date(now()).toISOString().slice(0,10));
-  for(let n=0;n<50;n++){const p=`${ROOT}clients/${day}/${String(n).padStart(4,'0')}.json`;if(await store.read(p)===null&&await store.create(p,{claimedAt:new Date(now()).toISOString()}))return;}
-  fail(429,'DAILY_SESSION_CAP');
- }
+ // Verified business quotas survive a new browser cookie/session. Anonymous
+ // bootstrap has no irreversible global allowance that can exclude customers.
+ const businessClient=(s,record)=>s.wallet?.network==='testnet'?sha('NOPE:wallet-quota:'+s.wallet.accountId):record.client;
  function view(job,s,summary=false){
   const {offers,taskHash,programHash,creationHash,decisions,...out}=job;
   // Ciphertext/program commitments are public wallet-intent bounds, not CSV.
@@ -155,7 +157,7 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     if(!['buyer','provider'].includes(b.role)||!text(b.displayName,40)||b.paymentAccount!==undefined&&!testnetAccount(b.paymentAccount))fail(400,'INVALID_SESSION');
     const cookie=/(?:^|;\s*)workspace_client=([A-Za-z0-9_-]{43})(?:;|$)/.exec(req.headers.get('cookie')||'')?.[1];
     const clientToken=cookie||randomBytes(32).toString('base64url'),client=sha(clientToken),token=randomBytes(32).toString('base64url');
-    await quota(client,'sessions',sha(token));await daySessionClaim();
+    await quota(client,'sessions',sha(token));
     const session={id:randomBytes(16).toString('hex'),role:b.role,displayName:b.displayName,paymentAccount:b.paymentAccount||null};
     if(!await store.create(`${ROOT}sessions/${sha(token)}.json`,{session,client,origin:allowed}))fail(503,'SESSION_UNAVAILABLE');
     return response({token,session:await sessionView(session,allowed),...proofCapabilities()},201,{'Set-Cookie':`workspace_client=${clientToken}; Path=/api/workspace; HttpOnly; SameSite=Strict; Max-Age=2592000${allowed.startsWith('https:')?'; Secure':''}`});
@@ -206,7 +208,7 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     const creationHash=sha(canonical(b)),records=await history(b.jobId),existing=records.at(-1)?.job;
     if(existing){if(!owner(s,existing)||existing.creationHash!==creationHash)fail(409,'JOB_EXISTS');return response({job:view(existing,s)});}
     if(Date.parse(b.deadlineISO)<=now()||Date.parse(b.deadlineISO)>now()+30*86400000)fail(400,'INVALID_DEADLINE');
-    await quota(record.client,'jobs',b.jobId);
+    await quota(businessClient(s,record),'jobs',b.jobId);
     const taskPath=`${ROOT}jobs/${b.jobId}/task.json`,taskRecord={buyerId:s.id,creationHash,task:b.task};
     if(!await store.create(taskPath,taskRecord)&&canonical(await store.read(taskPath))!==canonical(taskRecord))fail(409,'JOB_EXISTS');
     await store.create(`${ROOT}index/${b.jobId}.json`,{id:b.jobId});
@@ -222,12 +224,13 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
    }
    if(!action||action==='task')fail(405,'METHOD_NOT_ALLOWED');
    if(walletRequired&&!walletPayment(current))fail(409,'LEGACY_JOB_READ_ONLY');
+   if(walletRequired&&walletPayment(current)&&current.payment.contractId!==walletEscrow.contractId)fail(409,'LEGACY_JOB_READ_ONLY');
    if(walletPayment(current))linked(s);
    const j=structuredClone(current);j.revision++;
    if(action==='offers'){
     role(s,'provider');if(walletPayment(j)){linked(s);if(s.paymentAccount!==s.wallet.accountId)fail(403,'WALLET_ACCOUNT_MISMATCH');}schema(b,['envelope','commitment']);envelope(b.envelope);if(!hex(b.commitment,64))fail(400,'INVALID_COMMITMENT');if(!testnetAccount(s.paymentAccount))fail(400,'PAYMENT_ACCOUNT_REQUIRED');state(j,['OPEN']);if(now()>=Date.parse(j.deadlineISO))fail(409,'OFFER_DEADLINE');
     if(j.offers.some(o=>walletPayment(j)?o.wallet?.accountId===s.wallet.accountId:o.providerId===s.id))fail(409,'OFFER_EXISTS');if(j.offers.length>=64)fail(409,'OFFER_LIMIT');
-    await quota(record.client,'offers',j.id+':'+s.id);
+    await quota(businessClient(s,record),'offers',j.id+':'+s.id);
     j.offers.push({id:randomBytes(16).toString('hex'),providerId:s.id,providerName:s.displayName,paymentAccount:s.paymentAccount,...(walletPayment(j)?{wallet:structuredClone(s.wallet)}:{}),envelope:b.envelope,commitment:b.commitment,createdAt:new Date(now()).toISOString()});j.offerCount=j.offers.length;
    }else if(action==='close'){
     buyer(s,j);schema(b,[]);if(j.status!=='OPEN')return response({job:view(current,s)});j.status='CLOSED';
@@ -275,8 +278,8 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     if(action==='payment/prepare'){const result=await walletEscrow.prepare(structuredClone(j),operation,s);walletFacts(j,result.payment);intent=result.intent;}
     else if(action==='payment/confirm')walletFacts(j,await walletEscrow.confirm(structuredClone(j),operation,b.transactionHash,s));
     else if(j.selectedOffer)await walletRefresh(j,s);
-    if(canonical(j.payment)===canonical(current.payment)&&j.status===current.status)return response({job:view(current,s),...(action==='payment/prepare'?{intent}:{})});
-    return response({job:view(await commit(records,j,s.id),s),...(action==='payment/prepare'?{intent}:{})});
+    if(paymentState(j.payment)===paymentState(current.payment)&&j.status===current.status){j.revision=current.revision;return response({job:view(j,s),...(action==='payment/prepare'?{intent}:{})});}
+    return response({job:view(await commit(records,j,s.id,owner(s,j)),s),...(action==='payment/prepare'?{intent}:{})});
    }else if(action==='payment/verify'){
     if(escrowPayment(j))fail(409,'ESCROW_DIRECT_TRANSFER_FORBIDDEN');
     buyer(s,j);schema(b,['transactionHash','buyerAccount']);if(!transactionHash(b.transactionHash)||!testnetAccount(b.buyerAccount))fail(400,'INVALID_PAYMENT');
@@ -312,7 +315,7 @@ export function createWorkspace({store,env=process.env,now=Date.now,verifyPaymen
     if(facts.status==='PAID')j.status='PAID';
     if(facts.status==='REFUNDED')j.status='REFUNDED';
    }
-   return response({job:view(await commit(records,j,s.id),s)});
+   return response({job:view(await commit(records,j,s.id,owner(s,j)),s)});
   }catch(e){const status=[400,401,403,404,405,409,413,415,422,429,503].includes(e.status)?e.status:503;return response({error:status===503?'Service temporarily unavailable.':'Request rejected.',code:e.code||'SERVICE_UNAVAILABLE'},status);}
  };
 }

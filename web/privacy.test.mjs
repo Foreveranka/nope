@@ -203,5 +203,5 @@ test('HTML keeps synthetic reveal opt-in, verified package path and owner-only l
   assert.match(html, /href="\/nope-client\.zip"/); assert.doesNotMatch(html, /\/downloads\/nope-client/);
   assert.match(html, /\.venv\/bin\/python scripts\/privacy-demo-launch\.py/);
   assert.match(html, /Bu ZIP tam gizlilik demosunu çalıştırmaz/);
-  assert.match(html, /href="https:\/\/veil-procurement\.vercel\.app\/testnet" target="_blank" rel="noopener noreferrer"/);
+  assert.match(html, /href="\/testnet" target="_blank" rel="noopener noreferrer"/);
 });

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {generateKeyPairSync,verify} from 'node:crypto';
 import {baseEncode} from 'near-api-js';
 import {createWalletEscrow,walletTermsForJob,WALLET_ESCROW_KIND,WALLET_ESCROW_DOMAIN} from './wallet-escrow.mjs';
 import {walletIdentity} from './wallet-auth.mjs';
@@ -8,13 +9,13 @@ import {walletIdentity} from './wallet-auth.mjs';
 class Store{records=new Map();async read(p){return structuredClone(this.records.get(p)??null);}async create(p,v){if(this.records.has(p))return false;this.records.set(p,structuredClone(v));return true;}}
 const H=n=>baseEncode(Buffer.alloc(32,n)),BLOCK=H(2),CODE=H(3),TX=H(4),RECEIPT=H(5),TRANSFER=H(6),CALLBACK=H(7);
 const TIME=1700000000000,BUYER='buyer-fixture.testnet',PROVIDER='provider-fixture.testnet';
-const config={network:'testnet',domain:WALLET_ESCROW_DOMAIN,contractId:'wallet-contract.testnet',codeHash:CODE,requireKeyless:true};
+const config={network:'testnet',domain:WALLET_ESCROW_DOMAIN,contractId:'wallet-contract.testnet',codeHash:CODE,requireKeyless:true,storageDepositYocto:'40960000000000000000000'};
 const wallet=(accountId)=>({accountId,network:'testnet',publicKey:'ed25519:'+H(8),verifiedAt:new Date(TIME).toISOString()});
-function fixture(){
+function fixture(options={}){
  const store=new Store(),calls=[];let hold=null,code=CODE,keys=[],time=TIME+1000,chainTime=null,result=null,network='testnet';
  const buyer={id:walletIdentity('buyer',BUYER),role:'buyer',wallet:wallet(BUYER)},provider={id:walletIdentity('provider',PROVIDER),role:'provider',wallet:wallet(PROVIDER)};
  const job={id:'a'.repeat(32),buyerId:buyer.id,buyerWallet:buyer.wallet,status:'AWARDED',createdAt:new Date(TIME-1000).toISOString(),taskHash:'b'.repeat(64),programHash:'c'.repeat(64),planSha256:'d'.repeat(64),selectedOffer:{providerId:provider.id,paymentAccount:PROVIDER,wallet:provider.wallet,amountYocto:'1000000000000000000000'},payment:{kind:WALLET_ESCROW_KIND,network:'testnet',contractId:config.contractId,status:'NOT_FUNDED',awardedAtISO:new Date(TIME).toISOString()}};
- const service=createWalletEscrow({store,config,now:()=>time,rpc:async(method,params)=>{
+ const service=createWalletEscrow({store,config:options.config||config,env:options.env||{},now:()=>time,rpc:async(method,params)=>{
   calls.push({method,params});if(method==='status')return{chain_id:network};
   if(method==='query'){
    if(params.request_type==='view_account')return{block_hash:BLOCK,block_height:10,code_hash:code};
@@ -26,7 +27,7 @@ function fixture(){
   if(method==='EXPERIMENTAL_receipt')return result.receipts.find(r=>r.receipt_id===params.receipt_id);
   throw Error('Unexpected RPC '+method);
  }});
- function fund(){const c=service.context(job);hold={terms:c.terms,binding_hash:c.bindingHash,state:'Held',nonce:'0',delivery:null,pending:null,last_transfer_failure_nonce:null};}
+ function fund(){const c=service.context(job);hold={terms:c.terms,binding_hash:c.bindingHash,storage_deposit_yocto:'40960000000000000000000',state:'Held',nonce:'0',delivery:null,pending:null,last_transfer_failure_nonce:null};}
  function tree(intent,{transfer=false,failed=false}={}){
   const a=intent.transaction.actions[0].params;
   const node=(id,executor,children,status)=>({id,block_hash:BLOCK,outcome:{executor_id:executor,receipt_ids:children,status}});
@@ -44,7 +45,7 @@ test('wallet terms bind original buyer namespace, verified provider, exact amoun
 });
 test('FINAL pinned code and same-block empty contract key list are mandatory; user wallet still owns FullAccess keys',async()=>{
  for(const variant of ['code','keys','network']){const f=fixture();if(variant==='code')f.setCode(H(9));if(variant==='keys')f.setKeys([{public_key:'ed25519:'+H(8),access_key:{permission:'FullAccess'}}]);if(variant==='network')f.setNetwork('mainnet');await assert.rejects(f.service.prepare(f.job,'fund',f.buyer),variant);}
- const f=fixture(),p=await f.service.prepare(f.job,'fund',f.buyer);assert.equal(p.intent.transaction.actions[0].params.deposit,f.job.selectedOffer.amountYocto);assert.equal(p.payment.status,'NOT_FUNDED');assert.equal(p.payment.operation.status,'PREPARED');
+ const f=fixture(),p=await f.service.prepare(f.job,'fund',f.buyer);assert.equal(p.intent.transaction.actions[0].params.deposit,(BigInt(f.job.selectedOffer.amountYocto)+BigInt(config.storageDepositYocto)).toString());assert.equal(p.payment.status,'NOT_FUNDED');assert.equal(p.payment.operation.status,'PREPARED');
  assert.ok(f.calls.some(c=>c.params?.request_type==='view_access_key_list'&&c.params.block_id===BLOCK));assert.ok(!f.calls.some(c=>/send|broadcast/.test(c.method)));
 });
 test('lost wallet transaction hash reconciles matching FINAL fund/record state without inventing a verified receipt or rebroadcasting',async()=>{
@@ -113,4 +114,22 @@ test('record retirement refuses stale FINAL time and every in-flight monetary st
   const value=await f.service.refresh(f.job,f.buyer);assert.equal(value.verified,false);assert.notEqual(value.operation?.status,'EXPIRED');f.job.payment=value;assert.equal((await f.service.prepare(f.job,'refund',f.buyer)).intent,null,state);
   await assert.rejects(f.service.prepare(f.job,'refund',{...f.buyer,wallet:wallet('unrelated.testnet')}),{code:'WALLET_OWNER_REQUIRED'});
  }
+});
+
+test('application admission is deterministic, exact binding-bound and fails closed on absent or wrong key',async()=>{
+ const key=generateKeyPairSync('ed25519'),publicKey=key.publicKey.export({format:'der',type:'spki'}).subarray(-32).toString('hex'),pk=key.privateKey.export({format:'der',type:'pkcs8'}).toString('base64');
+ const policy={...config,admissionPublicKey:publicKey},f=fixture({config:policy,env:{NOPE_WALLET_ADMISSION_KEY:pk}});
+ const first=await f.service.prepare(f.job,'fund',f.buyer),second=await f.service.prepare(f.job,'fund',f.buyer);assert.deepEqual(first.intent,second.intent);
+ const signature=Buffer.from(first.intent.transaction.actions[0].params.args.admission_signature,'hex');
+ assert.ok(verify(null,Buffer.from('NOPE:WALLET-ADMISSION:V1\0'+first.intent.bindingHash),key.publicKey,signature));
+ assert.equal(verify(null,Buffer.from('NOPE:WALLET-ADMISSION:V1\0'+'ff'.repeat(32)),key.publicKey,signature),false);
+ const bad=fixture({config:policy});await assert.rejects(bad.service.prepare(bad.job,'fund',bad.buyer),{code:'WALLET_ADMISSION_CONFIG'});assert.equal([...bad.store.records].length,0);
+ const wrong=fixture({config:policy,env:{NOPE_WALLET_ADMISSION_KEY:generateKeyPairSync('ed25519').privateKey.export({format:'der',type:'pkcs8'}).toString('base64')}});await assert.rejects(wrong.service.prepare(wrong.job,'fund',wrong.buyer),{code:'WALLET_ADMISSION_CONFIG'});
+ assert.ok(!JSON.stringify([...f.store.records]).includes(pk));
+});
+
+
+test('V2 storage policy and permanent hold reservation fail closed independently of matching price terms',async()=>{
+ for(const amount of [undefined,'0','040960000000000000000000','40960000000000000000001']){const p={...config};if(amount===undefined)delete p.storageDepositYocto;else p.storageDepositYocto=amount;assert.throws(()=>fixture({config:p}),{code:'WALLET_STORAGE_POLICY'});}
+ for(const amount of [undefined,'0','40960000000000000000001']){const f=fixture();f.fund();if(amount===undefined)delete f.hold().storage_deposit_yocto;else f.hold().storage_deposit_yocto=amount;await assert.rejects(f.service.refresh(f.job,f.buyer),{code:'WALLET_STORAGE_BINDING_MISMATCH'});}
 });

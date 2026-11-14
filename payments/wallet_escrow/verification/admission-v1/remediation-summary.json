@@ -1,0 +1,66 @@
+{
+  "status": "IMPLEMENTED_AND_TESTNET_VERIFIED_PENDING_PARENT_RELEASE",
+  "recordedAt": "2026-11-14T14:15:10.751Z",
+  "originalAuditCommit": "79b95b9d19ed4f7b27542684539b7ce8e2cb4352",
+  "contractId": "nope-wallet-66e1273c.testnet",
+  "codeHash": "5MAoowxLrnP7KWFFU2hAepMrQwUtgKpDtbgeFr7rcF9v",
+  "admissionPublicKey": "268c745898f45bd60ae1ff6947481b985a3836b9e964b9e35d48a06d3dd3c2c9",
+  "keyless": true,
+  "admissionMessage": "UTF8(NOPE:WALLET-ADMISSION:V1 + NUL + existing lowercase escrow binding hash)",
+  "limits": {
+    "permanentHolds": 50,
+    "applicationAdmissionOnly": true,
+    "absoluteSybilProtection": false
+  },
+  "changes": [
+    "Constructor-pinned Ed25519 admission; exact terms/contract/deadline binding; fund rejects bad signature before capacity/insertion.",
+    "Deterministic server-signed fund intent and browser pinned-key verification before wallet transaction.",
+    "Historical old-wallet public proof pin retained; C775 six proofs and FINAL Paid state reverified.",
+    "New isolated provisioning/runtime/public evidence; shared nonce lease across live financial and HTTP harnesses.",
+    "Schema, contract/client/escrow tests, local sandbox fixture and owned README updated."
+  ],
+  "checks": {
+    "rustUnitPassed": 16,
+    "keylessSandboxLifecyclePassed": 1,
+    "focusedJavaScriptPassed": 44,
+    "parent260RefreshRegressionPreserved": true,
+    "legacyHolds": 6,
+    "legacyOutstandingHolds": 0,
+    "legacyLiabilities": "0",
+    "legacyPendingTransfers": 0,
+    "actualTestnetNativePayout": true,
+    "actualTestnetNativeRefund": true,
+    "actualHttpV4ProofPayout": true,
+    "historicalC775ActualProofsVerified": 6,
+    "sourceWasmPinsMatch": true,
+    "secretIgnored": true,
+    "secretFileMode": "0600",
+    "secretAbsentFromTrackedAndUnignoredFiles": true
+  },
+  "evidence": {
+    "deployment": "deployment-public.json",
+    "build": "build-public.json",
+    "legacy": "legacy-before-cutover.json",
+    "historicalProof": "historical-c775.json",
+    "finance": "live-financial-checks.json",
+    "http": "../../../../docs/verification/wallet-funded-http-local-admission-v1-serial.json",
+    "serverEnv": "server-env-public.json",
+    "obsoleteAttempt": "obsolete-http-attempt.json"
+  },
+  "serverEnvironment": {
+    "name": "NOPE_WALLET_ADMISSION_KEY",
+    "productionConfigured": true,
+    "previewConfigured": true,
+    "sensitive": true,
+    "stdinOnly": true,
+    "valueLogged": false
+  },
+  "remaining": [
+    "Fresh read-only final candidate review by parent; no spawn/close subagent controls exposed here.",
+    "Parent full root npm run and combined application deployment. New contract is deployed, but hosted source/pin cutover is not claimed by this worker."
+  ],
+  "noCommit": true,
+  "noPush": true,
+  "noApplicationProductionDeployment": true,
+  "unrelatedParentChangesPreserved": true
+}

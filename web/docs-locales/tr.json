@@ -72,7 +72,7 @@
         {
           "id": "escrow",
           "title": "NEAR testnet cüzdan emaneti",
-          "text": "Müşteri, seçilen tam testNEAR tutarını kendi cüzdanından sözleşmeye yatırır. Her işin ayrı bir bakiye kaydı vardır; ortak müşteri havuzundan çekim yapılmaz. Sağlayıcı teslim kaydını, müşteri serbest bırakma veya süre sonrası iadeyi cüzdanında imzalar. Özel cüzdan anahtarı NOPE’a verilmez. Sözleşme SNARK doğrulamaz; bu kontrol zincir dışında yapılır.",
+          "text": "Müşteri, seçilen tam testNEAR tutarını kendi cüzdanından sözleşmeye yatırır. Her işin ayrı bir bakiye kaydı vardır; ortak müşteri havuzundan çekim yapılmaz. Sağlayıcı teslim kaydını, müşteri serbest bırakma veya süre sonrası iadeyi cüzdanında imzalar. Özel cüzdan anahtarı NOPE’a verilmez. Sözleşme SNARK doğrulamaz; bu kontrol zincir dışında yapılır. Hizmet bedeline ek olarak, kalıcı iş kaydı için ekranda gösterilen depolama bedeli yatırılır. Hizmet bedeli emanet bakiyesi olarak tutulur; depolama bedeli iade edilmez. Her iş kendi depolamasını karşılar; ortak ve sabit 50 iş kotası yoktur. İmzalamadan önce toplamı ve ayrıca ağ işlem ücretini kontrol edin.",
           "code": "",
           "href": ""
         }
@@ -325,7 +325,7 @@
         {
           "id": "sponsor",
           "title": "Cüzdan veya ağ kullanılamıyorsa ne olur?",
-          "text": "Yeni işler yalnızca yapılandırılmış testnet cüzdan emanetiyle açılır; sponsor havuzuna veya eski ödeme akışına geçilmez. Kendi cüzdanında teklif tutarı ve işlem ücretine yetecek testNEAR bulunmalıdır. İptal, hata veya belirsiz işlem ekranda ayrı gösterilir; durum doğrulanmadan tamamlandı sayılmaz. Eski sponsor işleri yalnızca okunur.",
+          "text": "Yeni işler yalnızca yapılandırılmış testnet cüzdan emanetiyle açılır; sponsor havuzuna veya eski ödeme akışına geçilmez. Kendi cüzdanında teklif tutarı ve işlem ücretine yetecek testNEAR bulunmalıdır. İptal, hata veya belirsiz işlem ekranda ayrı gösterilir; durum doğrulanmadan tamamlandı sayılmaz. Eski sponsor işleri yalnızca okunur. Seçilen hizmet bedeli, ayrı depolama bedeli ve ağ işlem ücreti için yeterli testNEAR gerekir; kalıcı kayıt depolama bedeli iade edilmez.",
           "code": "",
           "href": ""
         }

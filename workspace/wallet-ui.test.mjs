@@ -9,7 +9,7 @@ import {sha256} from '../web/gc-core.mjs';
 // not a valid signature, key or authentication proof. No wallet SDK, signer,
 // model, prover, network request or chain access is used by this file.
 const ID='a'.repeat(32),CONTRACT='wallet-auth-ui.testnet',ACCOUNT='wallet-customer.testnet';
-const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V2:testnet',requireKeyless:true,storageDepositYocto:'40960000000000000000000'};
 const CAPABILITY={required:true,enabled:true,network:'testnet',contractId:CONTRACT};
 const WALLET={accountId:ACCOUNT,network:'testnet',publicKey:'ed25519:'+ '1'.repeat(32),verifiedAt:'2026-11-14T00:00:00Z'};
 const SIGNED={challengeId:'e'.repeat(64),accountId:ACCOUNT,publicKey:WALLET.publicKey,signature:'UNIT-ONLY-NOT-A-SIGNATURE'};

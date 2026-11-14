@@ -1,0 +1,21 @@
+{
+  "name": "NOPE_WALLET_ADMISSION_KEY",
+  "publicKey": "268c745898f45bd60ae1ff6947481b985a3836b9e964b9e35d48a06d3dd3c2c9",
+  "configuredAt": "2026-11-14T14:09:01.244Z",
+  "results": [
+    {
+      "environment": "production",
+      "configured": true,
+      "sensitive": true,
+      "transport": "subprocess stdin",
+      "valueLogged": false
+    },
+    {
+      "environment": "preview",
+      "configured": true,
+      "sensitive": true,
+      "transport": "subprocess stdin",
+      "valueLogged": false
+    }
+  ]
+}

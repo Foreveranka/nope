@@ -1,0 +1,150 @@
+{
+  "outcome": "fixed",
+  "recordedAt": "2026-11-14T14:31:57.391Z",
+  "scope": "Wallet escrow V2 per-hold prepaid storage; parent core/expiry/UI/docs preserved; no commit/push",
+  "activePolicy": {
+    "network": "testnet",
+    "contractId": "nope-wallet-5144c7d4.testnet",
+    "codeHash": "349qhEttcFqG3ezvPHBCoFCyM8X1ZpXzYotgfqFXgN13",
+    "domain": "NOPE:WALLET-ESCROW:V2:testnet",
+    "requireKeyless": true,
+    "admissionPublicKey": "268c745898f45bd60ae1ff6947481b985a3836b9e964b9e35d48a06d3dd3c2c9",
+    "storageDepositYocto": "40960000000000000000000"
+  },
+  "historicalPolicies": [
+    {
+      "network": "testnet",
+      "contractId": "nope-wallet-66e1273c.testnet",
+      "codeHash": "5MAoowxLrnP7KWFFU2hAepMrQwUtgKpDtbgeFr7rcF9v",
+      "domain": "NOPE:WALLET-ESCROW:V1:testnet",
+      "requireKeyless": true,
+      "admissionPublicKey": "268c745898f45bd60ae1ff6947481b985a3836b9e964b9e35d48a06d3dd3c2c9"
+    },
+    {
+      "network": "testnet",
+      "contractId": "nope-wallet-44384e2f.testnet",
+      "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
+      "domain": "NOPE:WALLET-ESCROW:V1:testnet",
+      "requireKeyless": true
+    }
+  ],
+  "contractStorage": {
+    "implementation": "near_sdk::store::LookupMap<String,Hold>",
+    "sharedPermanentHoldCap": false,
+    "globalSerializedStateConstantSize": true,
+    "holdCount": "U64 informational only",
+    "reservationBytes": 4096,
+    "largestSerializedHoldBytes": 654,
+    "largestPrefixedStorageKeyBytes": 102,
+    "runtimeRecordOverheadBytes": 40,
+    "largestMeasuredStorageDeltaBytes": 796,
+    "storageReservationRefundable": false,
+    "payoutRefundIncludes": "selected price only"
+  },
+  "validation": {
+    "rustUnit": {
+      "command": "sh payments/wallet_escrow/cargo-local.sh test --offline --locked --lib -- --nocapture",
+      "passed": 18,
+      "log": "payments/wallet_escrow/verification/storage-v2-unit-tests.log",
+      "scale": "4001 distinct buyers plus 128 terminal refunds then subsequent funding; unit VM, not public chain"
+    },
+    "wasmBuild": {
+      "passed": true,
+      "log": "payments/wallet_escrow/verification/storage-v2-build.log"
+    },
+    "sandbox": {
+      "command": "NEAR_SANDBOX_BIN_PATH=<cached near-sandbox-2.14.0> TMPDIR=<ignored runtime/tmp> sh payments/wallet_escrow/cargo-local.sh test --offline --locked --manifest-path sandbox/Cargo.toml -- --nocapture",
+      "passed": 1,
+      "actualCompiledWasm": true,
+      "log": "payments/wallet_escrow/verification/storage-v2-sandbox-tests.log"
+    },
+    "javascript": {
+      "command": "node --test tests/wallet-client.test.mjs workspace/wallet-escrow.test.mjs workspace/wallet-core.test.mjs workspace/wallet-blob.test.mjs tests/wallet-public-proof.test.mjs",
+      "passed": 40,
+      "log": "payments/wallet_escrow/verification/storage-v2-js-tests.log"
+    },
+    "rootSuite": "owned/run by parent; no duplicate root npm/build run",
+    "publicTestnetFinance": {
+      "passed": true,
+      "evidence": "payments/wallet_escrow/verification/storage-v2/live-financial-checks.json",
+      "finalConfig": {
+        "admission_public_key": "268c745898f45bd60ae1ff6947481b985a3836b9e964b9e35d48a06d3dd3c2c9",
+        "domain": "NOPE:WALLET-ESCROW:V2:testnet",
+        "network": "testnet",
+        "contract_id": "nope-wallet-5144c7d4.testnet",
+        "storage_bytes_per_hold": "4096",
+        "storage_deposit_yocto": "40960000000000000000000",
+        "storage_deposits": "122880000000000000000000",
+        "storage_deposit_refundable": false,
+        "max_hold_amount": "1000000000000000000000000",
+        "min_hold_amount": "1",
+        "max_horizon_ns": "2592000000000000",
+        "hold_count": "3",
+        "total_deposited": "1002000000000000000000000",
+        "liabilities": "0",
+        "total_paid": "1001000000000000000000000",
+        "total_refunded": "1000000000000000000000",
+        "pending_outgoing": "0",
+        "on_account_liabilities": "0",
+        "account_balance": "10121027272456592400000000",
+        "storage_reserve": "3687550000000000000000000",
+        "gas_buffer": "100000000000000000000000",
+        "storage_headroom_bytes": 131072,
+        "min_transfer_gas_tgas": 100,
+        "callback_gas_tgas": 20
+      },
+      "payout": "C3HtZ5nFSwh27FDW8LZ1mimt3JoBNZK13LUbq6oHrPqB",
+      "refund": "EzcQA6LuhyAZSikkqLmguSYDmtSbJUyjs5hFi9PQzKDF"
+    },
+    "actualLocalHTTP": {
+      "command": "node scripts/verify-wallet-workspace-http.mjs run --origin=http://127.0.0.1:8789 --keys=payments/wallet_escrow/runtime/storage-v2/identities.json --case=storage-v2-price-max --amount-yocto=1000000000000000000000000",
+      "evidence": "docs/verification/wallet-funded-http-local-storage-v2-price-max.json",
+      "jobId": "9878ad413e7a81f8b81b48250eac3c44",
+      "status": "PAID",
+      "priceYocto": "1000000000000000000000000",
+      "storageDepositYocto": "40960000000000000000000",
+      "totalFundingYocto": "1040960000000000000000000",
+      "publicProofAndChainVerified": true,
+      "transactions": {
+        "fund": "Dqr3G4jEix3SAebXzHY35mB68XJxdM1UVhfnwWQQDPWa",
+        "record": "GJPknusrpeQtUWtnfshTvUP9Wvc7HBgdots9SwJFXp6m",
+        "release": "574RWMdzPzZQkMKDnYYwbJhhxJREt2uWZh6Cn9uEoN1G"
+      }
+    }
+  },
+  "deployment": {
+    "evidence": "payments/wallet_escrow/verification/storage-v2/deployment-public.json",
+    "keyless": true,
+    "finalBlockHash": "2XTWmjrXaitsZNpriTdJzboH7yc5F2KFhSSrh8vKMx2i",
+    "customerFundingBeforeLock": false,
+    "admissionKeyReused": true,
+    "serverSecretChanged": false,
+    "newIdentityKeyFiles": "ignored runtime/storage-v2/identities.json, mode0600"
+  },
+  "migration": {
+    "contractId": "nope-wallet-66e1273c.testnet",
+    "before": {
+      "evidence": "payments/wallet_escrow/verification/storage-v2/legacy-before-cutover.json",
+      "finalBlockHash": "5KmbqXiFZKH5rjtd72dp4YLt1QqwV2ZxsDwNpgmsrg2M",
+      "finalBlockHeight": "277669125",
+      "terminalHolds": 3,
+      "liabilities": "0",
+      "pending": "0",
+      "clear": true
+    },
+    "after": {
+      "evidence": "payments/wallet_escrow/verification/storage-v2/legacy-after-cutover.json",
+      "finalBlockHash": "4KZau5MnTtaXkvVrJ88N2mKAap5FUPRmXengthkhwEv4",
+      "finalBlockHeight": "277669505",
+      "terminalHolds": 3,
+      "liabilities": "0",
+      "pending": "0",
+      "clear": true
+    }
+  },
+  "limitations": [
+    "Scale regression is unit-VM evidence; only the recorded synthetic testnet transactions are live-chain evidence.",
+    "HTTP verification ran locally against real testnet, not the production origin.",
+    "Parent owns release/commit/push and full root checks."
+  ]
+}

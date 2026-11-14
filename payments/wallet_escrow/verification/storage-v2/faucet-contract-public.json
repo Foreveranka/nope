@@ -1,0 +1,12 @@
+{
+  "network": "testnet",
+  "role": "contract",
+  "accountId": "nope-wallet-5144c7d4.testnet",
+  "publicKey": "ed25519:2tZsLfJEPejMeZdFSoPREFSm3vt12cKfqRZF44pR5kLf",
+  "balanceYocto": "10000000000000000000000000",
+  "codeHash": "11111111111111111111111111111111",
+  "blockHash": "DReYaEJfYE9sbTRX5HVJDjT91fUYcSU3uVAPyjuBdnA6",
+  "blockHeight": 277669108,
+  "verifiedAt": "2026-11-14T14:27:05.737Z",
+  "actualExternalChain": true
+}

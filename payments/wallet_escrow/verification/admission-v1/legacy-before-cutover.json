@@ -1,0 +1,179 @@
+{
+  "network": "testnet",
+  "contractId": "nope-wallet-44384e2f.testnet",
+  "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
+  "readOnly": true,
+  "actualExternalChain": true,
+  "finalBlockHash": "HMvvjGuUS1UPr5jPxbVvXPgciBVpJsVqnWGSZWF7kY5X",
+  "finalBlockHeight": "277667095",
+  "checkedAt": "2026-11-14T14:07:39.284Z",
+  "keys": [],
+  "config": {
+    "domain": "NOPE:WALLET-ESCROW:V1:testnet",
+    "network": "testnet",
+    "contract_id": "nope-wallet-44384e2f.testnet",
+    "max_holds": 50,
+    "max_hold_amount": "1000000000000000000000000",
+    "min_hold_amount": "1",
+    "max_horizon_ns": "2592000000000000",
+    "hold_count": 6,
+    "total_deposited": "1005000000000000000000000",
+    "liabilities": "0",
+    "total_paid": "1004000000000000000000000",
+    "total_refunded": "1000000000000000000000",
+    "pending_outgoing": "0",
+    "on_account_liabilities": "0",
+    "account_balance": "9998175285291477300000000",
+    "storage_reserve": "3568050000000000000000000",
+    "gas_buffer": "100000000000000000000000",
+    "storage_headroom_bytes": 131072,
+    "min_transfer_gas_tgas": 100,
+    "callback_gas_tgas": 20
+  },
+  "holds": [
+    {
+      "namespace": "nope-buyer-44384e2f.testnet:10b21c73ed75bfd8c47418524932d2bf",
+      "terms": {
+        "job_id": "10b21c73ed75bfd8c47418524932d2bf",
+        "buyer_commitment": "cd8c6bfdd5e80096b43bb08785e36cca2113a992e5b3499570b937b500e156d8",
+        "buyer_account": "nope-buyer-44384e2f.testnet",
+        "provider": "nope-provider-44384e2f.testnet",
+        "amount": "1000000000000000000000",
+        "input_hash": "166c6ee95bb77c265302f26e1d61acf34056a799475687badf13dd3c4890a165",
+        "program_hash": "eb12de20666da60bdca87ff059c801bdcbac93e2ac7ee9b02babad4c4125629b",
+        "plan_hash": "69ad25da04702a4eba8f11d1a4339405e352835dbcca44cc867646304ebdc254",
+        "execution_deadline_ns": "1794723467385000000",
+        "review_deadline_ns": "1794809867385000000"
+      },
+      "binding_hash": "7281c96a7142d5ce83f9e6f7e29ddd7d25593ddb71fe85ec9d52ae28e11f8352",
+      "state": "Paid",
+      "nonce": "1",
+      "delivery": {
+        "version": 1,
+        "output_hash": "ed248acdc6899b10268cc526669211091fe90c35b097cc0992186f612c52d3b2"
+      },
+      "last_transfer_failure_nonce": null,
+      "pending": null
+    },
+    {
+      "namespace": "nope-buyer-44384e2f.testnet:30d6ec1a530d9ac01e622aa7b71da2bf",
+      "terms": {
+        "job_id": "30d6ec1a530d9ac01e622aa7b71da2bf",
+        "buyer_commitment": "cd8c6bfdd5e80096b43bb08785e36cca2113a992e5b3499570b937b500e156d8",
+        "buyer_account": "nope-buyer-44384e2f.testnet",
+        "provider": "nope-provider-44384e2f.testnet",
+        "amount": "1000000000000000000000",
+        "input_hash": "d5d14b411260f79926a79b6103f72ab563cc467f8aa7f97cc725697149443080",
+        "program_hash": "eb12de20666da60bdca87ff059c801bdcbac93e2ac7ee9b02babad4c4125629b",
+        "plan_hash": "69ad25da04702a4eba8f11d1a4339405e352835dbcca44cc867646304ebdc254",
+        "execution_deadline_ns": "1794722285203000000",
+        "review_deadline_ns": "1794808685203000000"
+      },
+      "binding_hash": "2a00428d84e3a3beb65d2627e5b6a83ea22326b1604ce6c9ee76735360520338",
+      "state": "Paid",
+      "nonce": "1",
+      "delivery": {
+        "version": 1,
+        "output_hash": "b30c9728cfcec0343e58304142776f923d0ce51e8b4ed5a36d8aaa77861d308a"
+      },
+      "last_transfer_failure_nonce": null,
+      "pending": null
+    },
+    {
+      "namespace": "nope-buyer-44384e2f.testnet:39e82e6b469e075d32c5ed019ee924d1",
+      "terms": {
+        "job_id": "39e82e6b469e075d32c5ed019ee924d1",
+        "buyer_commitment": "cd8c6bfdd5e80096b43bb08785e36cca2113a992e5b3499570b937b500e156d8",
+        "buyer_account": "nope-buyer-44384e2f.testnet",
+        "provider": "nope-provider-44384e2f.testnet",
+        "amount": "1000000000000000000000000",
+        "input_hash": "082382c507d0fb05e3209fead59e56a704aefdd5c7df81465352c2d2d15735bc",
+        "program_hash": "eb12de20666da60bdca87ff059c801bdcbac93e2ac7ee9b02babad4c4125629b",
+        "plan_hash": "69ad25da04702a4eba8f11d1a4339405e352835dbcca44cc867646304ebdc254",
+        "execution_deadline_ns": "1794727527678000000",
+        "review_deadline_ns": "1794813927678000000"
+      },
+      "binding_hash": "b8ff9b53f6ba438f4225d9bc9d6a51dcf20e733daae85037ad6ddcc0d5cf89ee",
+      "state": "Paid",
+      "nonce": "1",
+      "delivery": {
+        "version": 1,
+        "output_hash": "e74a641ba652a464c418207970867e31e77d0814bb3040e25fb8963f14d53ad0"
+      },
+      "last_transfer_failure_nonce": null,
+      "pending": null
+    },
+    {
+      "namespace": "nope-buyer-44384e2f.testnet:3aed48cad4efd951285b825066bc9bdd",
+      "terms": {
+        "job_id": "3aed48cad4efd951285b825066bc9bdd",
+        "buyer_commitment": "4f3b37031412dbefaee834d783247f8c6ab70130b10323704c75ed2ff3e3a890",
+        "buyer_account": "nope-buyer-44384e2f.testnet",
+        "provider": "nope-provider-44384e2f.testnet",
+        "amount": "1000000000000000000000",
+        "input_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+        "program_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "plan_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+        "execution_deadline_ns": "1794639177701140053",
+        "review_deadline_ns": "1794642777701140053"
+      },
+      "binding_hash": "29a3716f9f8a6e39d2ab408898a7d98164cb9d450d5ef0178d6412549fb2d4c2",
+      "state": "Paid",
+      "nonce": "1",
+      "delivery": {
+        "version": 1,
+        "output_hash": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "last_transfer_failure_nonce": null,
+      "pending": null
+    },
+    {
+      "namespace": "nope-buyer-44384e2f.testnet:f61665a1d4da5a44cdf4ec0c2c8a44bc",
+      "terms": {
+        "job_id": "f61665a1d4da5a44cdf4ec0c2c8a44bc",
+        "buyer_commitment": "4f3b37031412dbefaee834d783247f8c6ab70130b10323704c75ed2ff3e3a890",
+        "buyer_account": "nope-buyer-44384e2f.testnet",
+        "provider": "nope-provider-44384e2f.testnet",
+        "amount": "1000000000000000000000",
+        "input_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+        "program_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "plan_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+        "execution_deadline_ns": "1794636123786355269",
+        "review_deadline_ns": "1794636143786355269"
+      },
+      "binding_hash": "e9dc2ec6e1916dada41e889188b058f73eeb9cf154410c628e46b33d6a384ff8",
+      "state": "Refunded",
+      "nonce": "1",
+      "delivery": null,
+      "last_transfer_failure_nonce": null,
+      "pending": null
+    },
+    {
+      "namespace": "nope-demo-b-141126.testnet:c77599347652ecdfb2362a620afa5e99",
+      "terms": {
+        "job_id": "c77599347652ecdfb2362a620afa5e99",
+        "buyer_commitment": "cab9c7b27ac511f9dca3a338a5acb310a10c5e27ec57e2b076e5af4dd1ebb872",
+        "buyer_account": "nope-demo-b-141126.testnet",
+        "provider": "nope-provider-b-141126.testnet",
+        "amount": "1000000000000000000000",
+        "input_hash": "9bc159265dc6d55de117f1d128df32b50ea3a5479bd323fa54c6210b68d8fc16",
+        "program_hash": "1615b0e32a5261836e5980b299eea6b92059f7e5861d97f8515cab0dbd357810",
+        "plan_hash": "35e25498d1188447cbe53a40197389ab36faccff69f22fd1e7682f1e84a76a0e",
+        "execution_deadline_ns": "1794729952348000000",
+        "review_deadline_ns": "1794816352348000000"
+      },
+      "binding_hash": "4755cd41ada96656730808e55720afed04d4cf2ed35dd42fc6c337fe7c435fdd",
+      "state": "Paid",
+      "nonce": "1",
+      "delivery": {
+        "version": 1,
+        "output_hash": "7f554e5555de627c820bb26833df35c3ed95c2112f5f9b997592dec95b0835fc"
+      },
+      "last_transfer_failure_nonce": null,
+      "pending": null
+    }
+  ],
+  "outstandingHolds": 0,
+  "pendingTransfers": 0,
+  "cutoverFinanciallyClear": true
+}

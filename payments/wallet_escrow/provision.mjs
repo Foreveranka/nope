@@ -1,10 +1,10 @@
 /** Own NEW free-testnet accounts only. Private material stays in ignored runtime. */
-import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';import {createHash} from 'node:crypto';
+import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';import {createHash,generateKeyPairSync,createPrivateKey,createPublicKey} from 'node:crypto';
 import {KeyPair,KeyPairSigner,PublicKey,actions,createTransaction,baseDecode,baseEncode} from 'near-api-js';
 import {TestnetRpc,finalOutcome} from '../../contracts/registry/deploy/transport.mjs';
 export const ROOT=path.dirname(fileURLToPath(import.meta.url));
-export const DIR=path.join(ROOT,'runtime');export const PUBLIC=path.join(ROOT,'verification');
-export const DOMAIN='NOPE:WALLET-ESCROW:V1:testnet';
+export const DIR=path.join(ROOT,'runtime/storage-v2');export const PUBLIC=path.join(ROOT,'verification/storage-v2');
+export const DOMAIN='NOPE:WALLET-ESCROW:V2:testnet';
 const FAUCET='https://helper.nearprotocol.com/account';
 export const sha=b=>createHash('sha256').update(b).digest();
 export const rpc=new TestnetRpc({network:'testnet',url:'https://test.rpc.fastnear.com'});
@@ -12,6 +12,15 @@ function secure(){fs.mkdirSync(DIR,{recursive:true,mode:0o700});const s=fs.lstat
 export function privateWrite(name,data){secure();const p=path.join(DIR,name),fd=fs.openSync(p,fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);try{fs.writeFileSync(fd,JSON.stringify(data,null,2)+'\n');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}}
 export function privateRead(name){secure();const p=path.join(DIR,name),s=fs.lstatSync(p);if(!s.isFile()||s.isSymbolicLink()||(s.mode&0o777)!==0o600)throw Error('UNSAFE_PRIVATE_FILE');return JSON.parse(fs.readFileSync(p,'utf8'));}
 export const publicWrite=(name,data)=>{fs.mkdirSync(PUBLIC,{recursive:true});fs.writeFileSync(path.join(PUBLIC,name),JSON.stringify(data,null,2)+'\n');};
+export function admissionKey(){
+ // Reuse the already-configured admission credential; never log or export it.
+ const source=path.join(ROOT,'runtime/admission-v1/admission-key.json'),st=fs.lstatSync(source);
+ if(!st.isFile()||st.isSymbolicLink()||(st.mode&0o777)!==0o600)throw Error('UNSAFE_ADMISSION_KEY_FILE');
+ const value=JSON.parse(fs.readFileSync(source,'utf8')),key=createPrivateKey({key:Buffer.from(value.privateKeyBase64,'base64'),format:'der',type:'pkcs8'});
+ if(key.asymmetricKeyType!=='ed25519'||createPublicKey(key).export({format:'der',type:'spki'}).subarray(-32).toString('hex')!==value.publicKey)throw Error('ADMISSION_KEY_MISMATCH');
+ return value;
+}
+
 export function identities(){
  secure();if(!fs.existsSync(path.join(DIR,'identities.json'))){
   const contractKey=KeyPair.fromRandom('ed25519'),suffix=sha(contractKey.getPublicKey().toString()).toString('hex').slice(0,8),out={network:'testnet'};
@@ -58,15 +67,15 @@ export async function deployAndLock(){
  if(sha(wasm).toString('hex')!==review.wasmSha256||wasm.length!==review.bytes||baseEncode(sha(wasm))!==review.codeHash)throw Error('REVIEWED_WASM_CHANGED');
  for(const[n,h]of Object.entries(review.sources))if(sha(fs.readFileSync(path.join(ROOT,n))).toString('hex')!==h)throw Error('REVIEWED_CONTRACT_SOURCE_CHANGED');
  const b={...review,wasm};
- const unit=fs.readFileSync(path.join(PUBLIC,'unit-tests.log'),'utf8'),sandbox=fs.readFileSync(path.join(PUBLIC,'sandbox-tests.log'),'utf8');
- if(!/test result: ok\. 13 passed; 0 failed/.test(unit)||!sandbox.includes('LOCAL_SANDBOX actual keyless Wasm')||!/test result: ok\. 1 passed; 0 failed/.test(sandbox))throw Error('UNIT_AND_ACTUAL_SANDBOX_REQUIRED');
+ const unit=fs.readFileSync(path.join(ROOT,'verification/storage-v2-unit-tests.log'),'utf8'),sandbox=fs.readFileSync(path.join(ROOT,'verification/storage-v2-sandbox-tests.log'),'utf8');
+ if(!/test result: ok\. 18 passed; 0 failed/.test(unit)||!sandbox.includes('LOCAL_SANDBOX actual keyless Wasm')||!/test result: ok\. 1 passed; 0 failed/.test(sandbox))throw Error('UNIT_AND_ACTUAL_SANDBOX_REQUIRED');
  await rpc.connect();const before=await rpc.account(id.account_id);if(!before)throw Error('NEW_FREE_ACCOUNT_REQUIRED');
  if(!['11111111111111111111111111111111',b.codeHash].includes(before.code_hash))throw Error('REFUSE_OTHER_CODE_OVERWRITE');
  const config=await rpc.request('EXPERIMENTAL_protocol_config',{finality:'final'}),storage=BigInt(config.runtime_config.storage_amount_per_byte);
  const minimum=(BigInt(b.bytes)+131072n+8192n)*storage+10n**23n;
  if(BigInt(before.amount)<minimum)throw Error('BOOTSTRAP_STORAGE_GAS_TOO_SMALL');
- let deploy;if(before.code_hash!==b.codeHash)deploy=await sendOnce(id,'deploy',id.account_id,[actions.deployContract(b.wasm),actions.functionCall('new',{},50_000_000_000_000n,0n)]);
- const c=(await rpc.view(id.account_id,'get_config',{})).value;if(c.domain!==DOMAIN||c.total_deposited!=='0'||c.liabilities!=='0')throw Error('UNFUNDED_INITIALIZER_REQUIRED_BEFORE_LOCK');
+ let deploy;if(before.code_hash!==b.codeHash)deploy=await sendOnce(id,'deploy',id.account_id,[actions.deployContract(b.wasm),actions.functionCall('new',{admission_public_key:admissionKey().publicKey},50_000_000_000_000n,0n)]);
+ const c=(await rpc.view(id.account_id,'get_config',{})).value;if(c.admission_public_key!==admissionKey().publicKey||c.domain!==DOMAIN||c.storage_deposit_yocto!=='40960000000000000000000'||c.hold_count!=='0'||c.storage_deposit_refundable!==false||c.total_deposited!=='0'||c.liabilities!=='0')throw Error('UNFUNDED_INITIALIZER_REQUIRED_BEFORE_LOCK');
  let keys=await rpc.query({request_type:'view_access_key_list',account_id:id.account_id});let lock;
  if(keys.keys.length){if(keys.keys.length>10)throw Error('UNEXPECTED_KEY_COUNT');lock=await sendOnce(id,'remove-all-contract-keys',id.account_id,keys.keys.map(k=>actions.deleteKey(PublicKey.fromString(k.public_key))));}
  const block=await rpc.request('block',{finality:'final'}),blockId=block.header.hash;
@@ -74,7 +83,7 @@ export async function deployAndLock(){
  const finalView=await rpc.request('query',{request_type:'call_function',account_id:id.account_id,method_name:'get_config',args_base64:'e30=',block_id:blockId});
  const finalConfig=JSON.parse(Buffer.from(finalView.result));
  if(account.block_hash!==blockId||keys.block_hash!==blockId||finalView.block_hash!==blockId||account.code_hash!==b.codeHash||keys.keys.length!==0||finalConfig.total_deposited!=='0')throw Error('FINAL_CODE_KEYLESS_OR_UNFUNDED_MISMATCH');
- const result={network:'testnet',contractId:id.account_id,codeHash:b.codeHash,domain:DOMAIN,wasmSha256:b.wasmSha256,bytes:b.bytes,requireKeyless:true,keys:keys.keys,finalBlockHash:blockId,finalBlockHeight:block.header.height,initializerConfig:c,deployTransactionHash:deploy?.transaction?.hash??privateRead('tx-deploy.json').transactionHash,lockTransactionHash:lock?.transaction?.hash??(fs.existsSync(path.join(DIR,'tx-remove-all-contract-keys.json'))?privateRead('tx-remove-all-contract-keys.json').transactionHash:null),actualExternalChain:true,customerFundingBeforeLock:false,verifiedAt:new Date().toISOString()};
+ const result={storageDepositYocto:finalConfig.storage_deposit_yocto,admissionPublicKey:admissionKey().publicKey,network:'testnet',contractId:id.account_id,codeHash:b.codeHash,domain:DOMAIN,wasmSha256:b.wasmSha256,bytes:b.bytes,requireKeyless:true,keys:keys.keys,finalBlockHash:blockId,finalBlockHeight:block.header.height,initializerConfig:c,deployTransactionHash:deploy?.transaction?.hash??privateRead('tx-deploy.json').transactionHash,lockTransactionHash:lock?.transaction?.hash??(fs.existsSync(path.join(DIR,'tx-remove-all-contract-keys.json'))?privateRead('tx-remove-all-contract-keys.json').transactionHash:null),actualExternalChain:true,customerFundingBeforeLock:false,verifiedAt:new Date().toISOString()};
  publicWrite('deployment-public.json',result);return result;
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){

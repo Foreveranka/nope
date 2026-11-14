@@ -2,10 +2,10 @@
 import {PROFILE,canonicalProofPlanRequest,hashProofPlanProgram} from './proof-plan-core.mjs';
 import {hashPlan,hashPlanOutput} from './plan-core.mjs';
 import {sha256} from './gc-core.mjs';
-import {WALLET_ESCROW_POLICY} from './wallet-pins.mjs';
+import {WALLET_ESCROW_POLICY,HISTORICAL_WALLET_ESCROW_POLICIES} from './wallet-pins.mjs';
 export const CHAIN_POLICY=Object.freeze({network:'testnet',contractId:'nope-work-da4cbb1e.testnet',codeHash:'94XLBcytUKaL19QBzQqKFKsDvNZipcn5yvEUFEuumsPm'});
 // Only immutable, reviewed deployment pins are trusted; API evidence cannot add one.
-export function chainPolicyFor(contractId){return [CHAIN_POLICY,WALLET_ESCROW_POLICY].find(p=>p&&p.network==='testnet'&&p.contractId===contractId)||null;}
+export function chainPolicyFor(contractId){return [CHAIN_POLICY,WALLET_ESCROW_POLICY,...HISTORICAL_WALLET_ESCROW_POLICIES].find(p=>p&&p.network==='testnet'&&p.contractId===contractId)||null;}
 const RPC='https://test.rpc.fastnear.com';
 const check=(v,m)=>{if(!v)throw Error(m);};
 const hex=(v,n)=>typeof v==='string'&&new RegExp(`^[0-9a-f]{${n}}$`).test(v);
@@ -38,7 +38,7 @@ export async function verifyPublicChainBinding(e,{fetcher=globalThis.fetch}={}){
  check((await rpc('status',[])).chain_id===policy.network,'Yanlış ağ.');
  const account=await rpc('query',{request_type:'view_account',account_id:policy.contractId,finality:'final'});
  check(account.code_hash===policy.codeHash&&typeof account.block_hash==='string','Sözleşme kodu sabit doğrulama politikasıyla eşleşmiyor.');
- const walletFunded=policy===WALLET_ESCROW_POLICY;
+ const walletFunded=['NOPE:WALLET-ESCROW:V1:testnet','NOPE:WALLET-ESCROW:V2:testnet'].includes(policy.domain);
  if(walletFunded&&policy.requireKeyless){
   const keys=await rpc('query',{request_type:'view_access_key_list',account_id:policy.contractId,block_id:account.block_hash});
   check(keys.block_hash===account.block_hash&&Array.isArray(keys.keys)&&keys.keys.length===0,'Sözleşme kodu sabit doğrulama politikasıyla eşleşmiyor.');
@@ -48,6 +48,7 @@ export async function verifyPublicChainBinding(e,{fetcher=globalThis.fetch}={}){
  const view=await rpc('query',{request_type:'call_function',account_id:policy.contractId,method_name:'get_hold',args_base64:args,block_id:account.block_hash});
  check(view.block_hash===account.block_hash&&Array.isArray(view.result)&&view.result.length<=16384&&view.result.every(x=>Number.isInteger(x)&&x>=0&&x<256),'Kesinleşmiş sözleşme kaydı geçersiz.');
  const hold=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(view.result))),t=hold?.terms;
+ if(policy.domain==='NOPE:WALLET-ESCROW:V2:testnet')check(policy.storageDepositYocto==='40960000000000000000000'&&hold?.storage_deposit_yocto===policy.storageDepositYocto,'Kalıcı kayıt depolama bedeli sabit politikayla eşleşmiyor.');
  const inputHash=await sha256(canonicalProofPlanRequest(e.task)),programHash=await hashProofPlanProgram(e.task.task.plan),planHash=await hashPlan(e.task.task.plan),outputHash=await hashPlanOutput(e.delivery.outputs);
  check(t&&t.job_id===e.jobId&&t.buyer_commitment===e.task.proofManifest.context.buyerCommitment&&t.provider===e.binding.provider&&t.amount===e.binding.amountYocto&&
   t.input_hash===inputHash&&t.program_hash===programHash&&t.plan_hash===planHash,'Zincirdeki ön taahhüt, şifreli girdi veya program farklı.');
@@ -58,5 +59,5 @@ export async function verifyPublicChainBinding(e,{fetcher=globalThis.fetch}={}){
  const bindingHash=await sha256(JSON.stringify([walletFunded?policy.domain:'NOPE:WORKSPACE-ESCROW:V1:testnet',policy.contractId,t.job_id,t.buyer_commitment,...(walletFunded?[t.buyer_account]:[]),t.provider,t.amount,t.input_hash,t.program_hash,t.plan_hash,t.execution_deadline_ns,t.review_deadline_ns]));
  check(hold.binding_hash===bindingHash&&e.binding.bindingHash===bindingHash,'Escrow bağ özeti eşleşmiyor.');
  return{network:'testnet',contractId:policy.contractId,codeHash:policy.codeHash,blockHash:account.block_hash,
-  inputSha256:inputHash,programSha256:programHash,planSha256:planHash,outputSha256:outputHash,version:e.delivery.version,bindingHash,escrowState:hold.state};
+  inputSha256:inputHash,programSha256:programHash,planSha256:planHash,outputSha256:outputHash,version:e.delivery.version,bindingHash,escrowState:hold.state,...(policy.storageDepositYocto?{storageDepositYocto:policy.storageDepositYocto,totalFundingYocto:(BigInt(t.amount)+BigInt(policy.storageDepositYocto)).toString(),storageDepositRefundable:false}:{})};
 }

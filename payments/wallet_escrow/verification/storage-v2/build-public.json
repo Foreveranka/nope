@@ -1,0 +1,24 @@
+{
+  "network": "testnet",
+  "domain": "NOPE:WALLET-ESCROW:V2:testnet",
+  "bytes": 225213,
+  "wasmSha256": "1e861c76dda5cba65e254bf4d3e6b89057a7b90df1ad7398be2c072f9b5416ae",
+  "codeHash": "349qhEttcFqG3ezvPHBCoFCyM8X1ZpXzYotgfqFXgN13",
+  "exports": [
+    "memory",
+    "accept_and_release",
+    "contract_source_metadata",
+    "fund",
+    "get_config",
+    "get_hold",
+    "new",
+    "on_transfer",
+    "record_delivery",
+    "refund"
+  ],
+  "sources": {
+    "Cargo.toml": "663f46232b2fb4a93b4092a5237f83c89c825304caec7cb22c125e5f6d0fed03",
+    "Cargo.lock": "a1f4bfa8b73d18bc4ec00e26c62a469893f453e1c42e6a5539c9e33f775117df",
+    "src/lib.rs": "869e2c7d192c34c6a172863ad611ceaae0fbcfe5e79bf93e78fe4c37e3c52148"
+  }
+}

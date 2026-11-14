@@ -15,19 +15,20 @@ The shared public policy in [wallet-config.mjs](wallet-config.mjs) must match
 ```js
 {
  network:'testnet',
- contractId:'nope-wallet-44384e2f.testnet',
- codeHash:'6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy',
- domain:'NOPE:WALLET-ESCROW:V1:testnet',
- requireKeyless:true
+ contractId:'nope-wallet-5144c7d4.testnet',
+ codeHash:'349qhEttcFqG3ezvPHBCoFCyM8X1ZpXzYotgfqFXgN13',
+ domain:'NOPE:WALLET-ESCROW:V2:testnet',
+ requireKeyless:true,
+ admissionPublicKey:'268c745898f45bd60ae1ff6947481b985a3836b9e964b9e35d48a06d3dd3c2c9',
+ storageDepositYocto:'40960000000000000000000'
 }
 ```
 
 The observer checks code hash, empty contract access-key list and hold at the
 same FINAL block. The keyless contract has no upgrade/admin withdrawal method.
-Its separately funded storage/gas balance does not fund customer payments.
+Its separately funded storage/gas balance does not fund customer payments. New deposits also require a server Ed25519 admission signature bound to the exact job terms. `NOPE_WALLET_ADMISSION_KEY` is a server-only PKCS8/base64 credential; it never belongs in Git, a browser bundle or a wallet. It has no acceptance or withdrawal authority. The bounded gate does not claim Sybil resistance.
 Holds are indexed by `(buyer_account, job_id)`, limited to **1 testNEAR per hold**
-and **50 permanent holds** across the deployment; paid/refunded entries still
-consume capacity. The v4 proof-binding adapter accepts the same selected-price range, **1 yoctoNEAR
+and stored independently in a `LookupMap`, with no fixed shared permanent-hold cap. Funding adds **0.04096 testNEAR** for4096bytes of retained per-job storage; this charge is non-refundable and is separate from price liabilities. Payout/refund transfers only the service price. Exact total funding is validated by contract, server, wallet client and public verifier. The v4 proof-binding adapter accepts the same selected-price range, **1 yoctoNEAR
 through 1 testNEAR** (1 through 10^24 yoctoNEAR), as an exact canonical decimal
 string committed into the final proof context. See [contract source](../payments/wallet_escrow/src/lib.rs).
 
@@ -158,20 +159,13 @@ Private Blob uses immutable `nope-workspace-v1/` task, session, index, revision,
 proof and wallet records. Wallet records cover sessions, challenges, one-use
 claims, intents/retirement markers and transaction claims. Writes use
 `allowOverwrite:false`; races may return 409 and require reading current state.
-Quotas are 5 jobs/20 offer operations/10 sessions per client and 50 global sessions
-per UTC day; at most 64 offers/job and 256 job revisions. The random quota cookie
-is HttpOnly/SameSite=Strict; no IP addresses are collected.
+Business quotas are 5 jobs and 20 offer operations per verified wallet, stable across sessions/cookies; legacy guest paths retain per-client limits. Anonymous bootstrap retains 10 sessions per client but has no shared daily admission allowance that an anonymous caller can exhaust. This is not a general network-abuse defense: deployments still need operational rate/cost controls. At most 64 offers/job and 256 job revisions are retained; the final 32 revisions are customer-only. A new FINAL observation with unchanged payment facts does not append a job revision. The random quota cookie is HttpOnly/SameSite=Strict; no IP addresses are collected.
 
 Typed execution supports up to 4 selected columns, 32 numeric or 8 text rows,
 16 tagged ASCII bytes/text cell, 10,000 total gates and 40 processed-cell proofs.
 The proof bundle limit is 1 MiB minus 1 KiB. These are bounded pilot limits.
 
-Recorded 14 November 2026 validation: latest **494 root tests passed**, with zero
-failures/skips in 102.107 seconds after `ae091f8`, including **20 wallet-client
-tests** and the two real-vault session regressions. The earlier **492-test**
-snapshot at `4d1e73a` is historical; [release checks](../docs/verification/wallet-release-checks.json)
-retain both. `npm test` runs the root suite. Fixtures are not chain evidence;
-no test/build rerun is implied by this documentation update.
+Recorded 14 November 2026 post-remediation validation: **507 root tests passed**, zero failures/skips in95.245seconds. Build and five locale catalogs passed. [Current release checks](../docs/verification/public-release-checks.json) record the boundary; [older release checks](../docs/verification/wallet-release-checks.json) remain historical. `npm test` uses genuine crypto and explicit offline transport/RPC fixtures and does not broadcast transactions.
 
 The [production C775 browser lifecycle](../docs/verification/c775-full-browser-lifecycle.json)
 completed wallet authentication, sealed bidding, funding, encrypted execution,

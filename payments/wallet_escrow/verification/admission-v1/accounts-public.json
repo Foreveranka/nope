@@ -1,0 +1,35 @@
+{
+  "network": "testnet",
+  "createdAt": "2026-11-14T14:12:54.094Z",
+  "testOnly": true,
+  "prizeWallet": false,
+  "accounts": {
+    "contract": {
+      "accountId": "nope-wallet-66e1273c.testnet",
+      "publicKey": "ed25519:3hL43TfEVfVL8VzsFDMhDFvZ8JL3hPWsCYWowcwNDSwo",
+      "network": "testnet",
+      "localKeyFile": "/Users/mete/near-private-procurement/payments/wallet_escrow/runtime/admission-v1/identities.json",
+      "localKeyField": "contract.private_key",
+      "verifiedDate": "2026-11-14",
+      "purpose": "new wallet escrow bootstrap; require FINAL deployment-public.json key-removal evidence before deposits"
+    },
+    "buyer": {
+      "accountId": "nope-buyer-66e1273c.testnet",
+      "publicKey": "ed25519:GdWiy3yHiHSW5JbZu3rBkWEoqJCt6AX9sfGotQXiTXct",
+      "network": "testnet",
+      "localKeyFile": "/Users/mete/near-private-procurement/payments/wallet_escrow/runtime/admission-v1/identities.json",
+      "localKeyField": "buyer.private_key",
+      "verifiedDate": "2026-11-14",
+      "purpose": "synthetic customer-wallet escrow test buyer"
+    },
+    "provider": {
+      "accountId": "nope-provider-66e1273c.testnet",
+      "publicKey": "ed25519:GErrXMrsFeKZN3dkSiXsycGiZHePArpfvS2eKq2ANtLG",
+      "network": "testnet",
+      "localKeyFile": "/Users/mete/near-private-procurement/payments/wallet_escrow/runtime/admission-v1/identities.json",
+      "localKeyField": "provider.private_key",
+      "verifiedDate": "2026-11-14",
+      "purpose": "synthetic customer-wallet escrow test provider"
+    }
+  }
+}

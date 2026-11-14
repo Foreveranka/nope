@@ -1,0 +1,19 @@
+{
+  "jobId": "c77599347652ecdfb2362a620afa5e99",
+  "readOnly": true,
+  "actualExternalChain": true,
+  "actualProofsVerified": 6,
+  "verified": true,
+  "checkedAt": "2026-11-14T14:11:28.908Z",
+  "network": "testnet",
+  "contractId": "nope-wallet-44384e2f.testnet",
+  "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
+  "blockHash": "BzShy7KhSuu45N3aYNR1eRFZr5Uo4KfhC7xpMCkkyHaJ",
+  "inputSha256": "9bc159265dc6d55de117f1d128df32b50ea3a5479bd323fa54c6210b68d8fc16",
+  "programSha256": "1615b0e32a5261836e5980b299eea6b92059f7e5861d97f8515cab0dbd357810",
+  "planSha256": "35e25498d1188447cbe53a40197389ab36faccff69f22fd1e7682f1e84a76a0e",
+  "outputSha256": "7f554e5555de627c820bb26833df35c3ed95c2112f5f9b997592dec95b0835fc",
+  "version": 1,
+  "bindingHash": "4755cd41ada96656730808e55720afed04d4cf2ed35dd42fc6c337fe7c435fdd",
+  "escrowState": "Paid"
+}

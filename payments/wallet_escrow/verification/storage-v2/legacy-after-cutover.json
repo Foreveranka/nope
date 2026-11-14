@@ -1,0 +1,108 @@
+{
+  "network": "testnet",
+  "contractId": "nope-wallet-66e1273c.testnet",
+  "codeHash": "5MAoowxLrnP7KWFFU2hAepMrQwUtgKpDtbgeFr7rcF9v",
+  "readOnly": true,
+  "actualExternalChain": true,
+  "finalBlockHash": "4KZau5MnTtaXkvVrJ88N2mKAap5FUPRmXengthkhwEv4",
+  "finalBlockHeight": "277669505",
+  "checkedAt": "2026-11-14T14:30:46.175Z",
+  "keys": [],
+  "config": {
+    "admission_public_key": "268c745898f45bd60ae1ff6947481b985a3836b9e964b9e35d48a06d3dd3c2c9",
+    "domain": "NOPE:WALLET-ESCROW:V1:testnet",
+    "network": "testnet",
+    "contract_id": "nope-wallet-66e1273c.testnet",
+    "max_holds": 50,
+    "max_hold_amount": "1000000000000000000000000",
+    "min_hold_amount": "1",
+    "max_horizon_ns": "2592000000000000",
+    "hold_count": 3,
+    "total_deposited": "3000000000000000000000",
+    "liabilities": "0",
+    "total_paid": "2000000000000000000000",
+    "total_refunded": "1000000000000000000000",
+    "pending_outgoing": "0",
+    "on_account_liabilities": "0",
+    "account_balance": "9998128443990322100000000",
+    "storage_reserve": "3610060000000000000000000",
+    "gas_buffer": "100000000000000000000000",
+    "storage_headroom_bytes": 131072,
+    "min_transfer_gas_tgas": 100,
+    "callback_gas_tgas": 20
+  },
+  "holds": [
+    {
+      "namespace": "nope-buyer-66e1273c.testnet:24128f9e3884bcbb92fe9db0907f8d6c",
+      "terms": {
+        "job_id": "24128f9e3884bcbb92fe9db0907f8d6c",
+        "buyer_commitment": "61afeabe69327a1db7bd64b7eac01c78db4b23c8918678def9e47dc0cbf3e6cf",
+        "buyer_account": "nope-buyer-66e1273c.testnet",
+        "provider": "nope-provider-66e1273c.testnet",
+        "amount": "1000000000000000000000",
+        "input_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+        "program_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "plan_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+        "execution_deadline_ns": "1794669095750270932",
+        "review_deadline_ns": "1794672695750270932"
+      },
+      "binding_hash": "5a22ba0037528c067a2a8970a27f26bd8e84cb202057c28adc0ec9f9a7af6029",
+      "state": "Paid",
+      "nonce": "1",
+      "delivery": {
+        "version": 1,
+        "output_hash": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "last_transfer_failure_nonce": null,
+      "pending": null
+    },
+    {
+      "namespace": "nope-buyer-66e1273c.testnet:e9c124c898ae59cd0a43c288a22fd447",
+      "terms": {
+        "job_id": "e9c124c898ae59cd0a43c288a22fd447",
+        "buyer_commitment": "2c9e28bbe34eb3e4c0e12e296b9fbc88bb81b13e7399984268f835ba78d4e15e",
+        "buyer_account": "nope-buyer-66e1273c.testnet",
+        "provider": "nope-provider-66e1273c.testnet",
+        "amount": "1000000000000000000000",
+        "input_hash": "8e479a75fb170d2db2186f1499dea75af87b942eda872d04fdbdc661beb78920",
+        "program_hash": "eb12de20666da60bdca87ff059c801bdcbac93e2ac7ee9b02babad4c4125629b",
+        "plan_hash": "69ad25da04702a4eba8f11d1a4339405e352835dbcca44cc867646304ebdc254",
+        "execution_deadline_ns": "1794752035221000000",
+        "review_deadline_ns": "1794838435221000000"
+      },
+      "binding_hash": "6cf760ec519f2ce67b1c645f133290e483f7ca7cc713b0b1c1ed1aca31126da3",
+      "state": "Paid",
+      "nonce": "1",
+      "delivery": {
+        "version": 1,
+        "output_hash": "8f32e5c68cf39b234a62235dad8bd88355af14e727289548363b2ad99156a20f"
+      },
+      "last_transfer_failure_nonce": null,
+      "pending": null
+    },
+    {
+      "namespace": "nope-buyer-66e1273c.testnet:f5bc2ea5dc9214281ca1e909cd58be13",
+      "terms": {
+        "job_id": "f5bc2ea5dc9214281ca1e909cd58be13",
+        "buyer_commitment": "61afeabe69327a1db7bd64b7eac01c78db4b23c8918678def9e47dc0cbf3e6cf",
+        "buyer_account": "nope-buyer-66e1273c.testnet",
+        "provider": "nope-provider-66e1273c.testnet",
+        "amount": "1000000000000000000000",
+        "input_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+        "program_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "plan_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+        "execution_deadline_ns": "1794665550308241549",
+        "review_deadline_ns": "1794665570308241549"
+      },
+      "binding_hash": "6e580583356f0b5a83cdec81cfddaea92b72713ce627608bf4568a4a0970598d",
+      "state": "Refunded",
+      "nonce": "1",
+      "delivery": null,
+      "last_transfer_failure_nonce": null,
+      "pending": null
+    }
+  ],
+  "outstandingHolds": 0,
+  "pendingTransfers": 0,
+  "cutoverFinanciallyClear": true
+}

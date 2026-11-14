@@ -1,7 +1,10 @@
+import {signWalletAdmission} from '../../workspace/wallet-escrow.mjs';
+import {admissionKey} from './provision.mjs';
 /** Real synthetic wallet-funded testnet checks; no private customer data/proof. */
 import fs from 'node:fs';import path from 'node:path';import {randomBytes} from 'node:crypto';
 import {actions} from 'near-api-js';
 import {ROOT,DIR,PUBLIC,DOMAIN,rpc,sha,identities,privateRead,privateWrite,publicWrite,sendOnce} from './provision.mjs';
+const STORAGE=40960000000000000000000n;
 const AMOUNT='1000000000000000000000'; //0.001 testNEAR
 const ids=identities(),contract=ids.contract.account_id;
 function require(value,message){if(!value)throw Error(message);}
@@ -25,9 +28,9 @@ async function call(id,label,method,args,deposit=0n){
 async function get(t){return(await rpc.view(contract,'get_hold',{buyer_account:t.buyer_account,job_id:t.job_id})).value;}
 function verifyFund(result,t){
  const c=result.transaction.actions[0]?.FunctionCall;
- require(result.final_execution_status==='FINAL'&&result.transaction.signer_id===t.buyer_account&&result.transaction.receiver_id===contract&&result.transaction.actions.length===1&&c?.method_name==='fund'&&c.deposit===t.amount,'EXACT_CUSTOMER_WALLET_FUND_TRANSACTION_REQUIRED');
- require(JSON.stringify(JSON.parse(Buffer.from(c.args,'base64').toString()))===JSON.stringify({terms:t}),'FUNDED_TERMS_MISMATCH');
- const h=JSON.parse(Buffer.from(result.status.SuccessValue,'base64').toString());require(h.binding_hash===binding(t)&&h.state==='Held','FUNDED_BINDING_MISMATCH');return h;
+ require(result.final_execution_status==='FINAL'&&result.transaction.signer_id===t.buyer_account&&result.transaction.receiver_id===contract&&result.transaction.actions.length===1&&c?.method_name==='fund'&&c.deposit===(BigInt(t.amount)+STORAGE).toString(),'EXACT_CUSTOMER_WALLET_FUND_TRANSACTION_REQUIRED');
+ require(JSON.stringify(JSON.parse(Buffer.from(c.args,'base64').toString()))===JSON.stringify(fundArgs(t)),'FUNDED_TERMS_MISMATCH');
+ const h=JSON.parse(Buffer.from(result.status.SuccessValue,'base64').toString());require(h.storage_deposit_yocto===STORAGE.toString()&&h.binding_hash===binding(t)&&h.state==='Held','FUNDED_BINDING_MISMATCH');return h;
 }
 function verifyNative(result,t,h,action){
  require(result.final_execution_status==='FINAL'&&result.transaction.signer_id===t.buyer_account&&result.transaction.receiver_id===contract&&result.status.SuccessValue===Buffer.from('true').toString('base64'),'FINAL_BUYER_TRANSFER_RESULT_REQUIRED');
@@ -43,9 +46,10 @@ function verifyNative(result,t,h,action){
  require(h.state===(action==='payout'?'Paid':'Refunded')&&h.pending===null&&h.binding_hash===binding(t),'FINAL_HOLD_MISMATCH');
  return{transactionHash:result.transaction.hash,transferReceiptId:transfers[0].receipt_id,callbackReceiptId:cb.receipt_id,receiver,amountYocto:t.amount,nonce:h.nonce,state:h.state,finalReceiptGraphConnected:true,exactNativeTransfer:true,successfulNonceActionCallback:true};
 }
+function fundArgs(t){const k=admissionKey();return{terms:t,admission_signature:signWalletAdmission(binding(t),k.publicKey,{NOPE_WALLET_ADMISSION_KEY:k.privateKeyBase64})};}
 async function main(){
  const pin=await ready(),payout=await savedTerms('payout',false);
- const fund=await call(ids.buyer,'payout-fund','fund',{terms:payout},BigInt(AMOUNT));verifyFund(fund,payout);publicWrite('live-payout-fund-rpc.json',fund);
+ const fund=await call(ids.buyer,'payout-fund','fund',fundArgs(payout),BigInt(AMOUNT)+STORAGE);verifyFund(fund,payout);publicWrite('live-payout-fund-rpc.json',fund);
  const args={buyer_account:payout.buyer_account,job_id:payout.job_id,version:1,output_hash:'55'.repeat(32)};
  const record=await call(ids.provider,'payout-record','record_delivery',args);publicWrite('live-payout-record-rpc.json',record);
  let paid=await call(ids.buyer,'payout-release','accept_and_release',args);
@@ -55,7 +59,7 @@ async function main(){
  const ph=await get(payout),payment=verifyNative(paid,payout,ph,'payout');
  publicWrite('live-payout-check.json',{status:'PASS',network:'testnet',contractId:contract,codeHash:pin.codeHash,buyer:payout.buyer_account,provider:payout.provider,jobId:payout.job_id,bindingHash:ph.binding_hash,actualExternalChain:true,computationProof:false,...payment});
  if(process.argv.includes('--payout-only')){console.log(JSON.stringify({status:'PASS',stage:'payout-read-only-reconciled',...payment}));return;}
- const refund=await savedTerms('refund',true),fund2=await call(ids.buyer,'refund-fund','fund',{terms:refund},BigInt(AMOUNT));verifyFund(fund2,refund);publicWrite('live-refund-fund-rpc.json',fund2);
+ const refund=await savedTerms('refund',true),fund2=await call(ids.buyer,'refund-fund','fund',fundArgs(refund),BigInt(AMOUNT)+STORAGE);verifyFund(fund2,refund);publicWrite('live-refund-fund-rpc.json',fund2);
  console.log(JSON.stringify({stage:'payout-verified-refund-deadline-pending',contractId:contract,payment,refundJobId:refund.job_id,reviewDeadlineNs:refund.review_deadline_ns}));
  for(;;){const b=await rpc.request('block',{finality:'final'});if(BigInt(b.header.timestamp_nanosec)>BigInt(refund.review_deadline_ns))break;await new Promise(r=>setTimeout(r,3000));}
  let returned=await call(ids.buyer,'refund-return','refund',{buyer_account:refund.buyer_account,job_id:refund.job_id});
@@ -63,6 +67,13 @@ async function main(){
  const rh=await get(refund),refunded=verifyNative(returned,refund,rh,'refund');
  const config=(await rpc.view(contract,'get_config',{})).value;
  require(BigInt(config.total_deposited)===BigInt(config.liabilities)+BigInt(config.total_paid)+BigInt(config.total_refunded)&&BigInt(config.pending_outgoing)<=BigInt(config.liabilities),'GLOBAL_LIABILITY_ACCOUNTING_MISMATCH');
+ require(config.storage_deposit_yocto===STORAGE.toString()&&config.storage_deposit_refundable===false&&BigInt(config.storage_deposits)===BigInt(config.hold_count)*STORAGE,'STORAGE_FEES_NOT_RETAINED');
+ require(BigInt(config.account_balance)>=BigInt(config.on_account_liabilities)+BigInt(config.storage_reserve)+BigInt(config.gas_buffer),'SOLVENCY_RESERVES_NOT_PRESERVED');
  const finalPin=await ready();const out={status:'PASS',network:'testnet',actualExternalChain:true,syntheticOnly:true,computationProof:false,contractId:contract,codeHash:pin.codeHash,keys:finalPin.keys,buyer:payout.buyer_account,provider:payout.provider,amountYoctoEach:AMOUNT,payout:{jobId:payout.job_id,bindingHash:ph.binding_hash,...payment},refund:{jobId:refund.job_id,bindingHash:rh.binding_hash,...refunded},finalConfig:config,verifiedAt:new Date().toISOString()};publicWrite('live-financial-checks.json',out);console.log(JSON.stringify(out));
 }
-main().catch(e=>{console.error('WALLET_LIVE_CHECK_FAILED: '+e.message);process.exitCode=1;});
+const leaseDir=path.resolve(ROOT,'../../runtime/wallet-workspace-signing');fs.mkdirSync(leaseDir,{recursive:true,mode:0o700});
+const lease=path.join(leaseDir,'nonce.lock');
+let leaseFd;
+try{leaseFd=fs.openSync(lease,fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);fs.writeSync(leaseFd,String(process.pid));await main();}
+catch(e){console.error('WALLET_LIVE_CHECK_FAILED: '+e.message);process.exitCode=1;}
+finally{if(leaseFd!==undefined){fs.closeSync(leaseFd);fs.unlinkSync(lease);}}

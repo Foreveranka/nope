@@ -13,9 +13,11 @@ class Store{
  async list(){return {pathnames:[]};}
 }
 function fixture(env={}){
- const store=new Store(),key=KeyPair.fromRandom('ed25519');
- const auth=createWalletAuth({store,env,config:{network:'testnet',contractId:'fixture.testnet'},rpc:async method=>method==='status'?{chain_id:'testnet'}:{block_hash:'2'.repeat(44),permission:'FullAccess'}});
- const core=createWorkspace({store,env,walletAuth:auth}),adapter=createWorkspaceHandler({env,handle:core});
+ const store=new Store(),key=KeyPair.fromRandom('ed25519'),now=()=>Date.parse('2026-11-14T10:00:00Z');
+ // Origin/signature isolation is independent of wall-clock CPU contention.
+ // Dedicated wallet-auth tests exercise expiry with an advancing fixture clock.
+ const auth=createWalletAuth({store,env,now,config:{network:'testnet',contractId:'fixture.testnet'},rpc:async method=>method==='status'?{chain_id:'testnet'}:{block_hash:'2'.repeat(44),permission:'FullAccess'}});
+ const core=createWorkspace({store,env,now,walletAuth:auth}),adapter=createWorkspaceHandler({env,handle:core});
  async function call(origin,route,{body,token,headers={},url='/api/workspace?route='+route}={}){
   const res={setHeader(){},end(b){this.data=JSON.parse(String(b));}};
   await adapter({url,method:body===undefined?'GET':'POST',headers:{host:new URL(origin).host,origin,...(token?{authorization:'Bearer '+token}:{}),...(body===undefined?{}:{'content-type':'application/json'}),...headers},body:body===undefined?'':body},res);

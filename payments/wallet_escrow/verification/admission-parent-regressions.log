@@ -1,0 +1,11 @@
+✔ verified wallet job quota survives fresh cookies and sessions; unrelated wallet still creates (81.13325ms)
+✔ provider cannot spend final customer revision reserve; buyer can still observe a real transition (15.234833ms)
+✔ wallet API requires verified owners, exact funding before encrypted execution, final record per revision, real proof before acceptance, and wallet-only refund recovery (639.70375ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 875.650875

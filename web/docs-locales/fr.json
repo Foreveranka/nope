@@ -72,7 +72,7 @@
         {
           "id": "escrow",
           "title": "Séquestre avec portefeuille sur NEAR testnet",
-          "text": "Le client dépose le montant exact choisi en testNEAR depuis son propre portefeuille dans le contrat. Chaque travail possède un solde distinct ; aucun retrait ne provient d’un fonds client commun. Le prestataire signe l’enregistrement de la livraison et le client signe la libération ou un remboursement autorisé dans son portefeuille. NOPE ne reçoit jamais la clé privée du portefeuille. Le contrat ne vérifie pas les SNARK ; ce contrôle a lieu hors chaîne.",
+          "text": "Le client dépose le montant exact choisi en testNEAR depuis son propre portefeuille dans le contrat. Chaque travail possède un solde distinct ; aucun retrait ne provient d’un fonds client commun. Le prestataire signe l’enregistrement de la livraison et le client signe la libération ou un remboursement autorisé dans son portefeuille. NOPE ne reçoit jamais la clé privée du portefeuille. Le contrat ne vérifie pas les SNARK ; ce contrôle a lieu hors chaîne. En plus du prix du service, le client verse les frais affichés de stockage permanent du registre de la tâche. Le prix du service reste sous séquestre ; les frais de stockage ne sont pas remboursables. Chaque tâche finance son propre stockage ; il n’existe pas de quota fixe partagé de 50 tâches. Vérifiez le total et les frais de réseau supplémentaires avant de signer.",
           "code": "",
           "href": ""
         }
@@ -325,7 +325,7 @@
         {
           "id": "sponsor",
           "title": "Que faire si le portefeuille ou le réseau est indisponible ?",
-          "text": "Les nouveaux travaux exigent le séquestre testnet configuré avec portefeuille ; aucun repli vers le fonds sponsorisé ou un ancien paiement n’a lieu. Ton portefeuille doit contenir assez de testNEAR pour le montant choisi et les frais. Annulation, échec et transaction incertaine ont des états distincts ; rien n’est terminé sans vérification. Les anciens travaux sponsorisés sont en lecture seule.",
+          "text": "Les nouveaux travaux exigent le séquestre testnet configuré avec portefeuille ; aucun repli vers le fonds sponsorisé ou un ancien paiement n’a lieu. Ton portefeuille doit contenir assez de testNEAR pour le montant choisi et les frais. Annulation, échec et transaction incertaine ont des états distincts ; rien n’est terminé sans vérification. Les anciens travaux sponsorisés sont en lecture seule. Il faut suffisamment de testNEAR pour le service, les frais de stockage distincts et les frais de réseau ; le stockage permanent n’est pas remboursable.",
           "code": "",
           "href": ""
         }

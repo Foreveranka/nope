@@ -903,5 +903,8 @@
   "Sağlayıcı şifreli hesabı başlatır. Teslimi kendi cihazında aç, önce/sonra tablosunda incele ve sonuç kanıtını doğrula. Ödemeyi serbest bırakmak senin onayını gerektirir.": "El proveedor inicia el cálculo cifrado. Abre la entrega en tu dispositivo, revisa la tabla de antes y después y verifica la prueba del resultado. Liberar el pago requiere tu aprobación.",
   "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗": "VERIFICAR UN TRABAJO COMPLETADO ↗",
   "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ": "HASTA 4 COLUMNAS · 40 CELDAS · SE APLICAN LÍMITES DE TEXTO ASCII Y CIRCUITO",
-  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Tu navegador abre el resultado y verifica su prueba. Las columnas de texto y números seleccionadas se transforman según el plan aprobado; las demás se conservan."
+  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Tu navegador abre el resultado y verifica su prueba. Las columnas de texto y números seleccionadas se transforman según el plan aprobado; las demás se conservan.",
+  "Cüzdan fonlama toplamı: {0} testNEAR + ağ işlem ücreti.": "Depósito total de la cartera: {0} testNEAR + comisión de red.",
+  "Hizmet bedeli kabul veya uygun iadeyle aktarılır. Depolama bedeli zincirdeki kayıtların saklanmasını karşılar.": "El importe del servicio se transfiere al aceptar o mediante un reembolso válido. El cargo de almacenamiento cubre la conservación de los registros en cadena.",
+  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Almacenamiento permanente del registro de la transacción: {0} testNEAR (no reembolsable)."
 }

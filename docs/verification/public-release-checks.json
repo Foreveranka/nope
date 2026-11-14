@@ -1,0 +1,60 @@
+{
+  "recordedAt": "2026-11-14T14:34:50.474669+00:00",
+  "sourceBase": "79b95b9d19ed4f7b27542684539b7ce8e2cb4352",
+  "checkedTarget": "post-remediation working tree; documentation updates follow",
+  "rootTests": {
+    "passed": 507,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 95245.19975,
+    "command": "npm test"
+  },
+  "build": {
+    "command": "npm run build",
+    "passed": true,
+    "staticAssets": 79
+  },
+  "locales": {
+    "languages": [
+      "tr",
+      "en",
+      "de",
+      "es",
+      "fr"
+    ],
+    "keysPerCatalog": 908,
+    "placeholderParity": true
+  },
+  "security": {
+    "originalRevisionConfirmedAvailabilityFindings": 3,
+    "scope": "Current application and selected legacy boundaries; partial repository coverage",
+    "contractAdmission": true,
+    "anonymousSharedDailyAdmissionRemoved": true,
+    "stableVerifiedWalletBusinessQuotas": true,
+    "observationOnlyRefreshNoRevision": true,
+    "customerRevisionReserve": 32,
+    "singleClockChallengeLifetimeRegression": true,
+    "knownPrivateKeyValuesChecked": 7,
+    "knownPrivateKeyMatchesInUnignoredFiles": 0,
+    "selectedPatternHistoryCommits": 48,
+    "selectedPatternHistoryBlobs": 1116,
+    "historyUnresolvedSelectedPatternFindings": 0,
+    "productionDependencyAuditFindings": {
+      "root": 0,
+      "plannerRuntime": 0,
+      "proofRuntime": 0,
+      "walletRuntime": 0
+    },
+    "sharedPermanentContractCapRemoved": true,
+    "perJobPrepaidStorage": true,
+    "immutableExpiredRecordMarker": true
+  },
+  "currentContract": "nope-wallet-5144c7d4.testnet",
+  "limits": [
+    "Not an exhaustive repository security guarantee.",
+    "Operational rate/cost controls still required for public service.",
+    "Browser/API result proofs are not verified by the contract.",
+    "Persistent record storage0.04096testNEAR is separate from price and non-refundable."
+  ],
+  "publicAppRelease": "Pending combined deployment and hosted HTTP check at time of this artifact"
+}
