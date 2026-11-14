@@ -331,7 +331,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     if (JSON.stringify(saved) !== JSON.stringify(value)) fail(msg('Cüzdan dönüşü için yerel oturum kaydedilemedi. İmza istenmedi.'));
     state.walletPending = pending;
   }
-  async function clearWalletResume() { await redirectVault().saveJob(WALLET_RESUME_RECORD, null); state.walletPending = null; }
+  async function clearWalletResume() { await redirectVault().saveJob(WALLET_RESUME_RECORD, {version:1,cleared:true}); state.walletPending = null; }
   function walletError(error) {
     if (error?.code === 'WALLET_REJECTED') return msg('Cüzdan imzası iptal edildi. İşlem tamamlandı sayılmadı.');
     return msg('Cüzdan işlemi tamamlanamadı veya sonucu belirsiz. Yeni imza istemeden mevcut işlemi kontrol edin.');
