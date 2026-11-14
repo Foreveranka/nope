@@ -118,8 +118,11 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     if (!jobs.length) { paragraph('Henüz burada görüntülenecek iş yok.', target, 'empty'); return; }
     const list = el('div', null, 'list'); target.append(list);
     for (const job of jobs) {
-      const row = card(job.title, list); paragraph(`${statusText[job.status] || job.status} · ${job.rowCount} satır`, row);
-      if (job.deadlineISO) paragraph(`Teklif sonu: ${new Date(job.deadlineISO).toLocaleString('tr-TR')}`, row);
+      const row = el('section', null, 'card job-row'); list.append(row);
+      const info = el('div', null, 'job-row-main'); row.append(info); info.append(el('h2', job.title));
+      const badge = paragraph(statusText[job.status] || job.status, info, 'badge job-status'); badge.dataset.status = job.status;
+      paragraph(`${job.rowCount} satır · Şifreli CSV görevi`, info);
+      if (job.deadlineISO) paragraph(`Teklif sonu: ${new Date(job.deadlineISO).toLocaleString('tr-TR')}`, info);
       link('İşi aç', jobLink('/job', job.id), row);
     }
   }
@@ -134,9 +137,19 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     return jobs || [];
   }
   function onboarding() {
-    title('Test çalışma alanına katılın', 'Gerçek para değil. Bu test çalışma alanı, tarayıcıda şifreli CSV hesaplamasını ve manuel testnet ödemesini kullanır.');
+    title('İşi ver. Ya da işe başla.', 'Müşteri olarak gizli teklif al; sağlayıcı olarak şifreli görevleri yürüt.');
     if (state.session) { paragraph('Geçerli oturumunuz korunuyor.'); link('Çalışma alanına devam et', state.session.role === 'buyer' ? '/customer' : '/provider'); link('Rol ve yerel kasa', '/settings'); return; }
-    const panel = card('Rolünüzü seçin');
+    const layout = el('div', null, 'onboarding-grid'); root.append(layout);
+    const intro = card('Aynı iş. Ayrı görünürlük.', layout);
+    paragraph('[ NOPE / PRIVATE WORK ]', intro, 'role-kicker');
+    const buyerRole = el('div', null, 'role-card'); intro.append(buyerRole);
+    buyerRole.append(el('h3', '01 / Müşteri'));
+    paragraph('CSV’yi kendi cihazında şifrele, teklifleri karşılaştır ve teslimi uygulamanın içinde kontrol et.', buyerRole);
+    const providerRole = el('div', null, 'role-card'); intro.append(providerRole);
+    providerRole.append(el('h3', '02 / Sağlayıcı'));
+    paragraph('Açık iş tanımlarını gör, müşteriye şifreli teklif ver ve seçildiğinde şifreli hesabı yürüt.', providerRole);
+    paragraph('Bu bir testnet pilotudur. Test kimliği oluşturulur; gerçek para kullanılmaz.', intro, 'muted');
+    const panel = card('Çalışma alanına katıl', layout);
     const { node, submit } = form(panel, 'Test oturumu başlat', async () => {
       const selected = role.value;
       if (selected === 'provider' && !testnetAccount(account.value.trim())) fail('Yalnızca .testnet hesabı veya 64 haneli hex testnet hesabı kullanın.');
@@ -448,10 +461,18 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
         else {
           if (route.path === '/customer') requireRole('buyer');
           if (route.path === '/provider') requireRole('provider');
-          title(route.path === '/jobs' ? (state.session.role === 'buyer' ? 'İşlerim' : 'Açık işler ve tekliflerim') : state.session.role === 'buyer' ? 'Müşteri çalışma alanı' : 'Sağlayıcı çalışma alanı', 'Gerçek sunucu kayıtları · yalnızca testnet');
+          title(route.path === '/jobs' ? (state.session.role === 'buyer' ? 'İşlerim' : 'Açık işler ve tekliflerim') : state.session.role === 'buyer' ? 'İşlerin, kontrolün altında.' : 'Bir sonraki işin burada.', 'İşleri, teklifleri ve teslimleri tek yerden takip et.');
           if (state.session.role === 'buyer') link('Yeni şifreli iş oluştur', '/jobs/new');
           if (state.session.role === 'buyer') await renderRecovery(root);
-          try { await jobsList(); } catch (err) { paragraph(err instanceof FriendlyError ? err.message : 'İş listesi yüklenemedi. Yerel doğrulanmamış girişimler korunuyor.', root, 'danger'); }
+          const summary = el('div', null, 'dashboard-summary'); root.append(summary);
+          try {
+            const jobs = await jobsList();
+            for (const [label, count] of [
+              ['Bu sayfadaki işler', jobs.length],
+              ['Tekliflere açık', jobs.filter(j => j.status === 'OPEN').length],
+              ['Teslim / kabul bekleyen', jobs.filter(j => ['AWARDED', 'DELIVERED', 'REVISION'].includes(j.status)).length],
+            ]) { const box = el('div', null, 'metric-card'); box.append(el('span', label), el('strong', count, 'summary-count')); summary.append(box); }
+          } catch (err) { summary.hidden = true; paragraph(err instanceof FriendlyError ? err.message : 'İş listesi yüklenemedi. Yerel doğrulanmamış girişimler korunuyor.', root, 'danger'); }
           button('Listeyi yenile', render, root, 'btn secondary');
         }
       }
