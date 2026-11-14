@@ -1,6 +1,9 @@
 import {createWorkspace} from '../workspace/core.mjs';
 import {blobWorkspaceStore} from '../workspace/blob.mjs';
 import {createEscrowService} from '../workspace/escrow.mjs';
+import {createWalletAuth} from '../workspace/wallet-auth.mjs';
+import {createWalletEscrow} from '../workspace/wallet-escrow.mjs';
+import {WALLET_ESCROW_POLICY} from '../workspace/wallet-config.mjs';
 const MAX=1024*1024;
 const reject=(status,code)=>{throw Object.assign(Error(code),{status,code});};
 function parsedBody(value,MAX=1024*1024){
@@ -26,7 +29,7 @@ export function createWorkspaceHandler({env=process.env,store,handle}={}){
   try{
    const base=env.NOPE_WORKSPACE_ORIGIN||'https://veil-procurement.vercel.app',url=new URL(req.url,base);
    if(url.pathname==='/api/workspace'){
-    const routes=url.searchParams.getAll('route');if(routes.length!==1||!/^(?:session|jobs(?:\/[a-f0-9]{32}(?:\/(?:offers|close|award|task|execute|decision|proof(?:\/evidence)?|payment\/(?:verify|fund|record|release|refund|refresh)))?)?)$/.test(routes[0]))reject(404,'ROUTE_NOT_FOUND');url.pathname='/api/workspace/'+routes[0];url.searchParams.delete('route');
+    const routes=url.searchParams.getAll('route');if(routes.length!==1||!/^(?:session|wallet(?:\/(?:challenge|verify))?|jobs(?:\/[a-f0-9]{32}(?:\/(?:offers|close|award|task|execute|decision|proof(?:\/evidence)?|payment\/(?:verify|fund|record|release|refund|refresh|prepare|confirm)))?)?)$/.test(routes[0]))reject(404,'ROUTE_NOT_FOUND');url.pathname='/api/workspace/'+routes[0];url.searchParams.delete('route');
    }
    const MAX=url.pathname==='/api/workspace/jobs'?3*1024*1024:1024*1024;
    if(req.headers?.['content-encoding']&&req.headers['content-encoding']!=='identity')reject(415,'INVALID_ENCODING');
@@ -38,7 +41,7 @@ export function createWorkspaceHandler({env=process.env,store,handle}={}){
    if(!parsed&&len!==undefined&&Number(len)!==bytes.length)reject(400,'INVALID_LENGTH');
    const headers=new Headers();for(const [k,v]of Object.entries(req.headers||{}))if(v!==undefined){if(Array.isArray(v))reject(400,'INVALID_HEADERS');headers.set(k,v);}if(parsed)headers.delete('content-length');
    const method=req.method||'GET';if(['GET','HEAD'].includes(method)&&bytes.length)reject(400,'UNEXPECTED_BODY');
-   if(!core){const durableStore=store||blobWorkspaceStore(env);core=createWorkspace({store:durableStore,env,escrow:createEscrowService({store:durableStore,env})});}
+   if(!core){const durableStore=store||blobWorkspaceStore(env);core=createWorkspace({store:durableStore,env,escrow:WALLET_ESCROW_POLICY?null:createEscrowService({store:durableStore,env}),walletAuth:createWalletAuth({store:durableStore,env,config:WALLET_ESCROW_POLICY}),walletEscrow:createWalletEscrow({store:durableStore,env,config:WALLET_ESCROW_POLICY}),walletRequired:Boolean(WALLET_ESCROW_POLICY)});}
    const result=await core(new Request(url,{method,headers,...(!['GET','HEAD'].includes(method)?{body:bytes}:{})}));
    res.statusCode=result.status;for(const [k,v]of result.headers)res.setHeader(k,v);res.end(Buffer.from(await result.arrayBuffer()));
   }catch(e){res.statusCode=e.status||503;res.end(JSON.stringify({error:res.statusCode===503?'Service temporarily unavailable.':'Request rejected.',code:e.code||'SERVICE_UNAVAILABLE'}));}

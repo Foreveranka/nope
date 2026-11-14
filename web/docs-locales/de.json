@@ -37,7 +37,7 @@
         {
           "id": "browser",
           "title": "Kundenbrowser und Tresor",
-          "text": "Hier wird die CSV geöffnet. Echte Spaltennamen, unveränderte Felder und Entschlüsselungsinformationen bleiben lokal. Der verschlüsselte lokale Tresor speichert private Schlüssel und geheime Nachweisdaten. Wenn dein Browserprofil oder deine Websitedaten verloren gehen, lässt sich dieser Tresor nicht allein durch eine erneute Anmeldung wiederherstellen.",
+          "text": "Hier wird die CSV geöffnet; echte Spaltennamen, unveränderte Felder und Entschlüsselungsdaten bleiben lokal. Der verschlüsselte Tresor enthält Angebotsschlüssel und Beweiszeugen, niemals den Signaturschlüssel der Wallet. Ein verlorenes Browserprofil oder gelöschte Websitedaten lassen sich nicht durch erneutes Anmelden wiederherstellen.",
           "code": "",
           "href": ""
         },
@@ -71,8 +71,8 @@
         },
         {
           "id": "escrow",
-          "title": "NEAR-Testnet-Escrow",
-          "text": "Der Vertrag bindet die Hashes des Auftrags, den Anbieter, den Betrag, die Fristen und die Lieferversion. Nach der Annahme führt er die native testNEAR-Überweisung aus. Die SNARK-Prüfung findet nicht im Vertrag statt. Diese Prüfung setzen Browser und Server durch. Der Sponsorenpool ist begrenzt. Echtes Geld wird nicht verwendet.",
+          "title": "Wallet-Treuhand auf NEAR Testnet",
+          "text": "Der Kunde zahlt den exakt gewählten testNEAR-Betrag aus seiner eigenen Wallet in den Vertrag ein. Jeder Auftrag hat ein eigenes Guthabenkonto; es gibt keine Abhebung aus einem gemeinsamen Kundenpool. Der Anbieter signiert den Liefernachweis, der Kunde die Freigabe oder eine zulässige Erstattung in seiner Wallet. NOPE erhält niemals den privaten Wallet-Schlüssel. Der Vertrag prüft keine SNARKs; diese Prüfung erfolgt außerhalb der Blockchain.",
           "code": "",
           "href": ""
         }
@@ -114,15 +114,15 @@
         },
         {
           "id": "award",
-          "title": "Anbieter auswählen und Escrow reservieren",
-          "text": "Mit der Auswahl eines Angebots werden Anbieter und ausgewählter Preis sichtbar. Reserviere den gesponserten Testnet-Betrag und warte auf den endgültig bestätigten Escrow-Status. Eine fehlgeschlagene Reservierung berechtigt nicht zur Ausführung.",
+          "title": "Anbieter wählen und mit eigener Wallet einzahlen",
+          "text": "Anbieter und gewählter Preis werden öffentlich. Prüfe in der verknüpften Kunden-Wallet den genauen Betrag und die Transaktionsgebühr und signiere die Einzahlung ausdrücklich. Die Ausführung bleibt gesperrt, bis die Einzahlung auf der Blockchain endgültig bestätigt ist. Ein Klick oder die Erfolgsmeldung der Wallet bedeutet noch keine Endgültigkeit.",
           "code": "",
           "href": ""
         },
         {
           "id": "evaluate",
-          "title": "Auswerten und Lieferung eintragen",
-          "text": "Der ausgewählte Anbieter startet die Ausführung. Der Server erzeugt das verschlüsselte Ergebnis. Lieferversion und Hash werden auf NEAR eingetragen. Der Eintrag einer älteren Version ersetzt nicht den Eintrag der neuen Lieferung.",
+          "title": "Auswerten und Lieferung signieren",
+          "text": "Der gewählte Anbieter startet die Ausführung. Der Server erzeugt das verschlüsselte Ergebnis; der Anbieter erfasst die aktuelle Lieferversion und ihren Hash mit seiner eigenen verknüpften Wallet im Vertrag. Ein älterer Nachweis ersetzt keine neue Lieferung.",
           "code": "",
           "href": ""
         },
@@ -135,8 +135,8 @@
         },
         {
           "id": "settle",
-          "title": "Bezahlen oder Korrekturen verfolgen",
-          "text": "Gib die Zahlung nach der Annahme frei. Der Status „Bezahlt“ wird anhand der tatsächlichen Überweisung, eines erfolgreichen Callbacks und des Vertragseintrags verifiziert. Bei einer fehlerhaften Lieferung kannst du eine Korrektur anfordern. Nach Ablauf der maßgeblichen Frist gibt eine Rückzahlung den reservierten Betrag an den Sponsorenpool zurück. Es gibt keine automatische Streitbeilegung.",
+          "title": "In der Wallet freigeben oder erstatten",
+          "text": "Nach ausdrücklicher Annahme signiert der Kunde die Freigabe ausschließlich für die neueste Lieferung in seiner Wallet. Der Status bezahlt erfordert die tatsächliche Übertragung und den Vertragszustand. Eine Überarbeitung braucht einen neuen Beweis; nach der zulässigen Frist geht der ungenutzte Auftragsbetrag zurück an die Kunden-Wallet. Es gibt keine automatische Streitbeilegung.",
           "code": "",
           "href": ""
         }
@@ -146,19 +146,19 @@
       "id": "directions",
       "kind": "directions",
       "title": "Anleitung für Kunden und Anbieter",
-      "intro": "Die Rollen nutzen getrennte Testsitzungen. Ein Sitzungsname oder eine Anmeldung stellt keine Identitätsprüfung oder KYC dar.",
+      "intro": "Beide Rollen verknüpfen eine Testnet-Wallet durch Signatur. Dies bestätigt die Kontokontrolle; Sitzungsname, Anmeldung oder Wallet-Besitz bedeuten keine KYC-Prüfung.",
       "items": [
         {
           "id": "customer",
-          "title": "Als Kunde starten",
-          "text": "Wähle im Arbeitsbereich die Kundenrolle. Wähle auf der Seite für neue Aufträge die Beispiel-CSV und gib das Ziel ein. Prüfe die Vorschau, gib sie frei und veröffentliche den Auftrag. Beende in den Auftragsdetails die Angebotsphase, öffne die Angebote und wähle eines aus. Führe auf der Lieferseite Entschlüsselung, Nachweis und Entscheidung aus. Verfolge die endgültige Bestätigung auf der Zahlungsseite.",
+          "title": "Als Kunde beginnen",
+          "text": "Wähle die Kundenrolle und verknüpfe deine Testnet-Wallet durch eine signierte Bestätigung. Wähle die CSV, bestätige den Plan und veröffentliche den Auftrag. Schließe und öffne die Angebote, wähle einen Anbieter und zahle den genauen Betrag aus deiner Wallet ein. Warte auf die endgültige Bestätigung. Prüfe Ergebnis und Beweis lokal, nimm ausdrücklich an und signiere danach die Freigabe für die aktuelle Lieferung.",
           "code": "/workspace → /jobs/new → /job?id=<jobId> → /delivery?id=<jobId> → /payments?id=<jobId>",
           "href": "/workspace"
         },
         {
           "id": "provider",
-          "title": "Als Anbieter mitmachen",
-          "text": "Öffne eine Anbietersitzung in einem separaten Browserprofil und gib dein eigenes Testnet-Zahlungskonto an. Prüfe vor der Angebotsabgabe den Plan, die Grenzen und die Frist des offenen Auftrags. Warte nach deiner Auswahl auf die endgültige Escrow-Bestätigung und starte nur die Auswertung des dir zugewiesenen Auftrags. Verfolge die neue Lieferung und den Zahlungsstatus im selben Auftrag.",
+          "title": "Als Anbieter teilnehmen",
+          "text": "Öffne eine Anbietersitzung in einem separaten Browserprofil und verknüpfe deine Testnet-Wallet durch signierte Bestätigung. Das Angebotskonto muss dieser Wallet entsprechen. Prüfe Plan und Frist und gib ein Angebot ab. Warte nach der Auswahl auf die endgültige Einzahlung des Kunden; starte dann die Auswertung und signiere die Erfassung der neuesten Lieferung in deiner Wallet.",
           "code": "/workspace → /provider → /offer?id=<jobId> → /job?id=<jobId>",
           "href": "/workspace"
         }
@@ -253,7 +253,7 @@
         {
           "id": "public",
           "title": "Möglicherweise öffentliche Informationen",
-          "text": "Die Auftragsbeschreibung, anonymen Spaltentypen, der Plan, Zeilen- und Spaltenanzahl, Zeitangaben, Hashes sowie der ausgewählte Anbieter und Preis sind sichtbar. Formuliere dein Ziel entsprechend. Die öffentliche Nachweisseite zeigt nur gefilterte Informationen zu verschlüsselter Aufgabe, Lieferung, Nachweis und Bindung.",
+          "text": "Inserat, anonyme Spaltentypen, Plan, Anzahlen, Zeiten, Hashes, Wallet-Konten von Kunde und Anbieter sowie der gewählte Preis sind sichtbar. Formuliere das Ziel entsprechend. Die öffentliche Beweisseite zeigt nur die gefilterte verschlüsselte Aufgabe, Lieferung, Beweise und Bindungsdaten.",
           "code": "",
           "href": ""
         },
@@ -304,7 +304,7 @@
         {
           "id": "vault-loss",
           "title": "Kann ich meine Datei nach der Anmeldung auf einem anderen Gerät öffnen?",
-          "text": "Der Zugriff auf dieselbe Sitzung bedeutet keinen Zugriff auf den Tresor des bisherigen Geräts. Gehen lokaler Tresor und Schlüssel verloren, kann auch die Möglichkeit zum Entschlüsseln und Erstellen von Nachweisen verloren gehen. Lösche während eines laufenden Auftrags keine Websitedaten. Es gibt keinen automatischen Wiederherstellungsdienst.",
+          "text": "Erneutes Verknüpfen derselben Wallet und Rolle stellt Auftragsinhaberschaft und zulässige Erstattungsrechte wieder her, überträgt aber keine private CSV oder Decoder auf ein anderes Gerät. Gehen Tresor und Schlüssel verloren, können Entschlüsselung und Beweiserstellung unmöglich werden. Lösche während eines laufenden Auftrags keine Websitedaten; es gibt keine automatische Dateiwiederherstellung.",
           "code": "",
           "href": ""
         },
@@ -317,15 +317,15 @@
         },
         {
           "id": "refund",
-          "title": "Wird nach Fristablauf automatisch bezahlt?",
-          "text": "Nein. Schweigen gilt nicht als Annahme. Verfolge Angebotsfrist, Ausführungsfrist und Prüffrist in der Oberfläche getrennt. Nach Ablauf der maßgeblichen Prüffrist gibt eine Rückzahlungsanfrage die Sponsorenreservierung wieder frei. Das ist weder eine Überweisung an den Kunden noch eine automatische Entscheidung über einen Streitfall.",
+          "title": "Löst der Fristablauf automatisch eine Zahlung aus?",
+          "text": "Nein. Schweigen ist keine Annahme. Beachte Angebotsende, Ausführungs- und Prüffrist getrennt in der Oberfläche. Nach der zulässigen Prüffrist signiert der Kunde den Erstattungsantrag in seiner Wallet. Der Vertrag gibt das erstattbare Guthaben dieses Auftrags an den Kunden zurück; versuche bei einer ausstehenden Übertragung keine neue Zahlung oder Erstattung.",
           "code": "",
           "href": ""
         },
         {
           "id": "sponsor",
-          "title": "Warum können für einen Testauftrag Mittel fehlen?",
-          "text": "Der Sponsorenpool und das Gasbudget des Transaktionsschlüssels sind begrenzt. Pro Auftrag werden höchstens 0,01 testNEAR reserviert. Andere Aufträge oder Netzwerkkosten können den Vorgang verhindern. Der Pool füllt sich nicht selbstständig auf. Echtes Geld oder eine Mainnet-Transaktion sind nicht erforderlich.",
+          "title": "Was passiert bei fehlender Wallet oder Netzverbindung?",
+          "text": "Neue Aufträge benötigen die konfigurierte Testnet-Wallet-Treuhand; ein Rückfall auf den Sponsorenpool oder ältere Zahlungsabläufe erfolgt nicht. Deine Wallet braucht genug testNEAR für den gewählten Betrag und Gebühren. Abbruch, Fehler und unklare Transaktionen werden getrennt angezeigt; ohne Prüfung gilt nichts als abgeschlossen. Alte gesponserte Aufträge sind nur lesbar.",
           "code": "",
           "href": ""
         }

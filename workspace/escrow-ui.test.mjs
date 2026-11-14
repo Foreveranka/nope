@@ -1,294 +1,304 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createWorkspace,decisionAllowed,escrowRecordedDelivery,escrowExecutionAllowed,PROFILE,TOKEN_KEY} from '../web/workspace.js';
+import {createWorkspace,escrowRecordedDelivery,walletActionAllowed,PROOF_PROFILE,TOKEN_KEY,hashPublicProofBundle} from '../web/workspace.js';
+import {createWalletClient} from '../web/wallet-client.mjs';
 import {quoteCommitment} from '../web/workspace-vault.mjs';
-import {createGarbledJob} from '../web/gc-client.mjs';
+import {prepareProofPlan} from '../web/proof-plan-client.mjs';
+import {wrapProofPlanResult,SCHEME,finalProofContext,hashProofManifest} from '../web/proof-plan-core.mjs';
+import {acceptAgentProposal} from '../web/agent-plan.mjs';
+import {sha256} from '../web/gc-core.mjs';
 import {executeTask} from './gc.mjs';
 import {parseCSV} from '../web/csv-input.mjs';
 
-// EXPLICIT OFFLINE API / FINALITY FIXTURES ONLY. No RPC, wallet, live sponsor,
-// contract or real-chain payment is exercised or claimed by these UI tests.
-const ID='a'.repeat(32),TX='2'.repeat(44),KIND='SPONSORED_TESTNET_ESCROW';
-const BUYER={id:'fixture-buyer',role:'buyer',displayName:'Fixture buyer'},PROVIDER={id:'fixture-provider',role:'provider',displayName:'Fixture provider',paymentAccount:'supplier.testnet'};
-const FUTURE=String((BigInt(Date.now())+3600000n)*1000000n),PAST=String((BigInt(Date.now())-3600000n)*1000000n);
-const basePayment=()=>({kind:KIND,network:'testnet',status:'NOT_FUNDED',verified:false,contractId:'workspace-escrow.testnet',bindingHash:'b'.repeat(64),executionDeadlineNs:FUTURE,reviewDeadlineNs:FUTURE});
+// EXPLICIT OFFLINE UI / WALLET / FINALITY / PROOF-WORKER FIXTURES ONLY.
+// v4 preparation, GC evaluation and buyer decoding use actual local code.
+// Dedicated tests also run the real wallet-client validator against a synthetic
+// connector; other adapter fixtures assert exact known intents and bounds.
+// The adapter synthesizes only the known responses below: no signer/key, model,
+// prover, RPC, real contract, broadcast or independent chain verification.
+const ID='a'.repeat(32),TX='2'.repeat(44),KIND='WALLET_TESTNET_ESCROW',CONTRACT='wallet-ui.testnet';
+const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const CAPABILITY={required:true,enabled:true,network:'testnet',contractId:CONTRACT};
+const wallet=accountId=>({accountId,publicKey:'ed25519:'+ '1'.repeat(32),network:'testnet',verifiedAt:'2026-11-14T00:00:00Z'});
+const BUYER={id:(await sha256('NOPE:wallet-session:v1:testnet:buyer:buyer-ui.testnet')).slice(0,32),role:'buyer',displayName:'Fixture buyer',wallet:wallet('buyer-ui.testnet')};
+const PROVIDER={id:'fixture-provider',role:'provider',displayName:'Fixture provider',paymentAccount:'supplier.testnet',wallet:wallet('supplier.testnet')};
+const FUTURE=String((BigInt(Date.now())+3600000n)*1000000n),REVIEW=String((BigInt(Date.now())+7200000n)*1000000n),PAST=String((BigInt(Date.now())-3600000n)*1000000n);
+const LABEL={fund:'Kendi cüzdanımdan tam tutarı yatır',record:'Sağlayıcı cüzdanımla son teslimi kaydet',release:'Son teslimin ödemesini cüzdanımda onayla',refund:'Süre doldu · kendi cüzdanıma iade iste',refresh:'Escrow durumunu yenile',execute:'Şifreli işi yürüt ve teslim et',accept:'Doğrulanan teslimi kabul et',revise:'Düzeltme iste',prove:'Sonuç kanıtını oluştur ve doğrula'};
+const TASK={version:1,goal:'Fill C1 blanks with 7.',columns:[{id:'C1',type:'number'}]},STEPS=[{column:'C1',recipe:{type:'number',steps:[{op:'fill',value:7}]}}];
+const bindingFor=j=>({jobId:j.id,version:j.delivery.version,contractId:j.payment.contractId,bindingHash:j.payment.bindingHash,provider:j.selectedOffer.paymentAccount,amountYocto:j.selectedOffer.amountYocto});
 let encrypted;
 async function cryptoFixture(){
- if(!encrypted)encrypted=(async()=>{const prepared=await createGarbledJob([154,255]),result=await executeTask(prepared.request);return {prepared,result,local:{dataset:parseCSV('private-key,value\nfixture-A,154\nfixture-B,\n'),column:1,values:[154,255],payload:{task:prepared.request}}};})();
- return encrypted;
+ return encrypted??=(async()=>{const values={C1:[255]},approval=await acceptAgentProposal(TASK,{steps:STEPS});
+  // CSV parser omits a blank-only line: use a second retained text column.
+  const actualDataset=parseCSV('private-value,private-keep\n,secret-value\n');
+  const prepared=await prepareProofPlan(values,approval.plan,{jobId:ID,buyerCommitment:await sha256('NOPE:buyer:'+BUYER.id),contractId:CONTRACT}),result=await wrapProofPlanResult(prepared.request,await executeTask(prepared.request.task));
+  return {prepared,result,approval,local:{dataset:actualDataset,values,agentApproval:{...approval,datasetSha256:await sha256(JSON.stringify(actualDataset)),model:{id:'UNIT-ONLY-NOT-A-MODEL',revision:'fixture'}},payload:{jobId:ID,profile:PROOF_PROFILE,task:prepared.request,publicTask:TASK},proofDecoder:prepared.decoder,proofWitness:prepared.witness}};
+ })();
 }
-async function fixture({status='AWARDED',payment={},delivery=false}={}){
+function termsFor(j){return{job_id:j.id,buyer_commitment:j.buyerCommitment,buyer_account:j.buyerWallet.accountId,provider:j.selectedOffer.paymentAccount,amount:j.selectedOffer.amountYocto,input_hash:j.taskHash,program_hash:j.programHash,plan_hash:j.planSha256,execution_deadline_ns:j.payment.executionDeadlineNs,review_deadline_ns:j.payment.reviewDeadlineNs};}
+function intentFor(j,action){
+ assert.ok(['fund','record','release','refund'].includes(action));
+ const args=action==='fund'?{terms:termsFor(j)}:{buyer_account:j.buyerWallet.accountId,job_id:j.id,...(['record','release'].includes(action)?{version:j.delivery.version,output_hash:j.delivery.outputSha256}:{})};
+ return{id:'c'.repeat(64),action,network:'testnet',bindingHash:j.payment.bindingHash,transaction:{signerId:action==='record'?j.selectedOffer.paymentAccount:j.buyerWallet.accountId,receiverId:CONTRACT,actions:[{type:'FunctionCall',params:{methodName:{fund:'fund',record:'record_delivery',release:'accept_and_release',refund:'refund'}[action],args,gas:'150000000000000',deposit:action==='fund'?j.selectedOffer.amountYocto:'0'}}]}};
+}
+async function fixture({status='AWARDED',payment={},delivery=false,recorded=false}={}){
  const c=await cryptoFixture(),salt='d'.repeat(64),amountYocto='1000000000000000000000';
  const quote={jobId:ID,providerId:PROVIDER.id,amountYocto,deliveryHours:1,salt};
- const job={id:ID,buyerId:BUYER.id,title:'Offline sponsored fixture',description:'Synthetic public task',status,profile:PROFILE,rowCount:2,deadlineISO:new Date(Date.now()+3600000).toISOString(),events:[],payment:{...basePayment(),verified:['HELD','RELEASE_READY','PAID','REFUNDED'].includes(payment.status),...payment},selectedOffer:{providerId:PROVIDER.id,paymentAccount:PROVIDER.paymentAccount,amountYocto},delivery:delivery?{...c.result,version:1}:null,offers:[]};
- job.offers=[{id:'e'.repeat(32),providerId:PROVIDER.id,providerName:PROVIDER.displayName,paymentAccount:PROVIDER.paymentAccount,envelope:{fixture:'NOT-REAL-ENVELOPE'},commitment:await quoteCommitment(ID,PROVIDER.id,amountYocto,salt)}];
- return {job,quote,...c};
+ const job={id:ID,buyerId:BUYER.id,buyerWallet:structuredClone(BUYER.wallet),buyerCommitment:await sha256('NOPE:buyer:'+BUYER.id),title:'OFFLINE customer-wallet fixture',description:'Synthetic public task',status,profile:PROOF_PROFILE,rowCount:1,publicTask:TASK,plan:c.approval.plan,planSha256:c.approval.planSha256,taskHash:c.result.inputSha256,programHash:c.result.programSha256,deadlineISO:new Date(Date.now()+3600000).toISOString(),events:[],proof:{status:'NOT_CREATED'},payment:{kind:KIND,network:'testnet',status:'NOT_FUNDED',verified:['HELD','RELEASE_READY','PAID','REFUNDED'].includes(payment.status),contractId:CONTRACT,buyerAccount:BUYER.wallet.accountId,bindingHash:'b'.repeat(64),executionDeadlineNs:FUTURE,reviewDeadlineNs:REVIEW,...payment},selectedOffer:{providerId:PROVIDER.id,paymentAccount:PROVIDER.paymentAccount,wallet:structuredClone(PROVIDER.wallet),amountYocto},delivery:delivery?{...c.result,version:1}:null,offers:[]};
+ job.payment.bindingHash=await sha256(JSON.stringify([POLICY.domain,CONTRACT,...Object.values(termsFor(job))]));
+ if(recorded)Object.assign(job.payment,{recordedVersion:1,recordedOutputHash:job.delivery.outputSha256});
+ job.offers=[{id:'e'.repeat(32),providerId:PROVIDER.id,providerName:PROVIDER.displayName,paymentAccount:PROVIDER.paymentAccount,wallet:structuredClone(PROVIDER.wallet),envelope:{fixture:'NOT-REAL-ENVELOPE'},commitment:await quoteCommitment(ID,PROVIDER.id,amountYocto,salt)}];
+ const selectedOffer=structuredClone(job.selectedOffer);if(['OPEN','CLOSED'].includes(status))job.selectedOffer=null;
+ const f={job,quote,selectedOffer,...c};
+ f.bundle=async()=>({version:1,scheme:SCHEME,finalContext:await finalProofContext(c.prepared.request,job.delivery,bindingFor(job)),rows:[{column:'C1',row:0,proof:{fixture:'UNIT-ONLY-NOT-A-SNARK'}}]});
+ f.metadata=async()=>({status:'VERIFIED',scheme:SCHEME,version:1,bundleSha256:await hashPublicProofBundle(await f.bundle()),finalContext:(await f.bundle()).finalContext,requestSha256:job.delivery.inputSha256,manifestSha256:await hashProofManifest(c.prepared.request),programSha256:job.delivery.programSha256,planSha256:job.planSha256,deliveryVersion:job.delivery.version,outputSha256:job.delivery.outputSha256,bindingHash:job.payment.bindingHash,rowProofCount:1});
+ return f;
 }
 class Element {
-  constructor(tag) { this.tagName = tag.toUpperCase(); this.children = []; this.listeners = {}; this.dataset = {}; this.attributes = {}; this.value = ''; this.disabled = false; this.files = []; }
-  set textContent(v) { this.text = String(v); this.children = []; }
-  get textContent() { return (this.text || '') + this.children.map(x => x.textContent).join(' '); }
-  append(...nodes) { for (const node of nodes) { if (node.parentElement) node.parentElement.children = node.parentElement.children.filter(x => x !== node); node.parentElement = this; this.children.push(node); if (this.tagName === 'SELECT' && this.children.length === 1) this.value = node.value; } }
-  replaceChildren(...nodes) { this.children.forEach(n => n.parentElement = null); this.children = []; this.text = ''; this.append(...nodes); }
-  addEventListener(name, fn) { (this.listeners[name] ||= []).push(fn); }
-  setAttribute(k, v) { this.attributes[k] = v; }
-  removeAttribute(k) { delete this.attributes[k]; }
-  reportValidity() { return true; }
-  async fire(type, event = {}) { for (const fn of this.listeners[type] || []) await fn({ preventDefault() {}, button: 0, ...event }); }
+ constructor(tag){this.tagName=tag.toUpperCase();this.children=[];this.listeners={};this.dataset={};this.attributes={};this.value='';this.disabled=false;this.checked=false;this.files=[];}
+ set textContent(v){this.text=String(v);this.children=[];}
+ get textContent(){return(this.text||'')+this.children.map(x=>x.textContent).join(' ');}
+ append(...nodes){for(const node of nodes){if(node.parentElement)node.parentElement.children=node.parentElement.children.filter(x=>x!==node);node.parentElement=this;this.children.push(node);if(this.tagName==='SELECT'&&this.children.length===1)this.value=node.value;}}
+ replaceChildren(...nodes){this.children.forEach(n=>n.parentElement=null);this.children=[];this.text='';this.append(...nodes);}
+ addEventListener(name,fn){(this.listeners[name]||=[]).push(fn);}
+ setAttribute(k,v){this.attributes[k]=v;}
+ removeAttribute(k){delete this.attributes[k];}
+ reportValidity(){return true;}
+ async fire(type,event={}){for(const fn of this.listeners[type]||[])await fn({preventDefault(){},button:0,...event});}
 }
-function descendants(node) { return [node, ...node.children.flatMap(descendants)]; }
-async function settle(app) { for (let i = 0; i < 10000 && app.state.busy; i++) await new Promise(resolve => setTimeout(resolve, 1)); assert.equal(app.state.busy, false, 'UI action settled'); }
-
-function browser(f,{identity=BUYER,path='/payments?id='+ID,local=true,decoded,hook,finalize=true}={}){
+const descendants=node=>[node,...node.children.flatMap(descendants)];
+async function settle(app){for(let i=0;i<10000&&app.state.busy;i++)await new Promise(resolve=>setTimeout(resolve,1));assert.equal(app.state.busy,false,'UI action settled');}
+function browser(f,{identity=BUYER,path='/payments?id='+ID,local=true,hook,finalize=true,signer=identity.wallet,cancel=false,unknown=false,redirect=false,records=new Map(),genuineWallet=false,walletCapability=CAPABILITY,walletPolicy=POLICY}={}){
  const elements=new Map(['workspace-root','workspace-nav','workspace-identity','workspace-message','workspace-logout','workspace-heading','workspace-subtitle'].map(k=>[k,new Element('div')]));
- const calls=[],timers=new Map();let timerId=0;
- const storage={getItem:key=>key===TOKEN_KEY?'offline-session':null,setItem(){},removeItem(){}};
- const win={location:new URL('http://localhost'+path),sessionStorage:storage,addEventListener(){},navigator:{clipboard:{writeText:async()=>{}}},URL,
-  setTimeout:fn=>{const id=++timerId;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),
-  history:{pushState:(_,__,href)=>win.location=new URL(href,win.location),replaceState:(_,__,href)=>win.location=new URL(href,win.location)}};
+ const calls=[],sends=[],broadcasts=[],preparedIntents=[],clientErrors=[],proofMessages=[],timers=new Map();let timerId=0;
+ const sessionRecords=new Map([[TOKEN_KEY,'offline-session']]);
+ const storage={getItem:key=>sessionRecords.get(key)||null,setItem:(key,value)=>sessionRecords.set(key,value),removeItem:key=>sessionRecords.delete(key)};
+ const win={location:new URL('http://localhost'+path),sessionStorage:storage,addEventListener(){},navigator:{clipboard:{writeText:async()=>{}}},URL,setTimeout:fn=>{timers.set(++timerId,fn);return timerId;},clearTimeout:id=>timers.delete(id),history:{pushState:(_,__,href)=>win.location=new URL(href,win.location),replaceState:(_,__,href)=>win.location=new URL(href,win.location)}};
  const all=()=>descendants(elements.get('workspace-root'));
  const doc={getElementById:k=>elements.get(k),createElement:tag=>new Element(tag),addEventListener(){},querySelectorAll:()=>all().filter(n=>['BUTTON','INPUT','SELECT','TEXTAREA'].includes(n.tagName))};
- let savedJob=local?f.local:null;const cryptoCalls={sealedQuotes:0};
- const vault={loadJob:async()=>savedJob,saveJob:async(_,value)=>{savedJob=value;},encryptQuote:async()=>{cryptoCalls.sealedQuotes++;return {fixture:'OFFLINE-NOT-REAL-QUOTE-ENVELOPE'};},decodeDelivery:async(_,labels)=>decoded??f.prepared.decode(Array.isArray(labels)?labels:labels.outputs),decryptQuote:async()=>f.quote};
- const app=createWorkspace({document:doc,window:win,storage,vaultFactory:()=>vault,fetch:async(url,options)=>{
-  const route='/'+new URL(url,'http://localhost').searchParams.get('route'),body=options.body===undefined?undefined:JSON.parse(options.body),call={route,method:options.method,body};calls.push(call);
-  let data;
-  if(route==='/session')data={session:identity};
-  else if(route==='/jobs')data={jobs:[f.job]};
-  else if(options.method==='GET')data={job:f.job};
-  else {
-   const action=route.slice(('/jobs/'+ID+'/').length),j=f.job,resuming=action==='payment/'+j.payment.operation?.resumeAction;
-   if(action.startsWith('payment/')&&action!=='payment/verify')assert.deepEqual(body,{},'escrow API bodies are exactly empty; no job/price/hash override from UI');
-   if(action==='award'){assert.equal(body.offerId,j.offers[0].id);assert.equal(body.amountYocto,f.quote.amountYocto);j.status='AWARDED';}
+ const cryptoCalls={sealedQuotes:0};
+ const vaultFactory=namespace=>({loadJob:async key=>key===ID&&namespace!=='nope-wallet-redirect-v1'?(local?f.local:null):records.get(namespace+':'+key)||null,saveJob:async(key,v)=>records.set(namespace+':'+key,structuredClone(v)),encryptQuote:async()=>{cryptoCalls.sealedQuotes++;return{fixture:'OFFLINE-NOT-REAL-ENVELOPE'};},decryptQuote:async()=>f.quote});
+ const walletFactory=async options=>{assert.deepEqual(options.policy,walletPolicy);assert.equal(options.network,'testnet');let actual;
+  if(genuineWallet){
+   const walletConnector={manifest:{id:'UNIT-ONLY-CONNECTOR'},getAccounts:async()=>[{accountId:signer.accountId,publicKey:signer.publicKey}],signAndSendTransaction:async request=>{
+    broadcasts.push(structuredClone(request));const call=request.actions[0].params;
+    assert.deepEqual(request,{...intentFor(f.job,'fund').transaction,network:'testnet',callbackUrl:'http://localhost/settings?state='+ 'c'.repeat(64)});
+    return{transaction:{hash:TX,signer_id:request.signerId,receiver_id:request.receiverId,actions:[{FunctionCall:{method_name:call.methodName,args:Buffer.from(JSON.stringify(call.args)).toString('base64'),gas:call.gas,deposit:call.deposit}}]}};
+   }};
+   actual=createWalletClient({...options,connectorFactory:()=>({whenManifestLoaded:Promise.resolve(),availableWallets:[{manifest:{id:'UNIT-ONLY-CONNECTOR',features:{testnet:true,signMessage:true,signAndSendTransaction:true}}}],selectWallet:async()=> 'UNIT-ONLY-CONNECTOR',connect:async()=>walletConnector})});
+  }
+  const actualCall=async(name,...args)=>{try{return await actual[name](...args);}catch(error){clientErrors.push({stage:name,code:error.code,message:error.message});throw error;}};
+  return{
+  currentAccount:async()=>actual?actualCall('currentAccount'):signer,connect:async options=>actual?actualCall('connect',options):signer,completeRedirect:async()=>null,
+  sendTransaction:async(intent,bounds)=>{
+   const j=f.job;assert.deepEqual(intent,genuineWallet?preparedIntents.at(-1):intentFor(j,intent.action),'UI forwards exact prepared intent without adding/removing arguments');
+   assert.deepEqual(bounds,{action:intent.action,jobId:ID,bindingHash:j.payment.bindingHash,accountId:identity.wallet.accountId,contractId:CONTRACT,provider:j.selectedOffer.paymentAccount,amountYocto:j.selectedOffer.amountYocto,buyerAccount:j.buyerWallet.accountId,...(intent.action==='fund'?{buyerCommitment:j.buyerCommitment,inputHash:j.taskHash,programHash:j.programHash,planHash:j.planSha256,executionDeadlineNs:j.payment.executionDeadlineNs,reviewDeadlineNs:j.payment.reviewDeadlineNs}:{}),...(['record','release'].includes(intent.action)?{version:j.delivery.version,outputHash:j.delivery.outputSha256}:{})});
+   sends.push(structuredClone({intent,bounds}));
+   if(cancel||unknown)throw Object.assign(Error('Explicit unit adapter outcome'),{code:cancel?'WALLET_REJECTED':'WALLET_TRANSACTION_UNKNOWN'});
+   if(actual){try{return await actual.sendTransaction(intent,bounds);}catch(error){clientErrors.push({code:error.code,message:error.message});throw error;}}
+   return redirect?{redirected:true}:{transactionHash:TX};
+  }
+ };};
+ const proofWorkerFactory=()=>({terminate(){this.terminated=true;},postMessage(value){assert.ok(['prove','verify'].includes(value.type));assert.deepEqual(value.request,f.prepared.request);proofMessages.push(structuredClone(value));queueMicrotask(async()=>this.onmessage({data:value.type==='prove'?{type:'proof',bundle:await f.bundle()}:{type:'verified',valid:true}}));}});
+ const app=createWorkspace({document:doc,window:win,storage,walletPolicy,walletFactory,proofWorkerFactory,vaultFactory,fetch:async(url,options)=>{
+  const route='/'+new URL(url,'http://localhost').searchParams.get('route'),body=options.body===undefined?undefined:JSON.parse(options.body),call={route,method:options.method,body};calls.push(call);const j=f.job;let data;
+  if(route==='/session')data={session:identity,proof:{profile:PROOF_PROFILE,enabled:true,contractId:CONTRACT},wallet:walletCapability};
+  else if(route==='/wallet')data={wallet:identity.wallet};
+  else if(route==='/jobs')data={jobs:[j]};
+  else if(route.endsWith('/proof/evidence'))data={version:1,network:'testnet',jobId:ID,walletBuyerAccount:j.buyerWallet.accountId,task:f.prepared.request,delivery:j.delivery,binding:bindingFor(j),proof:j.proof,bundle:await f.bundle()};
+  else if(route.endsWith('/task'))data={task:f.prepared.request};
+  else if(options.method==='GET'){assert.equal(route,'/jobs/'+ID);data={job:j};}
+  else{
+   const action=route.slice(('/jobs/'+ID+'/').length);
+   if(action==='award'){assert.deepEqual(body,{offerId:j.offers[0].id,amountYocto:f.quote.amountYocto,salt:f.quote.salt});j.selectedOffer=structuredClone(f.selectedOffer);j.status='AWARDED';}
    else if(action==='offers'){assert.deepEqual(Object.keys(body).sort(),['commitment','envelope']);j.ownOffer={id:'f'.repeat(32),providerId:identity.id};}
-   else if(action==='payment/fund'){assert.equal(j.status,'AWARDED');if(!resuming)assert.equal(j.payment.status,'NOT_FUNDED');j.payment.status='FUNDING_PENDING';j.payment.verified=false;j.payment.fundTransactionHash=TX;}
-   else if(action==='execute'){
-    if(j.payment.kind===KIND)assert.equal(j.payment.status,'HELD');
-    j.status='DELIVERED';j.delivery={...f.result,version:(j.delivery?.version||0)+1};
-   }
-   else if(action==='payment/record'){assert.equal(j.status,'DELIVERED');if(!resuming)assert.equal(j.payment.status,'HELD');j.payment.status='RECORD_PENDING';j.payment.verified=false;j.payment.recordTransactionHash=TX;}
-   else if(action==='decision'){
-    assert.equal(body.version,j.delivery.version);assert.equal(body.outputSha256,j.delivery.outputSha256);
-    if(body.decision==='accept'){
-     if(j.payment.kind===KIND){assert.equal(j.payment.status,'HELD');assert.equal(j.payment.recordedVersion,j.delivery.version);assert.equal(j.payment.recordedOutputHash,j.delivery.outputSha256);j.payment.status='RELEASE_READY';}
-     else j.payment.status='DUE';
-     j.status='ACCEPTED';
-    }else j.status='REVISION';
-   }
-   else if(action==='payment/release'){assert.equal(j.status,'ACCEPTED');if(!resuming)assert.equal(j.payment.status,'RELEASE_READY');j.payment.status='PAYOUT_PENDING';j.payment.verified=false;j.payment.releaseTransactionHash=TX;}
-   else if(action==='payment/refund'){assert.notEqual(j.status,'PAID');assert.ok(BigInt(j.payment.reviewDeadlineNs)<BigInt(Date.now())*1000000n);j.payment.status='REFUND_PENDING';j.payment.verified=false;j.payment.refundTransactionHash=TX;}
-   else if(action==='payment/refresh'&&finalize){
-    if(j.payment.status==='FUNDING_PENDING'){j.payment.status='HELD';j.payment.verified=true;}
-    else if(j.payment.status==='RECORD_PENDING'){j.payment.status='HELD';j.payment.verified=true;j.payment.recordedVersion=j.delivery.version;j.payment.recordedOutputHash=j.delivery.outputSha256;}
-    else if(j.payment.status==='PAYOUT_PENDING'){j.status='PAID';j.payment.status='PAID';j.payment.verified=true;}
-    else if(j.payment.status==='REFUND_PENDING'){j.status='REFUNDED';j.payment.status='REFUNDED';j.payment.verified=true;}
-   }
-   else if(action==='payment/verify'){assert.ok(body.buyerAccount);assert.ok(body.transactionHash);j.status='PAID';j.payment.status='PAID';j.payment.verified=true;}
-   if(resuming)delete j.payment.operation.resumeAction;
-   data={job:j};
+   else if(action==='execute'){assert.equal(j.payment.status,'HELD');assert.equal(j.payment.verified,true);j.status='DELIVERED';j.delivery={...f.result,version:(j.delivery?.version||0)+1};j.proof={status:'NOT_CREATED'};}
+   else if(action==='proof'){assert.deepEqual(Object.keys(body).sort(),['bundle','outputSha256','version']);assert.deepEqual(body.bundle,await f.bundle());assert.equal(body.version,j.delivery.version);assert.equal(body.outputSha256,j.delivery.outputSha256);j.proof=await f.metadata();}
+   else if(action==='decision'){assert.deepEqual(Object.keys(body).sort(),['decision','outputSha256','version']);assert.equal(body.version,j.delivery.version);assert.equal(body.outputSha256,j.delivery.outputSha256);assert.equal(escrowRecordedDelivery(j),true);j.status=body.decision==='accept'?'ACCEPTED':'REVISION';if(body.decision==='accept')j.payment.status='RELEASE_READY';}
+   else if(action==='payment/prepare'){assert.deepEqual(Object.keys(body),['action']);assert.equal(walletActionAllowed(j,body.action,identity),true);data={job:j,intent:intentFor(j,body.action)};}
+   else if(action==='payment/confirm'){
+    assert.deepEqual(body,{action:sends.at(-1).intent.action,transactionHash:TX});assert.equal(body.action,sends.at(-1).bounds.action);
+    j.payment.status={fund:'FUNDING_PENDING',record:'RECORD_PENDING',release:'PAYOUT_PENDING',refund:'REFUND_PENDING'}[body.action];j.payment.verified=false;j.payment[body.action+'TransactionHash']=TX;
+   }else if(action==='payment/refresh'){
+    assert.deepEqual(body,{});
+    if(finalize){
+     if(j.payment.status==='FUNDING_PENDING'){j.payment.status='HELD';j.payment.verified=true;}
+     else if(j.payment.status==='RECORD_PENDING'){j.payment.status='HELD';j.payment.verified=true;j.payment.recordedVersion=j.delivery.version;j.payment.recordedOutputHash=j.delivery.outputSha256;}
+     else if(j.payment.status==='PAYOUT_PENDING'){j.status='PAID';j.payment.status='PAID';j.payment.verified=true;}
+     else if(j.payment.status==='REFUND_PENDING'){j.status='REFUNDED';j.payment.status='REFUNDED';j.payment.verified=true;j.payment.refundAccount=j.buyerWallet.accountId;}
+    }
+   }else assert.fail('Unexpected legacy or unowned mutation '+route);
+   data??={job:j};
   }
   const replacement=await hook?.(call,f,data);if(replacement)return replacement;
-  return {ok:true,status:200,json:async()=>structuredClone(data)};
+  if(route.endsWith('/payment/prepare'))preparedIntents.push(structuredClone(data.intent));
+  return{ok:true,status:200,json:async()=>structuredClone(data)};
  }});
- return {app,calls,all,timers,win,cryptoCalls,get:name=>all().find(e=>e.name===name),text:()=>elements.get('workspace-root').textContent,message:()=>elements.get('workspace-message').textContent,
-  has:label=>all().some(e=>e.tagName==='BUTTON'&&e.textContent===label),
-  enabled:label=>all().some(e=>e.tagName==='BUTTON'&&e.textContent===label&&!e.disabled),
+ return{app,calls,sends,broadcasts,preparedIntents,clientErrors,proofMessages,all,timers,win,records,cryptoCalls,get:name=>all().find(e=>e.name===name),text:()=>elements.get('workspace-root').textContent,message:()=>elements.get('workspace-message').textContent,
+  has:label=>all().some(e=>e.tagName==='BUTTON'&&e.textContent===label),enabled:label=>all().some(e=>e.tagName==='BUTTON'&&e.textContent===label&&!e.disabled),
   click:async label=>{const b=all().find(e=>e.tagName==='BUTTON'&&e.textContent===label);assert.ok(b,label);await b.fire('click');await settle(app);},
-  poll:async()=>{const entry=timers.entries().next().value;assert.ok(entry,'a pending-status refresh is scheduled');timers.delete(entry[0]);entry[1]();await settle(app);},
+  poll:async()=>{const entry=timers.entries().next().value;assert.ok(entry,'pending finality schedules read-only refresh');timers.delete(entry[0]);entry[1]();await settle(app);},
   submit:async()=>{await all().find(e=>e.tagName==='FORM').fire('submit');await settle(app);}
  };
 }
+const writes=h=>h.calls.filter(c=>c.method==='POST');
+const signs=h=>h.sends.map(x=>x.intent.action);
 
-test('OFFLINE fixture: award funds once, finalized HELD unlocks execution, provider records, buyer reference accepts and exact payout finalizes',async()=>{
+test('OFFLINE wallet flow separates award, funding, execution, recording, v4 acceptance and release; only final chain fixture is PAID',async()=>{
  const f=await fixture({status:'CLOSED'}),buyer=browser(f,{path:'/job?id='+ID});await buyer.app.start();
- assert.ok(buyer.text().includes('sonlu'));const consent=buyer.all().find(e=>e.type==='checkbox');assert.ok(consent.parentElement.textContent.includes('zincirde herkese açık'));consent.checked=true;
- await buyer.click('Bu sağlayıcıyı seç');assert.equal(f.job.payment.status,'FUNDING_PENDING');assert.equal(buyer.calls.filter(c=>c.route.endsWith('/payment/fund')).length,1);
- assert.equal(buyer.has('Sponsor havuzundan fon ayır'),false);await buyer.poll();assert.equal(f.job.payment.status,'HELD');
- const provider=browser(f,{identity:PROVIDER,path:'/delivery?id='+ID});await provider.app.start();await provider.click('Şifreli işi yürüt ve teslim et');
- const writes=provider.calls.filter(c=>c.method==='POST');assert.deepEqual(writes.map(c=>c.route.split('/').slice(-2).join('/')),[''+ID+'/execute','payment/record']);assert.equal(f.job.payment.status,'RECORD_PENDING');
- const awaiting=browser(f,{path:'/delivery?id='+ID});await awaiting.app.start();assert.ok(awaiting.text().includes('Yerel kontrol başarılı'));assert.equal(awaiting.enabled('Doğrulanan teslimi kabul et'),false);
- await provider.poll();assert.equal(f.job.payment.status,'HELD');assert.equal(f.job.payment.recordedVersion,1);assert.equal(f.job.payment.recordedOutputHash,f.job.delivery.outputSha256);
- const verified=browser(f,{path:'/delivery?id='+ID});await verified.app.start();assert.ok(verified.enabled('Doğrulanan teslimi kabul et'));await verified.click('Doğrulanan teslimi kabul et');
- assert.equal(f.job.status,'ACCEPTED');assert.equal(f.job.payment.status,'PAYOUT_PENDING');assert.ok(!verified.text().includes('Durum: Zincirde ödeme doğrulandı'));
- const decision=verified.calls.find(c=>c.route.endsWith('/decision'));assert.deepEqual(decision.body,{decision:'accept',version:1,outputSha256:f.job.delivery.outputSha256});assert.deepEqual(verified.calls.find(c=>c.route.endsWith('/payment/release')).body,{});
- await verified.poll();assert.equal(f.job.status,'PAID');assert.ok(verified.text().includes('Durum: Zincirde ödeme doğrulandı'));
- assert.equal(verified.has('Kabul edilen teslimin ödemesini serbest bırak'),false);assert.equal(verified.has('Sponsor havuzundan fon ayır'),false);
+ const consent=buyer.all().find(e=>e.type==='checkbox');assert.ok(consent.parentElement.textContent.includes('zincirde herkese açık'));consent.checked=true;
+ await buyer.click('Bu sağlayıcıyı seç');assert.equal(f.job.status,'AWARDED');assert.equal(f.job.payment.status,'NOT_FUNDED');assert.deepEqual(signs(buyer),[]);assert.equal(writes(buyer).length,1,'award never funds automatically');
+ await buyer.click(LABEL.fund);assert.equal(f.job.payment.status,'FUNDING_PENDING');assert.deepEqual(signs(buyer),['fund']);assert.deepEqual(writes(buyer).slice(1).map(c=>[c.route.split('/').at(-1),c.body]),[['prepare',{action:'fund'}],['confirm',{action:'fund',transactionHash:TX}]]);
+ await buyer.poll();assert.equal(f.job.payment.status,'HELD');
+ const provider=browser(f,{identity:PROVIDER,path:'/delivery?id='+ID});await provider.app.start();await provider.click(LABEL.execute);assert.equal(f.job.status,'DELIVERED');assert.deepEqual(signs(provider),[],'execution never records automatically');assert.equal(writes(provider).length,1);
+ const awaiting=browser(f,{path:'/delivery?id='+ID});await awaiting.app.start();assert.ok(awaiting.text().includes('Yerel kontrol başarılı'));assert.equal(awaiting.enabled(LABEL.accept),false);assert.equal(awaiting.has(LABEL.record),false,'only selected provider signs delivery recording');
+ await provider.click(LABEL.record);assert.equal(f.job.payment.status,'RECORD_PENDING');assert.deepEqual(signs(provider),['record']);await provider.poll();assert.equal(f.job.payment.recordedVersion,1);assert.equal(f.job.payment.recordedOutputHash,f.job.delivery.outputSha256);
+ const verified=browser(f,{path:'/delivery?id='+ID});await verified.app.start();assert.equal(verified.enabled(LABEL.accept),false);await verified.click(LABEL.prove);assert.deepEqual(verified.proofMessages.map(x=>x.type),['prove','verify']);assert.equal(verified.enabled(LABEL.accept),true);await verified.click(LABEL.accept);
+ assert.equal(f.job.status,'ACCEPTED');assert.equal(f.job.payment.status,'RELEASE_READY');assert.deepEqual(signs(verified),[],'acceptance never releases automatically');assert.deepEqual(writes(verified).find(c=>c.route.endsWith('/decision')).body,{decision:'accept',version:1,outputSha256:f.job.delivery.outputSha256});
+ await verified.click(LABEL.release);assert.equal(f.job.status,'ACCEPTED');assert.equal(f.job.payment.status,'PAYOUT_PENDING');assert.ok(!verified.text().includes('Durum: Zincirde ödeme doğrulandı'));assert.deepEqual(signs(verified),['release']);await verified.poll();assert.equal(f.job.status,'PAID');assert.ok(verified.text().includes('Durum: Zincirde ödeme doğrulandı'));
+ assert.equal(verified.has(LABEL.release),false);assert.equal(verified.has('Sponsor havuzundan fon ayır'),false);
  const links=verified.all().filter(e=>e.tagName==='A'&&e.href?.includes('nearblocks.io'));assert.equal(links.length,3);assert.ok(links.every(e=>e.href==='https://testnet.nearblocks.io/txns/'+TX&&e.rel==='noopener noreferrer'));
 });
 
-test('OFFLINE fixture: missing/pending/unknown funding disables provider execution without sending any action',async()=>{
- for(const status of ['NOT_FUNDED','FUNDING_PENDING','UNKNOWN','ERROR','REFUND_PENDING','REFUNDED']){
-  const f=await fixture({payment:{status}}),provider=browser(f,{identity:PROVIDER,path:'/delivery?id='+ID,finalize:false});await provider.app.start();
-  const execute=provider.all().find(e=>e.textContent==='Şifreli işi yürüt ve teslim et');assert.equal(execute.disabled,true,status);
-  await provider.click('Şifreli işi yürüt ve teslim et');assert.equal(provider.calls.filter(c=>c.method==='POST').length,0,status);
+test('OFFLINE unheld, unverified, expired or unknown funds cannot execute, even through a retained disabled button',async()=>{
+ for(const payment of [...['NOT_FUNDED','FUNDING_PENDING','UNKNOWN','ERROR','REFUND_PENDING','REFUNDED'].map(status=>({status})),{status:'HELD',verified:false},{status:'HELD',executionDeadlineNs:PAST}]){
+  const h=browser(await fixture({payment}),{identity:PROVIDER,path:'/delivery?id='+ID,finalize:false});await h.app.start();assert.equal(h.enabled(LABEL.execute),false,JSON.stringify(payment));await h.click(LABEL.execute);assert.equal(writes(h).length,0);assert.equal(h.sends.length,0);
  }
 });
 
-test('OFFLINE fixture: buyer can finish recording; stale version/hash and wrong local result never offer acceptance',async()=>{
- const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true});
- for(const fields of [{},{recordedVersion:0,recordedOutputHash:f.job.delivery.outputSha256},{recordedVersion:1,recordedOutputHash:'f'.repeat(64)}]){
-  Object.assign(f.job.payment,{recordedVersion:undefined,recordedOutputHash:undefined},fields);
-  const buyer=browser(f,{path:'/delivery?id='+ID});await buyer.app.start();assert.equal(buyer.enabled('Doğrulanan teslimi kabul et'),false);assert.ok(buyer.has('Son teslimi zincirde kaydet'));
+test('OFFLINE latest chain record/version/hash gates both decisions; full local v4 proof additionally gates acceptance',async()=>{
+ for(const fields of [{},{recordedVersion:0},{recordedOutputHash:'f'.repeat(64)},{status:'RECORD_PENDING',verified:false},{status:'RELEASE_READY'},{verified:false}]){
+  const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true,recorded:true});
+  if(!Object.keys(fields).length){delete f.job.payment.recordedVersion;delete f.job.payment.recordedOutputHash;}else Object.assign(f.job.payment,fields);
+  const h=browser(f,{path:'/delivery?id='+ID});await h.app.start();assert.equal(h.enabled(LABEL.accept),false);assert.equal(h.enabled(LABEL.revise),false);await h.click(LABEL.accept);await h.click(LABEL.revise);assert.equal(writes(h).filter(c=>c.route.endsWith('/decision')).length,0);
  }
- const buyer=browser(f,{path:'/delivery?id='+ID});await buyer.app.start();await buyer.click('Son teslimi zincirde kaydet');assert.equal(f.job.payment.status,'RECORD_PENDING');assert.equal(buyer.enabled('Doğrulanan teslimi kabul et'),false);await buyer.poll();assert.ok(buyer.enabled('Doğrulanan teslimi kabul et'));
- const incorrect=browser(f,{path:'/delivery?id='+ID,decoded:[99,0]});await incorrect.app.start();assert.equal(incorrect.enabled('Doğrulanan teslimi kabul et'),false);assert.ok(incorrect.text().includes('Yerel kontrol başarısız'));
- const missing=browser(f,{path:'/delivery?id='+ID,local:false});await missing.app.start();assert.equal(missing.enabled('Doğrulanan teslimi kabul et'),false);
+ const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true,recorded:true}),h=browser(f,{path:'/delivery?id='+ID});await h.app.start();assert.equal(h.enabled(LABEL.revise),true);assert.equal(h.enabled(LABEL.accept),false);await h.click(LABEL.prove);assert.equal(h.enabled(LABEL.accept),true);
 });
 
-test('OFFLINE fixture: rejected delivery revision retains funding but requires final recording of the new version',async()=>{
- const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true});Object.assign(f.job.payment,{recordedVersion:1,recordedOutputHash:f.job.delivery.outputSha256});
- const buyer=browser(f,{path:'/delivery?id='+ID});await buyer.app.start();await buyer.click('Düzeltme iste');assert.equal(f.job.status,'REVISION');assert.equal(f.job.payment.status,'HELD');
- const provider=browser(f,{identity:PROVIDER,path:'/delivery?id='+ID});await provider.app.start();await provider.click('Düzeltmeyi yeniden yürüt');assert.equal(f.job.delivery.version,2);assert.equal(f.job.payment.status,'RECORD_PENDING');assert.equal(f.job.payment.recordedVersion,1);
- const before=browser(f,{path:'/delivery?id='+ID});await before.app.start();assert.equal(before.enabled('Doğrulanan teslimi kabul et'),false);await provider.poll();
- const after=browser(f,{path:'/delivery?id='+ID});await after.app.start();assert.ok(after.enabled('Doğrulanan teslimi kabul et'));assert.equal(f.job.payment.recordedVersion,2);assert.equal(provider.calls.filter(c=>c.route.endsWith('/payment/fund')).length,0);
+test('OFFLINE revision requires a fresh delivery record and fresh proof, never another deposit',async()=>{
+ const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true,recorded:true}),buyer=browser(f,{path:'/delivery?id='+ID});await buyer.app.start();await buyer.click(LABEL.revise);assert.equal(f.job.status,'REVISION');
+ const provider=browser(f,{identity:PROVIDER,path:'/delivery?id='+ID});await provider.app.start();await provider.click('Düzeltmeyi yeniden yürüt');assert.equal(f.job.delivery.version,2);assert.equal(f.job.payment.status,'HELD');assert.equal(f.job.payment.recordedVersion,1);assert.deepEqual(signs(provider),[]);
+ const before=browser(f,{path:'/delivery?id='+ID});await before.app.start();assert.equal(before.enabled(LABEL.accept),false);assert.equal(before.enabled(LABEL.revise),false);
+ await provider.click(LABEL.record);await provider.poll();const after=browser(f,{path:'/delivery?id='+ID});await after.app.start();assert.equal(after.enabled(LABEL.accept),false,'v1 proof does not authorize v2');await after.click(LABEL.prove);assert.equal(after.enabled(LABEL.accept),true);assert.equal(f.job.payment.recordedVersion,2);assert.deepEqual(signs(provider),['record']);
 });
 
-test('OFFLINE fixture: ambiguous release requires reconciliation before explicit recovery and never resends automatically',async()=>{
- const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true});Object.assign(f.job.payment,{recordedVersion:1,recordedOutputHash:f.job.delivery.outputSha256});
- let lost=true;
- const buyer=browser(f,{path:'/delivery?id='+ID,hook:call=>{if(call.route.endsWith('/payment/release')&&lost){lost=false;f.job.payment.status='RELEASE_READY';f.job.payment.verified=true;throw Error('OFFLINE lost reply before known broadcast');}}});
- await buyer.app.start();await buyer.click('Doğrulanan teslimi kabul et');assert.equal(f.job.status,'ACCEPTED');assert.equal(buyer.has('Kabul edilen teslimin ödemesini serbest bırak'),false);assert.match(buyer.message(),/sonucu doğrulanamadı/);
- assert.equal(buyer.calls.filter(c=>c.route.endsWith('/payment/release')).length,1);assert.equal(buyer.timers.size,0);
- await buyer.click('Escrow durumunu yenile');assert.ok(buyer.has('Kabul edilen teslimin ödemesini serbest bırak'));await buyer.click('Kabul edilen teslimin ödemesini serbest bırak');assert.equal(f.job.payment.status,'PAYOUT_PENDING');
- await buyer.poll();assert.equal(f.job.status,'PAID');assert.equal(buyer.calls.filter(c=>c.route.endsWith('/payment/release')).length,2,'second call needs explicit recovery after refresh');
+test('OFFLINE expired hold refunds explicitly to the immutable customer wallet, never sponsor/provider; finality still required',async()=>{
+ for(const accepted of [false,true]){
+  const f=await fixture({status:accepted?'ACCEPTED':'AWARDED',payment:{status:accepted?'RELEASE_READY':'HELD',reviewDeadlineNs:PAST,executionDeadlineNs:PAST},delivery:accepted,recorded:accepted}),h=browser(f);await h.app.start();assert.equal(writes(h).length,0);assert.equal(h.has(LABEL.release),false);assert.equal(h.enabled(LABEL.refund),true);
+  await h.click(LABEL.refund);assert.equal(f.job.payment.status,'REFUND_PENDING');assert.notEqual(f.job.status,'REFUNDED');assert.equal(h.sends[0].intent.transaction.signerId,BUYER.wallet.accountId);assert.deepEqual(h.sends[0].intent.transaction.actions[0].params.args,{buyer_account:BUYER.wallet.accountId,job_id:ID});assert.equal(h.sends[0].intent.transaction.actions[0].params.deposit,'0');
+  await h.poll();assert.equal(f.job.status,'REFUNDED');assert.equal(f.job.payment.refundAccount,BUYER.wallet.accountId);assert.equal(h.has(LABEL.refund),false);
+ }
+ for(const status of ['PAYOUT_PENDING','UNKNOWN','ERROR','PAID','REFUND_PENDING']){const h=browser(await fixture({payment:{status,reviewDeadlineNs:PAST}}));await h.app.start();assert.equal(h.has(LABEL.refund),false,status);}
+ const h=browser(await fixture({payment:{status:'HELD'}}));await h.app.start();assert.equal(h.has(LABEL.refund),false);
 });
 
-test('OFFLINE fixture: lost committed fund response reconciles existing operation rather than sending another fund',async()=>{
- const f=await fixture();let lost=true;const buyer=browser(f,{hook:call=>{if(call.route.endsWith('/payment/fund')&&lost){lost=false;throw Error('OFFLINE committed fund lost response');}}});
- await buyer.app.start();await buyer.click('Sponsor havuzundan fon ayır');assert.equal(f.job.payment.status,'FUNDING_PENDING');assert.equal(buyer.has('Sponsor havuzundan fon ayır'),false);
- await buyer.click('Escrow durumunu yenile');assert.equal(f.job.payment.status,'HELD');assert.equal(buyer.calls.filter(c=>c.route.endsWith('/payment/fund')).length,1);
+test('OFFLINE signed wallet cancellation does not confirm, pay or silently retry; a new signature needs explicit user action',async()=>{
+ const f=await fixture(),h=browser(f,{cancel:true});await h.app.start();await h.click(LABEL.fund);assert.deepEqual(signs(h),['fund']);assert.equal(f.job.payment.status,'NOT_FUNDED');assert.equal(h.calls.some(c=>c.route.endsWith('/confirm')),false);assert.equal(h.app.state.walletPending,null);assert.match(h.message(),/iptal edildi/);assert.equal(h.timers.size,0);assert.equal(h.enabled(LABEL.fund),true);
 });
 
-test('OFFLINE fixture: expiry only offers explicit refund to sponsor pool; no silent payout and no actions after terminal refund',async()=>{
- const f=await fixture({payment:{status:'HELD',reviewDeadlineNs:PAST,executionDeadlineNs:PAST}}),buyer=browser(f);await buyer.app.start();
- assert.equal(buyer.calls.filter(c=>c.method==='POST').length,0);assert.ok(buyer.text().includes('iade ziyaretçiye değil sponsor havuzuna döner'));
- await buyer.click('Süre doldu · ayrılan fonu sponsor havuzuna döndür');assert.equal(f.job.payment.status,'REFUND_PENDING');assert.notEqual(f.job.status,'REFUNDED');await buyer.poll();assert.equal(f.job.status,'REFUNDED');assert.equal(f.job.payment.status,'REFUNDED');assert.equal(buyer.has('Süre doldu · ayrılan fonu sponsor havuzuna döndür'),false);
- const future=browser(await fixture({payment:{status:'HELD'}}));await future.app.start();assert.equal(future.has('Süre doldu · ayrılan fonu sponsor havuzuna döndür'),false);
+test('OFFLINE unknown wallet broadcast blocks all new actions across refresh and reload, without inferred safe resume',async()=>{
+ const f=await fixture(),records=new Map(),h=browser(f,{unknown:true,records});await h.app.start();const original=h.all().find(e=>e.textContent===LABEL.fund);await h.click(LABEL.fund);assert.equal(h.app.state.walletPending.kind,'transaction');assert.equal(h.app.state.walletPending.transactionHash,undefined);assert.equal(h.has(LABEL.fund),false);await original.fire('click');await settle(h.app);assert.equal(h.sends.length,1);assert.equal(h.calls.some(c=>c.route.endsWith('/confirm')),false);
+ await h.click(LABEL.refresh);assert.equal(h.has(LABEL.fund),false);assert.equal(h.sends.length,1);const reload=browser(f,{records});await reload.app.start();assert.equal(reload.has(LABEL.fund),false);assert.equal(reload.sends.length,0);assert.equal(writes(reload).length,0);
 });
 
-test('OFFLINE fixture: pending polling calls refresh only, is bounded and stops on navigation; malformed public metadata cannot create explorer links',async()=>{
- const f=await fixture({payment:{status:'PAYOUT_PENDING',releaseTransactionHash:TX}}),buyer=browser(f,{finalize:false});await buyer.app.start();
- for(let i=0;i<12;i++)await buyer.poll();assert.equal(buyer.timers.size,0);assert.ok(buyer.text().includes('Otomatik kontrol durdu'));assert.ok(buyer.calls.filter(c=>c.method==='POST').every(c=>c.route.endsWith('/payment/refresh')));
+test('OFFLINE lost confirm response only reconfirms the same hash or refreshes; never prepares/broadcasts again',async()=>{
+ const f=await fixture();let lost=true;const h=browser(f,{hook:call=>{if(call.route.endsWith('/confirm')&&lost){lost=false;throw Error('UNIT lost committed confirm response');}}});await h.app.start();await h.click(LABEL.fund);assert.equal(f.job.payment.status,'FUNDING_PENDING');assert.equal(h.has(LABEL.fund),false);assert.equal(h.app.state.walletPending.transactionHash,TX);
+ await h.click('Mevcut işlem kaydını doğrula');assert.equal(h.sends.length,1);assert.equal(h.calls.filter(c=>c.route.endsWith('/prepare')).length,1);assert.deepEqual(h.calls.filter(c=>c.route.endsWith('/confirm')).map(c=>c.body),[{action:'fund',transactionHash:TX},{action:'fund',transactionHash:TX}]);await h.poll();assert.equal(f.job.payment.status,'HELD');
+});
+
+test('OFFLINE redirected signature remains pending without confirm or resend and survives a page load',async()=>{
+ const f=await fixture(),records=new Map(),h=browser(f,{redirect:true,records});await h.app.start();await h.click(LABEL.fund);assert.equal(h.has(LABEL.fund),false);assert.equal(h.calls.some(c=>c.route.endsWith('/confirm')),false);assert.equal(f.job.payment.status,'NOT_FUNDED');const reload=browser(f,{records});await reload.app.start();assert.equal(reload.has(LABEL.fund),false);assert.equal(reload.sends.length,0);assert.equal(writes(reload).length,0);
+});
+
+test('OFFLINE wrong session/active wallet or missing signed capability never prepares or sends',async()=>{
+ for(const options of [{identity:{...BUYER,wallet:wallet('wrong-buyer.testnet')}},{identity:{...BUYER,wallet:null}},{signer:wallet('wrong-signer.testnet')},{signer:{...BUYER.wallet,network:'mainnet'}},{walletCapability:null},{walletPolicy:null},{walletCapability:{...CAPABILITY,contractId:'wrong-contract.testnet'}}]){
+  const f=await fixture(),h=browser(f,options);await h.app.start();if(h.has(LABEL.fund))await h.click(LABEL.fund);assert.equal(h.sends.length,0);assert.equal(writes(h).length,0,JSON.stringify(options));
+ }
+});
+
+test('OFFLINE same buyer wallet owns immutable jobs across session IDs; session ID alone never grants wallet ownership',async()=>{
+ const f=await fixture(),returning=browser(f,{identity:{...BUYER,id:'new-session-id'}});await returning.app.start();assert.equal(returning.enabled(LABEL.fund),true);await returning.click(LABEL.fund);assert.equal(returning.sends[0].intent.transaction.signerId,f.job.buyerWallet.accountId);
+ const wrong=browser(await fixture(),{identity:{...BUYER,wallet:wallet('different.testnet')}});await wrong.app.start();assert.equal(wrong.has(LABEL.fund),false);assert.equal(writes(wrong).length,0);
+});
+
+test('OFFLINE stale prepared job, amount, buyer, binding or delivery never reaches the wallet signer',async()=>{
+ for(const change of [j=>j.payment.bindingHash='f'.repeat(64),j=>j.selectedOffer.amountYocto='9',j=>j.selectedOffer.paymentAccount='other-supplier.testnet',j=>j.buyerWallet.accountId='other-buyer.testnet',j=>j.delivery.version++,j=>j.delivery.outputSha256='f'.repeat(64)]){
+  const f=await fixture({status:'ACCEPTED',payment:{status:'RELEASE_READY'},delivery:true,recorded:true}),h=browser(f,{hook:(call,_f,data)=>{if(call.route.endsWith('/prepare'))change(data.job);}});await h.app.start();await h.click(LABEL.release);assert.equal(h.sends.length,0);assert.equal(h.calls.some(c=>c.route.endsWith('/confirm')),false);
+ }
+});
+
+test('OFFLINE pending polling refreshes only, is bounded, stops on navigation and never retries a signature',async()=>{
+ const f=await fixture({status:'ACCEPTED',payment:{status:'PAYOUT_PENDING',releaseTransactionHash:TX}}),h=browser(f,{finalize:false});await h.app.start();for(let i=0;i<12;i++)await h.poll();assert.equal(h.timers.size,0);assert.ok(h.text().includes('Otomatik kontrol durdu'));assert.ok(writes(h).every(c=>c.route.endsWith('/payment/refresh')));assert.equal(h.sends.length,0);
  const other=browser(await fixture({payment:{status:'FUNDING_PENDING'}}),{finalize:false});await other.app.start();assert.equal(other.timers.size,1);await other.app.navigate('/customer');assert.equal(other.timers.size,0);
- for(const payment of [{network:'mainnet',releaseTransactionHash:TX},{contractId:'escrow.near',releaseTransactionHash:TX},{bindingHash:'bad',releaseTransactionHash:TX},{releaseTransactionHash:'https://evil.invalid/'},{status:'FUTURE_UNKNOWN',releaseTransactionHash:TX}]){
-  const invalid=browser(await fixture({payment}));await invalid.app.start();assert.equal(invalid.all().filter(e=>e.href?.includes('nearblocks.io')).length,0);assert.equal(invalid.has('Sponsor havuzundan fon ayır'),payment.releaseTransactionHash==='https://evil.invalid/','bad hash is omitted; otherwise valid metadata may still fund');
+});
+
+test('OFFLINE invalid chain/explorer metadata and contradictory terminal states cannot display finalized payment or enable signatures',async()=>{
+ for(const payment of [{network:'mainnet',releaseTransactionHash:TX},{contractId:'escrow.near',releaseTransactionHash:TX},{status:'FUTURE_UNKNOWN',releaseTransactionHash:TX}]){
+  const f=await fixture({payment}),h=browser(f);await h.app.start();assert.equal(h.all().filter(e=>e.href?.includes('nearblocks.io')).length,0);assert.equal(h.has(LABEL.fund),false);
+ }
+ const badHash=browser(await fixture({payment:{releaseTransactionHash:'https://evil.invalid/'}}));await badHash.app.start();assert.equal(badHash.all().filter(e=>e.href?.includes('evil.invalid')).length,0);
+ for(const status of ['PAID','REFUNDED']){const h=browser(await fixture({status:'ACCEPTED',payment:{status}}));await h.app.start();assert.ok(h.text().includes('Bilinmeyen veya eksik testnet ödeme bilgisi'));assert.ok(!h.text().includes('Durum: Zincirde ödeme doğrulandı'));assert.equal(h.has(LABEL.release),false);}
+});
+
+test('OFFLINE all legacy sponsor/direct routes are readonly, including offers, award, execute, decisions and receipts',async()=>{
+ for(const kind of ['SPONSORED_TESTNET_ESCROW','DIRECT_TESTNET_TRANSFER'])for(const [path,status,identity] of [['/payments','ACCEPTED',BUYER],['/offer','OPEN',PROVIDER],['/job','CLOSED',BUYER],['/delivery','AWARDED',PROVIDER],['/delivery','DELIVERED',BUYER]]){
+  const f=await fixture({status,payment:{kind,status:'HELD'},delivery:status==='DELIVERED',recorded:status==='DELIVERED'}),h=browser(f,{path:path+'?id='+ID,identity});await h.app.start();
+  for(const label of [...Object.values(LABEL),'Bu sağlayıcıyı seç','Sponsor havuzundan fon ayır','Testnet ödemesini doğrula'])assert.equal(h.enabled(label),false,kind+' '+path+' '+label);
+  assert.equal(h.get('buyerAccount'),undefined);assert.equal(h.get('transactionHash'),undefined);assert.equal(h.get('amount'),undefined);assert.equal(writes(h).length,0);assert.equal(h.sends.length,0);assert.equal(h.timers.size,0);
  }
 });
 
-test('OFFLINE legacy direct-transfer fixture keeps wallet/receipt flow and never calls sponsored endpoints',async()=>{
- const f=await fixture({status:'ACCEPTED',payment:{kind:'DIRECT_TESTNET_TRANSFER',status:'DUE'}}),buyer=browser(f);await buyer.app.start();
- assert.ok(buyer.text().includes('Doğrudan transfer · escrow değil'));assert.ok(buyer.all().some(e=>e.href==='https://testnet.mynearwallet.com/'));assert.equal(buyer.has('Sponsor havuzundan fon ayır'),false);
- buyer.get('buyerAccount').value='legacy-buyer.testnet';buyer.get('transactionHash').value=TX;await buyer.submit();assert.equal(f.job.status,'PAID');
- const sent=buyer.calls.filter(c=>c.method==='POST');assert.equal(sent.length,1);assert.ok(sent[0].route.endsWith('/payment/verify'));assert.deepEqual(sent[0].body,{buyerAccount:'legacy-buyer.testnet',transactionHash:TX});
-});
-
-test('OFFLINE fixture: unavailable sponsor/API and unknown finality only allow reconciliation, never a blind second send',async()=>{
- const f=await fixture(),buyer=browser(f,{hook:call=>call.route.endsWith('/payment/fund')?{ok:false,status:503,json:async()=>({code:'ESCROW_UNKNOWN_FINALITY'})}:undefined,finalize:false});await buyer.app.start();
- const original=buyer.all().find(e=>e.textContent==='Sponsor havuzundan fon ayır');await buyer.click('Sponsor havuzundan fon ayır');assert.match(buyer.message(),/sonucu doğrulanamadı/);assert.equal(buyer.has('Sponsor havuzundan fon ayır'),false);
- await original.fire('click');await settle(buyer.app);assert.equal(buyer.calls.filter(c=>c.route.endsWith('/payment/fund')).length,1);
- f.job.payment.status='UNKNOWN';await buyer.click('Escrow durumunu yenile');assert.equal(buyer.has('Sponsor havuzundan fon ayır'),false);assert.equal(buyer.has('Kabul edilen teslimin ödemesini serbest bırak'),false);assert.equal(buyer.timers.size,0);
- const expired=browser(await fixture({payment:{executionDeadlineNs:PAST}}));await expired.app.start();assert.equal(expired.has('Sponsor havuzundan fon ayır'),false);
-});
-
-test('OFFLINE fixture: UI never reports Paid or Refunded from contradictory terminal payment metadata',async()=>{
- for(const status of ['PAID','REFUNDED']){
-  const buyer=browser(await fixture({status:'ACCEPTED',payment:{status}}));await buyer.app.start();assert.ok(buyer.text().includes('Bilinmeyen veya eksik testnet ödeme bilgisi'));
-  assert.ok(!buyer.text().includes('Durum: Zincirde ödeme doğrulandı'));assert.equal(buyer.has('Kabul edilen teslimin ödemesini serbest bırak'),false);
+test('OFFLINE stale legacy resume hints never authorize a new signature, including unknown/sent/expired operations',async()=>{
+ for(const action of ['fund','record','release','refund'])for(const status of ['UNKNOWN','ERROR','FUNDING_PENDING','RECORD_PENDING','PAYOUT_PENDING','REFUND_PENDING']){
+  const f=await fixture({status:action==='fund'?'AWARDED':action==='record'?'DELIVERED':'ACCEPTED',payment:{status,verified:false,operation:{action,status:'PENDING',operationId:'e'.repeat(64),resumeAction:action}},delivery:true,recorded:true}),h=browser(f,{finalize:false});await h.app.start();assert.equal(h.all().some(e=>e.tagName==='BUTTON'&&e.textContent.startsWith('Mevcut imzalı işlemi sürdür')),false);assert.equal(h.has(LABEL[action]),false);assert.equal(writes(h).length,0);assert.equal(h.sends.length,0);
  }
 });
 
-test('OFFLINE fixture: unverified HELD and unrecorded revisions cannot bypass finality or skip a delivery version',async()=>{
- const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true});const buyer=browser(f,{path:'/delivery?id='+ID});await buyer.app.start();
- for(const label of ['Doğrulanan teslimi kabul et','Düzeltme iste']){const button=buyer.all().find(e=>e.tagName==='BUTTON'&&e.textContent===label);assert.equal(button.disabled,true);await buyer.click(label);}
- assert.equal(buyer.calls.filter(c=>c.route.endsWith('/decision')).length,0,'both handlers reject unrecorded decisions even if a disabled button is triggered');
- Object.assign(f.job.payment,{verified:false,recordedVersion:1,recordedOutputHash:f.job.delivery.outputSha256});
- const unverified=browser(f,{path:'/delivery?id='+ID});await unverified.app.start();assert.equal(unverified.enabled('Doğrulanan teslimi kabul et'),false);assert.equal(escrowRecordedDelivery(f.job),false);
- f.job.status='AWARDED';assert.equal(escrowExecutionAllowed(f.job),false);
+test('OFFLINE offer bound is 1 testNEAR; former sponsor 0.01 cap never applies and legacy offers stay readonly',async()=>{
+ const f=await fixture({status:'OPEN'}),h=browser(f,{identity:PROVIDER,path:'/offer?id='+ID});await h.app.start();assert.ok(h.text().includes('1 testNEAR'));h.get('amount').value='1.000000000000000000000001';await h.submit();assert.equal(h.cryptoCalls.sealedQuotes,0);assert.equal(writes(h).length,0);assert.match(h.message(),/en fazla 1 testNEAR/);
+ h.get('amount').value='0.02';await h.submit();assert.equal(h.cryptoCalls.sealedQuotes,1);assert.equal(h.calls.filter(c=>c.route.endsWith('/offers')).length,1);
+ const max=browser(await fixture({status:'OPEN'}),{identity:PROVIDER,path:'/offer?id='+ID});await max.app.start();max.get('amount').value='1';await max.submit();assert.equal(max.calls.filter(c=>c.route.endsWith('/offers')).length,1);
 });
 
-test('OFFLINE fixture: both decision buttons require HELD verified and the exact latest version/hash after final recording',async()=>{
- const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true});
- for(const fields of [
-  {status:'RECORD_PENDING',verified:false,recordedVersion:1,recordedOutputHash:f.job.delivery.outputSha256},
-  {status:'HELD',verified:true,recordedVersion:0,recordedOutputHash:f.job.delivery.outputSha256},
-  {status:'HELD',verified:true,recordedVersion:1,recordedOutputHash:'f'.repeat(64)},
-  {status:'RELEASE_READY',verified:true,recordedVersion:1,recordedOutputHash:f.job.delivery.outputSha256},
- ]){
-  Object.assign(f.job.payment,fields);const buyer=browser(f,{path:'/delivery?id='+ID});await buyer.app.start();
-  for(const label of ['Doğrulanan teslimi kabul et','Düzeltme iste']){assert.equal(buyer.enabled(label),false);await buyer.click(label);}
-  assert.equal(buyer.calls.filter(c=>c.route.endsWith('/decision')).length,0);
- }
- Object.assign(f.job.payment,{status:'HELD',verified:true,recordedVersion:1,recordedOutputHash:f.job.delivery.outputSha256});const ready=browser(f,{path:'/delivery?id='+ID});await ready.app.start();
- assert.equal(ready.enabled('Doğrulanan teslimi kabul et'),true);assert.equal(ready.enabled('Düzeltme iste'),true);
-});
-
-test('OFFLINE fixture: accepted unpaid hold refunds only after deadline; expired release is disabled and guarded',async()=>{
- const f=await fixture({status:'ACCEPTED',payment:{status:'RELEASE_READY',reviewDeadlineNs:PAST},delivery:true});Object.assign(f.job.payment,{recordedVersion:1,recordedOutputHash:f.job.delivery.outputSha256});
- const buyer=browser(f);await buyer.app.start();assert.equal(buyer.enabled('Kabul edilen teslimin ödemesini serbest bırak'),false);assert.equal(buyer.enabled('Süre doldu · ayrılan fonu sponsor havuzuna döndür'),true);
- await buyer.click('Kabul edilen teslimin ödemesini serbest bırak');assert.equal(buyer.calls.filter(c=>c.method==='POST').length,0);
- await buyer.click('Süre doldu · ayrılan fonu sponsor havuzuna döndür');await buyer.poll();assert.equal(f.job.status,'REFUNDED');assert.ok(!buyer.calls.some(c=>c.route.endsWith('/payment/release')));
- for(const status of ['PAYOUT_PENDING','UNKNOWN','ERROR','PAID','REFUND_PENDING']){
-  const blocked=browser(await fixture({status:'ACCEPTED',payment:{status,reviewDeadlineNs:PAST}}));await blocked.app.start();assert.equal(blocked.has('Süre doldu · ayrılan fonu sponsor havuzuna döndür'),false,status);
- }
- const future=browser(await fixture({status:'ACCEPTED',payment:{status:'RELEASE_READY'},delivery:true}));await future.app.start();assert.equal(future.has('Süre doldu · ayrılan fonu sponsor havuzuna döndür'),false);
-});
-
-test('OFFLINE fixture: each backend-authorized unsent operation resumes only by an explicit named empty-body POST',async()=>{
- const labels={fund:'fon ayırma',record:'teslim kaydı',release:'ödeme',refund:'sponsor havuzuna dönüş'};
- for(const action of ['fund','record','release','refund']){
-  const f=await fixture({status:action==='fund'?'AWARDED':action==='record'?'DELIVERED':'ACCEPTED',payment:{status:{fund:'FUNDING_PENDING',record:'RECORD_PENDING',release:'PAYOUT_PENDING',refund:'REFUND_PENDING'}[action],verified:false,reviewDeadlineNs:action==='refund'?PAST:FUTURE,operation:{action,status:'PENDING',operationId:'e'.repeat(64),resumeAction:action}},delivery:true});
-  Object.assign(f.job.payment,{recordedVersion:1,recordedOutputHash:f.job.delivery.outputSha256});
-  const buyer=browser(f,{finalize:false});await buyer.app.start();const label='Mevcut imzalı işlemi sürdür · '+labels[action];assert.equal(buyer.enabled(label),true,action);assert.equal(buyer.calls.filter(c=>c.method==='POST').length,0,'resume is never automatic');
-  await buyer.click(label);const mutations=buyer.calls.filter(c=>c.method==='POST');assert.equal(mutations.length,1);assert.equal(mutations[0].route,'/jobs/'+ID+'/payment/'+action);assert.deepEqual(mutations[0].body,{});assert.equal(buyer.has(label),false,'authorization disappears after the backend consumes it');
-  await buyer.poll();assert.ok(buyer.calls.filter(c=>c.method==='POST').slice(1).every(c=>c.route.endsWith('/payment/refresh')),'polling does not resume or send again');
+test('OFFLINE finalized PAID in confirm or subsequent GET replaces pending state without another transaction',async()=>{
+ for(const timing of ['confirm-response','render-GET']){
+  const f=await fixture({status:'ACCEPTED',payment:{status:'RELEASE_READY'},delivery:true,recorded:true});let confirmed=false;const h=browser(f,{hook:call=>{if(call.route.endsWith('/confirm'))confirmed=true;if(confirmed&&(timing==='confirm-response'||call.method==='GET')){f.job.status='PAID';f.job.payment.status='PAID';f.job.payment.verified=true;}}});await h.app.start();await h.click(LABEL.release);assert.equal(f.job.status,'PAID');assert.ok(h.text().includes('Durum: Zincirde ödeme doğrulandı'));assert.deepEqual(signs(h),['release']);assert.equal(h.calls.filter(c=>c.route.endsWith('/confirm')).length,1);assert.equal(h.timers.size,0);
  }
 });
 
-test('OFFLINE fixture: resume never infers safety from a hash/code and rejects unknown, sent, mismatched or expired authorization',async()=>{
- for(const payment of [
-  {status:'UNKNOWN',operation:{action:'fund',status:'UNKNOWN',resumeAction:'fund'}},
-  {status:'ERROR',operation:{action:'fund',status:'PENDING',resumeAction:'fund'}},
-  {status:'ERROR',fundTransactionHash:TX,code:'ESCROW_GAS_ALLOWANCE_INSUFFICIENT',operation:{action:'fund',status:'ERROR'}},
-  {status:'FUNDING_PENDING',operation:{action:'fund',status:'PENDING',resumeAction:'fund/../../release'}},
-  {status:'ERROR',operation:{action:'record',status:'PENDING',resumeAction:'fund'}},
-  {status:'ERROR',operation:{action:'fund',status:'FINAL',resumeAction:'fund'}},
-  {status:'ERROR',executionDeadlineNs:PAST,operation:{action:'fund',status:'PENDING',resumeAction:'fund'}},
- ]){
-  const buyer=browser(await fixture({payment}),{finalize:false});await buyer.app.start();assert.ok(!buyer.all().some(e=>e.tagName==='BUTTON'&&e.textContent.startsWith('Mevcut imzalı işlemi sürdür')));assert.equal(buyer.calls.filter(c=>c.method==='POST').length,0);
+test('OFFLINE immutable wallet snapshots must match the linked testnet buyer and selected provider',async()=>{
+ for(const change of [j=>j.selectedOffer.wallet.accountId='other-provider.testnet',j=>j.selectedOffer.wallet.network='mainnet',j=>delete j.selectedOffer.wallet]){
+  const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true});change(f.job);assert.equal(walletActionAllowed(f.job,'record',PROVIDER),false);const h=browser(f,{identity:PROVIDER,path:'/delivery?id='+ID});await h.app.start();assert.equal(h.has(LABEL.record),false);assert.equal(writes(h).length,0);assert.equal(h.sends.length,0);
  }
- const release=await fixture({status:'ACCEPTED',payment:{status:'ERROR',reviewDeadlineNs:PAST,operation:{action:'release',status:'PENDING',resumeAction:'release'}},delivery:true});Object.assign(release.job.payment,{recordedVersion:1,recordedOutputHash:release.job.delivery.outputSha256});
- const expired=browser(release);await expired.app.start();assert.equal(expired.has('Mevcut imzalı işlemi sürdür · ödeme'),false);
- const f=await fixture({payment:{status:'FUNDING_PENDING',operation:{action:'fund',status:'PENDING',resumeAction:'fund'}}}),provider=browser(f,{identity:PROVIDER});await provider.app.start();assert.equal(provider.has('Mevcut imzalı işlemi sürdür · fon ayırma'),false);
+ const f=await fixture();f.job.buyerWallet.network='mainnet';assert.equal(walletActionAllowed(f.job,'fund',BUYER),false);const h=browser(f);await h.app.start();assert.equal(h.has(LABEL.fund),false);
 });
 
-test('OFFLINE fixture: lost resume response blocks another send until refresh removes stale backend authorization',async()=>{
- const f=await fixture({payment:{status:'FUNDING_PENDING',operation:{action:'fund',status:'PENDING',resumeAction:'fund'}}});let lost=true;
- const buyer=browser(f,{hook:call=>{if(call.route.endsWith('/payment/fund')&&lost){lost=false;throw Error('OFFLINE lost resume response after backend consumes authorization');}}});await buyer.app.start();
- const label='Mevcut imzalı işlemi sürdür · fon ayırma',original=buyer.all().find(e=>e.tagName==='BUTTON'&&e.textContent===label);await buyer.click(label);assert.equal(buyer.has(label),false);await original.fire('click');await settle(buyer.app);assert.equal(buyer.calls.filter(c=>c.route.endsWith('/payment/fund')).length,1);
- await buyer.click('Escrow durumunu yenile');assert.equal(f.job.payment.status,'HELD');assert.equal(buyer.has(label),false);
+test('OFFLINE actual wallet-client validates fund intent, immutable bounds and exact encoded args before the fixture connector broadcasts',async()=>{
+ const f=await fixture(),h=browser(f,{genuineWallet:true});await h.app.start();await h.click(LABEL.fund);assert.equal(h.broadcasts.length,1,h.message()+JSON.stringify({calls:h.calls,errors:h.clientErrors,sends:h.sends}));assert.equal(f.job.payment.status,'FUNDING_PENDING');assert.equal(h.sends.length,1);const {intent,bounds}=h.sends[0];
+ assert.equal(bounds.inputHash,f.result.inputSha256);assert.equal(bounds.programHash,f.result.programSha256);assert.ok(Object.values(bounds).every(value=>value!==undefined),'no omitted server-view hash becomes an undefined wallet bound');
+ assert.deepEqual(Object.keys(intent.transaction.actions[0].params).sort(),['args','deposit','gas','methodName']);assert.deepEqual(Object.keys(intent.transaction.actions[0].params.args),['terms']);assert.deepEqual(Object.keys(intent.transaction.actions[0].params.args.terms),['job_id','buyer_commitment','buyer_account','provider','amount','input_hash','program_hash','plan_hash','execution_deadline_ns','review_deadline_ns']);assert.ok(Object.values(intent.transaction.actions[0].params.args.terms).every(value=>typeof value==='string'));assert.deepEqual(h.calls.find(c=>c.route.endsWith('/confirm')).body,{action:'fund',transactionHash:TX});
 });
 
-test('OFFLINE fixture: refresh may expose a safe pending resume hint after ERROR without signing or sending automatically',async()=>{
- const f=await fixture({payment:{status:'ERROR',verified:false,code:'ESCROW_GAS_ALLOWANCE_INSUFFICIENT',operation:{action:'fund',status:'ERROR'}}});
- const buyer=browser(f,{finalize:false,hook:call=>{if(call.route.endsWith('/payment/refresh')){f.job.payment.status='FUNDING_PENDING';f.job.payment.operation={action:'fund',status:'PENDING',operationId:'e'.repeat(64),resumeAction:'fund'};}}});await buyer.app.start();
- const label='Mevcut imzalı işlemi sürdür · fon ayırma';assert.equal(buyer.has(label),false);await buyer.click('Escrow durumunu yenile');assert.equal(buyer.enabled(label),true);assert.equal(buyer.calls.filter(c=>c.route.endsWith('/payment/fund')).length,0);
- await buyer.click(label);assert.equal(buyer.calls.filter(c=>c.route.endsWith('/payment/fund')).length,1);
-});
-
-test('OFFLINE fixture: sponsored offer max is displayed and enforced before sealing while legacy offers keep their range',async()=>{
- const f=await fixture({status:'OPEN'}),supplier=browser(f,{identity:PROVIDER,path:'/offer?id='+ID});await supplier.app.start();assert.ok(supplier.text().includes('0.01 testNEAR'));supplier.get('amount').value='0.010000000000000000000001';await supplier.submit();assert.equal(supplier.cryptoCalls.sealedQuotes,0);assert.equal(supplier.calls.filter(c=>c.method==='POST').length,0);assert.match(supplier.message(),/en fazla 0.01/);
- supplier.get('amount').value='0.01';await supplier.submit();assert.equal(supplier.cryptoCalls.sealedQuotes,1);assert.equal(supplier.calls.filter(c=>c.route.endsWith('/offers')).length,1);
- const legacy=await fixture({status:'OPEN',payment:{kind:'DIRECT_TESTNET_TRANSFER'}}),old=browser(legacy,{identity:PROVIDER,path:'/offer?id='+ID});await old.app.start();old.get('amount').value='0.02';await old.submit();assert.equal(old.calls.filter(c=>c.route.endsWith('/offers')).length,1,'legacy direct jobs are not subjected to the sponsor cap');
-});
-
-test('OFFLINE fixture: finalized Paid in release response or following render replaces the stale checking banner',async()=>{
- for(const timing of ['release-response','render-GET']){
-  const f=await fixture({status:'DELIVERED',payment:{status:'HELD'},delivery:true});Object.assign(f.job.payment,{recordedVersion:1,recordedOutputHash:f.job.delivery.outputSha256});let released=false;
-  const buyer=browser(f,{path:'/delivery?id='+ID,hook:call=>{
-   if(call.route.endsWith('/payment/release'))released=true;
-   if(released&&(timing==='release-response'||call.method==='GET')){f.job.status='PAID';f.job.payment.status='PAID';f.job.payment.verified=true;}
-  }});await buyer.app.start();await buyer.click('Doğrulanan teslimi kabul et');
-  assert.ok(buyer.text().includes('Durum: Zincirde ödeme doğrulandı'));assert.match(buyer.message(),/zincirde kesinleşti/);assert.ok(!buyer.message().includes('kontrol ediliyor'),timing);
-  assert.equal(buyer.calls.filter(c=>c.route.endsWith('/payment/release')).length,1);
+test('OFFLINE missing public task/program commitments never reach a real wallet-client connector or confirmation',async()=>{
+ for(const field of ['taskHash','programHash']){
+  const f=await fixture();delete f.job[field];const h=browser(f,{genuineWallet:true});await h.app.start();await h.click(LABEL.fund);assert.equal(h.broadcasts.length,0,field);assert.equal(h.calls.some(c=>c.route.endsWith('/confirm')),false,field);assert.equal(f.job.payment.status,'NOT_FUNDED');
  }
+});
+
+test('OFFLINE a self-consistent server fund intent cannot replace the actual local encrypted task commitments',async()=>{
+ for(const field of ['taskHash','programHash']){
+  const f=await fixture();f.job[field]='f'.repeat(64);f.job.payment.bindingHash=await sha256(JSON.stringify([POLICY.domain,CONTRACT,...Object.values(termsFor(f.job))]));const h=browser(f,{genuineWallet:true});await h.app.start();await h.click(LABEL.fund);assert.equal(h.broadcasts.length,0,field+': server intent/bounds agree but local prepared task differs');assert.equal(h.calls.some(c=>c.route.endsWith('/confirm')),false,field);assert.equal(f.job.payment.status,'NOT_FUNDED');
+ }
+});
+
+test('OFFLINE actual wallet-client rejects altered method/schema, undefined args, deposit and hashes before the synthetic connector is invoked',async()=>{
+ for(const mutate of [i=>i.transaction.actions[0].params.args.terms.input_hash=undefined,i=>i.transaction.actions[0].params.args.terms.program_hash='f'.repeat(64),i=>i.transaction.actions[0].params.args.extra='not-allowed',i=>i.transaction.actions[0].params.deposit='0',i=>i.transaction.actions[0].params.methodName='refund',i=>i.transaction.receiverId='other-contract.testnet',i=>i.transaction.signerId='wrong-buyer.testnet']){
+  const f=await fixture(),h=browser(f,{genuineWallet:true,hook:(call,_f,data)=>{if(call.route.endsWith('/prepare'))mutate(data.intent);}});await h.app.start();await h.click(LABEL.fund);assert.equal(h.sends.length,1,'malformed prepared intent reaches actual validator');assert.equal(h.broadcasts.length,0);assert.equal(h.calls.some(c=>c.route.endsWith('/confirm')),false);assert.equal(f.job.payment.status,'NOT_FUNDED');assert.equal(h.clientErrors.at(-1).code,'WALLET_INVALID_INTENT');
+ }
+});
+
+test('OFFLINE missing local task needs explicit funding acknowledgement; refund needs no local data',async()=>{
+ const f=await fixture(),h=browser(f,{genuineWallet:true,local:false});await h.app.start();assert.equal(h.enabled(LABEL.fund),false);await h.click(LABEL.fund);assert.equal(h.sends.length,0);assert.equal(h.calls.some(c=>c.route.endsWith('/prepare')),false);
+ const consent=h.get('confirmMissingLocalFunding');assert.ok(consent);assert.equal(consent.checked,false);consent.checked=true;await consent.fire('change');await h.click(LABEL.fund);assert.equal(h.broadcasts.length,1,h.message());assert.equal(f.job.payment.status,'FUNDING_PENDING');
+ const expired=await fixture({payment:{status:'HELD',executionDeadlineNs:PAST,reviewDeadlineNs:PAST}}),refund=browser(expired,{local:false});await refund.app.start();assert.equal(refund.get('confirmMissingLocalFunding'),undefined);assert.equal(refund.enabled(LABEL.refund),true);await refund.click(LABEL.refund);assert.equal(expired.job.payment.status,'REFUND_PENDING');assert.deepEqual(signs(refund),['refund']);
 });

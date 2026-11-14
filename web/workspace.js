@@ -10,6 +10,7 @@ import { PROFILE as PROOF_PROFILE, SCHEME as PROOF_SCHEME, PROOF_PLAN_LIMITS, va
 import { prepareProofPlan, decodeProofPlan } from './proof-plan-client.mjs';
 import { publicTask, publicTaskHash, acceptAgentProposal, privatePlanInputs, applyAgentOutput } from './agent-plan.mjs';
 import { createVault, quoteCommitment, randomSalt, parseNearAmount, formatNearAmount } from './workspace-vault.mjs';
+import { WALLET_ESCROW_POLICY } from './wallet-pins.mjs';
 
 export const TOKEN_KEY = 'nope.workspace.session.v1';
 export const PROFILE = 'nope-csv-gc-v1';
@@ -47,13 +48,34 @@ function proofCapability(value) {
   return Object.freeze({ profile: value.profile, enabled: value.enabled, contractId: value.contractId ?? null });
 }
 const TX_HASH = /^[1-9A-HJ-NP-Za-km-z]{43,44}$/;
-const ESCROW_KIND = 'SPONSORED_TESTNET_ESCROW';
-const MAX_SPONSORED_OFFER = 10n ** 22n; // 0.01 testNEAR; the contract's per-hold pilot cap.
+const LEGACY_ESCROW_KIND = 'SPONSORED_TESTNET_ESCROW';
+export const WALLET_ESCROW_KIND = 'WALLET_TESTNET_ESCROW';
+const WALLET_RESUME_NAMESPACE = 'nope-wallet-redirect-v1';
+const WALLET_RESUME_RECORD = '__wallet_redirect__';
 const RESUME_ACTIONS = new Set(['fund', 'record', 'release', 'refund']);
 const ESCROW_PENDING = new Set(['FUNDING_PENDING', 'RECORD_PENDING', 'PAYOUT_PENDING', 'REFUND_PENDING']);
-const escrowStatuses = { NOT_FUNDED: msg('Henüz ayrılmadı'), FUNDING_PENDING: msg('Sponsor fonu ayrılıyor · kesinleşme bekleniyor'), HELD: msg('Sponsor fonu zincirde ayrıldı'), RECORD_PENDING: msg('Teslim kaydı kesinleşiyor'), RELEASE_READY: msg('Teslim zincirde kayıtlı'), PAYOUT_PENDING: msg('Ödeme kesinleşiyor'), PAID: msg('Zincirde ödeme doğrulandı'), REFUND_PENDING: msg('Sponsor havuzuna dönüş kesinleşiyor'), REFUNDED: msg('Ayrılan fon sponsor havuzuna döndü'), ERROR: msg('Ödeme işlemi tamamlanamadı · durumu kontrol edin'), UNKNOWN: msg('İşlemin sonucu belirsiz · yalnızca durum kontrolü') };
-const escrowJob = job => job?.payment?.kind === ESCROW_KIND;
+const escrowStatuses = { NOT_FUNDED: msg('Henüz yatırılmadı'), FUNDING_PENDING: msg('Cüzdan yatırması kesinleşiyor'), HELD: msg('Müşteri tutarı zincirde emanette'), RECORD_PENDING: msg('Teslim kaydı kesinleşiyor'), RELEASE_READY: msg('Teslim zincirde kayıtlı'), PAYOUT_PENDING: msg('Ödeme kesinleşiyor'), PAID: msg('Zincirde ödeme doğrulandı'), REFUND_PENDING: msg('Müşteri cüzdanına iade kesinleşiyor'), REFUNDED: msg('İş bakiyesi müşteri cüzdanına iade edildi'), ERROR: msg('Ödeme işlemi tamamlanamadı · durumu kontrol edin'), UNKNOWN: msg('İşlemin sonucu belirsiz · yalnızca durum kontrolü') };
+const walletJob = job => job?.payment?.kind === WALLET_ESCROW_KIND;
+const legacyJob = job => !walletJob(job);
+const escrowJob = job => walletJob(job) || job?.payment?.kind === LEGACY_ESCROW_KIND;
+export function linkedWallet(session) {
+  const wallet = session?.wallet;
+  return wallet?.network === 'testnet' && testnetAccount(wallet.accountId) && typeof wallet.publicKey === 'string' && /^ed25519:[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(wallet.publicKey) && typeof wallet.verifiedAt === 'string' && Number.isFinite(Date.parse(wallet.verifiedAt)) ? wallet : null;
+}
+export function walletCapabilityMatches(value, policy = WALLET_ESCROW_POLICY) {
+  return Boolean(policy && policy.network === 'testnet' && policy.requireKeyless === true && testnetAccount(policy.contractId) && TX_HASH.test(policy.codeHash) && policy.domain === 'NOPE:WALLET-ESCROW:V1:testnet' && value?.required === true && value.enabled === true && value.network === 'testnet' && value.contractId === policy.contractId);
+}
+export function walletApiError(code) {
+  if (code === 'WALLET_CHALLENGE_EXPIRED') return msg('Cüzdan doğrulama isteğinin süresi doldu. Hesap bağlamayı yeniden başlatıp yeni mesajı imzala.');
+  if (code === 'WALLET_CHALLENGE_USED') return msg('Bu hesap bağlama isteği zaten kullanıldı. Durumu yenile veya yeni doğrulama isteği başlat.');
+  if (code === 'WALLET_WRONG_NETWORK') return msg('Cüzdan ağı testnet olarak doğrulanamadı. Ana ağa geçilmedi; testnet bağlantısını kontrol et.');
+  if (['WALLET_SIGNATURE_NOT_VERIFIED','WALLET_INVALID_PROOF','WALLET_INVALID_PUBLIC_KEY','WALLET_KEY_MISMATCH','WALLET_FULL_ACCESS_REQUIRED','WALLET_INVALID_ENCODING'].includes(code)) return msg('Cüzdan imzası ve hesap kontrolü doğrulanamadı. Doğru testnet hesabıyla yeni bağlama isteği başlat.');
+  if (['WALLET_CHALLENGE_MISMATCH','WALLET_SESSION_MISMATCH'].includes(code)) return msg('Hesap bağlama isteği bu oturumla eşleşmiyor. Mevcut oturumdan yeni doğrulama isteği başlat.');
+  if (code === 'WALLET_ACCOUNT_IMMUTABLE') return msg('Farklı cüzdan için önce açıkça yeni oturum başlat. Mevcut yerel kasa silinmedi.');
+  return null;
+}
 const escrowMetadata = job => escrowJob(job) && job.payment.network === 'testnet' && testnetAccount(job.payment.contractId) && HASH.test(job.payment.bindingHash) && Object.hasOwn(escrowStatuses, job.payment.status);
+const walletPartiesValid = job => job?.buyerWallet?.network === 'testnet' && testnetAccount(job.buyerWallet.accountId) && job.selectedOffer?.wallet?.network === 'testnet' && testnetAccount(job.selectedOffer.paymentAccount) && job.selectedOffer.wallet.accountId === job.selectedOffer.paymentAccount && job.buyerWallet.accountId !== job.selectedOffer.paymentAccount && ![job.buyerWallet.accountId,job.selectedOffer.paymentAccount].includes(job.payment?.contractId);
 function deadlineReached(value) { return typeof value === 'string' && /^[1-9]\d{0,19}$/.test(value) && BigInt(Date.now()) * 1_000_000n >= BigInt(value); }
 function deadlinePassed(value) { return deadlineReached(value) && BigInt(Date.now()) * 1_000_000n > BigInt(value); }
 function resumeActionFor(job) {
@@ -72,8 +94,17 @@ export function escrowRecordedDelivery(job) {
     HASH.test(job.delivery.outputSha256) && job.payment.recordedVersion === job.delivery.version && job.payment.recordedOutputHash === job.delivery.outputSha256;
 }
 export function escrowExecutionAllowed(job) {
-  return !escrowJob(job) || escrowMetadata(job) && job.payment.verified === true && !deadlineReached(job.payment.executionDeadlineNs) &&
+  return walletJob(job) && walletPartiesValid(job) && escrowMetadata(job) && job.payment.verified === true && !deadlineReached(job.payment.executionDeadlineNs) &&
     job.payment.status === 'HELD';
+}
+export function walletActionAllowed(job, action, session) {
+  const account = linkedWallet(session)?.accountId;
+  if (!walletJob(job) || !walletPartiesValid(job) || !escrowMetadata(job) || !account || ['UNKNOWN','ERROR','PAID','REFUNDED',...ESCROW_PENDING].includes(job.payment.status)) return false;
+  const buyer = session.role === 'buyer' && account === job.buyerWallet?.accountId;
+  if (action === 'fund') return buyer && job.status === 'AWARDED' && job.payment.status === 'NOT_FUNDED' && !deadlineReached(job.payment.executionDeadlineNs);
+  if (action === 'record') return session.role === 'provider' && job.selectedOffer?.wallet?.network === 'testnet' && account === job.selectedOffer.wallet.accountId && account === job.selectedOffer.paymentAccount && job.status === 'DELIVERED' && job.payment.status === 'HELD' && job.payment.verified === true && !escrowRecordedDelivery(job) && Number.isInteger(job.delivery?.version) && job.delivery.version > 0 && HASH.test(job.delivery?.outputSha256) && !deadlineReached(job.payment.executionDeadlineNs);
+  if (action === 'release') return buyer && job.status === 'ACCEPTED' && job.payment.status === 'RELEASE_READY' && escrowRecordedDelivery(job) && !deadlineReached(job.payment.reviewDeadlineNs);
+  return action === 'refund' && buyer && ['AWARDED','DELIVERED','REVISION','ACCEPTED'].includes(job.status) && ['HELD','RELEASE_READY'].includes(job.payment.status) && job.payment.verified === true && deadlinePassed(job.payment.reviewDeadlineNs);
 }
 export function routeOf(href, origin = 'http://localhost') {
   const url = new URL(href, origin);
@@ -95,6 +126,17 @@ export function createPayload({ jobId, title, description, deadlineISO, task, bu
 const recipeTask = task => task?.profile === RECIPE_PROFILE;
 const taskInputHash = task => proofTask(task) ? hashProofPlanRequest(task) : task?.profile === PLAN_PROFILE ? hashPlanRequest(task) : recipeTask(task) ? hashRecipeRequest(task) : hashRequest(task);
 const taskProgramHash = task => proofTask(task) ? hashProofPlanProgram(task.task.plan) : task?.profile === PLAN_PROFILE ? hashPlanProgram(task.plan) : recipeTask(task) ? hashRecipeProgram(task.recipe) : hashProgram();
+export async function verifyFundingCommitments(job, payload, {allowMissingLocal = false} = {}) {
+  if (!walletJob(job) || !HASH.test(job.taskHash) || !HASH.test(job.programHash) || !HASH.test(job.planSha256)) throw productError(msg('İmzalanacak işlem güncel iş, tutar veya teslimle eşleşmiyor. İmza istenmedi.'));
+  if (!payload?.task) {
+    if (!allowMissingLocal) throw productError(msg('Bu cihazda özgün şifreli istek yok. Yerel dosya kontrolü yapılamadığını açıkça onaylamadan yatırma imzası istenmez.'));
+    return {localChecked:false};
+  }
+  if (payload.jobId !== job.id || payload.profile !== PROOF_PROFILE || payload.task.profile !== PROOF_PROFILE) throw productError(msg('İmzalanacak işlem güncel iş, tutar veya teslimle eşleşmiyor. İmza istenmedi.'));
+  validateProofPlanContext(payload.task,{jobId:job.id,buyerCommitment:await sha256('NOPE:buyer:'+job.buyerId),contractId:job.payment.contractId});
+  if (await taskInputHash(payload.task) !== job.taskHash || await taskProgramHash(payload.task) !== job.programHash || payload.task.task.planSha256 !== job.planSha256) throw productError(msg('İmzalanacak işlem güncel iş, tutar veya teslimle eşleşmiyor. İmza istenmedi.'));
+  return {localChecked:true};
+}
 // A private local fingerprint; never included in the planning task or remote job.
 const datasetHash = dataset => sha256(JSON.stringify(dataset));
 
@@ -197,7 +239,7 @@ function recipeText(recipe) {
   return msg`${type}: ${Object.freeze({ toString: () => steps.map(String).join(' → ') })}`;
 }
 export function decisionAllowed(job, verified, session, proofVerification) {
-  return session?.role === 'buyer' && job?.buyerId === session.id && job.status === 'DELIVERED' && verified?.correct === true &&
+  return walletJob(job) && walletPartiesValid(job) && linkedWallet(session)?.accountId === job.buyerWallet?.accountId && session?.role === 'buyer' && job.status === 'DELIVERED' && verified?.correct === true &&
     verified.version === job.delivery?.version && verified.outputSha256 === job.delivery?.outputSha256 && HASH.test(verified.outputSha256) && (!escrowJob(job) || job.payment.status === 'HELD' && escrowRecordedDelivery(job) && !deadlineReached(job.payment.reviewDeadlineNs)) &&
     (job.profile !== PROOF_PROFILE || clientProofMatches(job, proofVerification));
 }
@@ -267,12 +309,69 @@ function modelFailure(value) {
 const displayDate = value => Object.freeze({ toString: () => new Date(value).toLocaleString(getLocale()) });
 const displayNumber = (value, decimals) => Object.freeze({ toString: () => value.toLocaleString(getLocale(), { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) });
 const fail = text => { throw new FriendlyError(text); };
-const statusText = { OPEN: msg('Tekliflere açık'), CLOSED: msg('Teklifler kapandı'), AWARDED: msg('Sağlayıcı seçildi'), DELIVERED: msg('Teslim edildi'), REVISION: msg('Düzeltme istendi'), ACCEPTED: msg('Kabul edildi · ödeme bekliyor'), PAID: msg('Zincirde ödeme doğrulandı'), REFUNDED: msg('Ayrılan fon sponsor havuzuna döndü') };
+const statusText = { OPEN: msg('Tekliflere açık'), CLOSED: msg('Teklifler kapandı'), AWARDED: msg('Sağlayıcı seçildi'), DELIVERED: msg('Teslim edildi'), REVISION: msg('Düzeltme istendi'), ACCEPTED: msg('Kabul edildi · ödeme bekliyor'), PAID: msg('Zincirde ödeme doğrulandı'), REFUNDED: msg('İade zincirde doğrulandı') };
 
-export function createWorkspace({ document: doc, window: win, fetch: fetcher = globalThis.fetch, storage = win.sessionStorage, vaultFactory = createVault, garble = prepareRecipe, garblePlan = preparePlan, garbleProofPlan = prepareProofPlan, agentWorkerFactory, proofWorkerFactory } = {}) {
+export function createWorkspace({ document: doc, window: win, fetch: fetcher = globalThis.fetch, storage = win.sessionStorage, vaultFactory = createVault, garble = prepareRecipe, garblePlan = preparePlan, garbleProofPlan = prepareProofPlan, agentWorkerFactory, proofWorkerFactory, walletPolicy = WALLET_ESCROW_POLICY, walletFactory = async options => (await import('./wallet-client.mjs')).createWalletClient(options) } = {}) {
   const $ = id => doc.getElementById(id);
   const root = $('workspace-root');
-  const state = { token: storage.getItem(TOKEN_KEY), session: null, vault: null, epoch: 0, busy: false, draft: null, uncertain: false, newDraftAllowed: false, escrowUncertain: new Set(), escrowPoll: null, escrowPollKey: '', escrowPollCount: 0, proofCapability: null, proofVerifications: new Map(), proofAbort: null };
+  const state = { token: storage.getItem(TOKEN_KEY), session: null, vault: null, epoch: 0, busy: false, draft: null, uncertain: false, newDraftAllowed: false, escrowUncertain: new Set(), escrowPoll: null, escrowPollKey: '', escrowPollCount: 0, proofCapability: null, walletCapability: null, walletPending: null, proofVerifications: new Map(), proofAbort: null };
+  let walletClient;
+  const walletConfigured = () => walletCapabilityMatches(state.walletCapability, walletPolicy);
+  const client = async () => {
+    if (!walletConfigured()) fail(msg('Testnet cüzdan emaneti kullanılamıyor. Yeni iş veya eski ödeme akışına geçiş yapılmadı.'));
+    return walletClient ??= await walletFactory({window:win, network:'testnet', policy:walletPolicy});
+  };
+  const redirectVault = () => vaultFactory(WALLET_RESUME_NAMESPACE);
+  async function saveWalletResume(pending) {
+    const previous = await redirectVault().loadJob(WALLET_RESUME_RECORD);
+    if (previous?.pending?.kind === 'transaction' && previous.token !== state.token && linkedWallet(state.session)?.accountId !== previous.pending.accountId) fail(msg('Önceki cüzdan işlemi bekliyor. Yeni işlem imzalamadan mevcut kaydı doğrula.'));
+    const value = {version:1, token:state.token, sessionId:state.session.id, expiresAt:Date.now()+15*60*1000, pending};
+    await redirectVault().saveJob(WALLET_RESUME_RECORD, value);
+    const saved = await redirectVault().loadJob(WALLET_RESUME_RECORD);
+    if (JSON.stringify(saved) !== JSON.stringify(value)) fail(msg('Cüzdan dönüşü için yerel oturum kaydedilemedi. İmza istenmedi.'));
+    state.walletPending = pending;
+  }
+  async function clearWalletResume() { await redirectVault().saveJob(WALLET_RESUME_RECORD, null); state.walletPending = null; }
+  function walletError(error) {
+    if (error?.code === 'WALLET_REJECTED') return msg('Cüzdan imzası iptal edildi. İşlem tamamlandı sayılmadı.');
+    return msg('Cüzdan işlemi tamamlanamadı veya sonucu belirsiz. Yeni imza istemeden mevcut işlemi kontrol edin.');
+  }
+  function ownsWallet(job, action) {
+    const account = linkedWallet(state.session)?.accountId;
+    return Boolean(account && (action === 'record' ? isSelected(job) && account === job.selectedOffer?.paymentAccount : isBuyer(job) && account === job.buyerWallet?.accountId));
+  }
+  async function verifyWalletResult(result) {
+    const {wallet, session} = await api('/wallet/verify','POST',result);
+    if (!/^[a-f0-9]{32}$/.test(session?.id) || session.role !== state.session.role || linkedWallet(session)?.accountId !== result.accountId || wallet?.accountId !== result.accountId || linkedWallet(session).publicKey !== result.publicKey || wallet.publicKey !== result.publicKey || session.id !== (await sha256('NOPE:wallet-session:v1:testnet:'+session.role+':'+result.accountId)).slice(0,32)) fail(msg('Cüzdan bağlaması doğrulanamadı. Hesap işlemleri kapalı.'));
+    state.session = session; state.vault = vaultFactory(session.id); state.proofVerifications.clear(); await clearWalletResume(); chrome();
+  }
+  async function connectWallet(accountId) {
+    try {
+      const wallet = await client(), account = await wallet.connect(accountId ? {accountId} : {});
+      if (account?.network !== 'testnet' || !testnetAccount(account.accountId)) fail(msg('Yalnızca bağlı testnet cüzdanı kullanılabilir.'));
+      if (linkedWallet(state.session) && linkedWallet(state.session).accountId !== account.accountId) fail(msg('Farklı cüzdan için önce açıkça yeni oturum başlat. Mevcut yerel kasa silinmedi.'));
+      const {challenge} = await api('/wallet/challenge','POST',{accountId:account.accountId});
+      await saveWalletResume({kind:'challenge', accountId:account.accountId, challengeId:challenge?.challengeId});
+      message(msg('Cüzdanında hesap bağlama mesajını incele ve imzala. Bu imza para göndermez.'));
+      const result = await wallet.signChallenge(challenge);
+      if (result?.redirected === true) return;
+      await verifyWalletResult(result); await render(); message(msg('Testnet cüzdanı imzayla doğrulandı.'));
+    } catch (error) { if (error?.code === 'WALLET_REJECTED') await clearWalletResume(); await render(); fail(error instanceof FriendlyError ? errorText(error) : walletError(error)); }
+  }
+  function walletPanel(target = root) {
+    const panel = card(msg('Bağlı testnet cüzdanı'), target), wallet = linkedWallet(state.session);
+    paragraph(msg('Her iki rol de hesap kontrolünü cüzdan imzasıyla doğrular. Özel cüzdan anahtarını NOPE’a verme. Testnet tutarı ve işlem ücretini kendi cüzdanında onaylarsın.'), panel);
+    paragraph(wallet ? msg`Doğrulanmış hesap: ${wallet.accountId} · testnet` : msg('Henüz imzayla doğrulanmış cüzdan yok.'), panel, wallet ? 'badge' : 'muted');
+    if (!walletConfigured()) { paragraph(msg('Testnet cüzdan emaneti kullanılamıyor. Yeni iş veya eski ödeme akışına geçiş yapılmadı.'), panel, 'danger'); return; }
+    if (state.walletPending?.kind === 'transaction') {
+      paragraph(msg('Önceki cüzdan işlemi bekliyor. Yeni işlem imzalamadan mevcut kaydı doğrula.'), panel, 'notice');
+      if (state.walletPending.transactionHash) button(msg('Mevcut işlem kaydını doğrula'), async () => { await confirmWalletTransaction(state.walletPending); await render(); }, panel, 'btn secondary');
+      else button(msg('Cüzdan dönüşünü kontrol et'),async () => { await completeWalletReturn(); await render(); },panel,'btn secondary');
+      return;
+    }
+    const account = field(panel,msg('Bağlamak istediğin testnet hesabı (çoklu hesap için)'),{required:false,name:'walletAccount',value:wallet?.accountId || '',maxLength:64,placeholder:msg('ornek.testnet')});
+    button(wallet ? msg('Cüzdan hesabını yeniden doğrula') : msg('Cüzdanı bağla ve imzayla doğrula'), () => connectWallet(account.value.trim()), panel, 'btn secondary');
+  }
   function el(tag, text, cls) {
     const node = doc.createElement(tag);
     if (text !== undefined && text !== null) bindText(node, text);
@@ -324,8 +423,12 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     try { response = await fetcher(workspaceApiUrl(path), { method, credentials: 'same-origin', cache: 'no-store', headers: { ...(state.token ? { Authorization: 'Bearer ' + state.token } : {}), ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) }, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) }); }
     catch { fail(msg('Sunucuya ulaşılamadı. İşlemin durumunu yenileyerek kontrol edin.')); }
     if (!response.ok) {
-      if (response.status === 401) { state.proofAbort?.abort(); state.proofVerifications.clear(); state.proofCapability = null; state.token = null; state.session = null; state.vault = null; storage.removeItem(TOKEN_KEY); chrome(); }
-      const text = response.status === 401 ? msg('Oturum geçersiz veya süresi dolmuş. Yerel kasa silinmedi.') : response.status === 403 ? msg('Bu oturumun bu işleme yetkisi yok.') : response.status === 404 ? msg('İş bulunamadı veya bu oturum için erişilebilir değil.') : response.status === 409 ? msg('İşin durumu değişmiş olabilir. Yenileyip son durumu kontrol edin.') : response.status === 429 ? msg('Çok fazla istek gönderildi. Biraz sonra tekrar deneyin.') : msg('Sunucu işlemi tamamlayamadı. Güncel durumu kontrol edin.');
+      if (response.status === 401) { state.proofAbort?.abort(); state.proofVerifications.clear(); state.proofCapability = null; state.walletCapability = null; state.token = null; state.session = null; state.vault = null; storage.removeItem(TOKEN_KEY); chrome(); }
+      let walletText;
+      if (path === '/wallet' || path === '/wallet/challenge' || path === '/wallet/verify') {
+        try { const data = await response.json(); walletText = typeof data?.code === 'string' && data.code.length <= 80 ? walletApiError(data.code) : null; } catch { /* Raw server text and signature diagnostics never enter the UI. */ }
+      }
+      const text = walletText || (response.status === 401 ? msg('Oturum geçersiz veya süresi dolmuş. Yerel kasa silinmedi.') : response.status === 403 ? msg('Bu oturumun bu işleme yetkisi yok.') : response.status === 404 ? msg('İş bulunamadı veya bu oturum için erişilebilir değil.') : response.status === 409 ? msg('İşin durumu değişmiş olabilir. Yenileyip son durumu kontrol edin.') : response.status === 429 ? msg('Çok fazla istek gönderildi. Biraz sonra tekrar deneyin.') : msg('Sunucu işlemi tamamlayamadı. Güncel durumu kontrol edin.'));
       const error = new FriendlyError(text); error.status = response.status; throw error;
     }
     try { return await response.json(); } catch { fail(msg('Sunucu yanıtı okunamadı. Yenileyerek işlem durumunu kontrol edin.')); }
@@ -341,8 +444,9 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
   }
   function title(text, subtitle) { if ($('workspace-heading')) bindText($('workspace-heading'), text); if ($('workspace-subtitle')) bindText($('workspace-subtitle'), subtitle || ''); }
   function jobLink(path, id) { return `${path}?id=${encodeURIComponent(id)}`; }
-  function isBuyer(job) { return state.session?.role === 'buyer' && job.buyerId === state.session.id; }
-  function isSelected(job) { return state.session?.role === 'provider' && job.selectedOffer?.providerId === state.session.id; }
+  function isBuyer(job) { return state.session?.role === 'buyer' && (walletJob(job) ? job.buyerWallet?.network === 'testnet' && linkedWallet(state.session)?.accountId === job.buyerWallet.accountId && Boolean(linkedWallet(state.session)) : job.buyerId === state.session.id); }
+  function isSelected(job) { return state.session?.role === 'provider' && (walletJob(job) ? job.selectedOffer?.wallet?.network === 'testnet' && Boolean(linkedWallet(state.session)) && linkedWallet(state.session).accountId === job.selectedOffer.wallet.accountId && linkedWallet(state.session).accountId === job.selectedOffer.paymentAccount : job.selectedOffer?.providerId === state.session.id); }
+  const localVaultFor = job => walletJob(job) && isBuyer(job) && job.buyerId !== state.session.id ? vaultFactory(job.buyerId) : state.vault;
   function requireRole(role) { if (state.session?.role !== role) fail(msg('Bu sayfa mevcut oturum rolünüze açık değil. Rol değiştirmek için ayarlardan açıkça yeni oturum başlatın.')); }
   async function navigate(href, replace = false) {
     const route = routeOf(href, win.location.origin); if (!route || state.busy) return;
@@ -384,31 +488,32 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const providerRole = el('div', null, 'role-card'); intro.append(providerRole);
     providerRole.append(el('h3', msg('02 / Sağlayıcı')));
     paragraph(msg('Açık iş tanımlarını gör, müşteriye şifreli teklif ver ve seçildiğinde şifreli hesabı yürüt.'), providerRole);
-    paragraph(msg('Bu bir testnet pilotudur. Test kimliği oluşturulur; gerçek para kullanılmaz.'), intro, 'muted');
+    paragraph(msg('Hesap kontrolü cüzdan imzasıyla doğrulanır. Müşteri emanet tutarını kendi testnet cüzdanından yatırır.'), intro, 'muted');
     const panel = card(msg('Çalışma alanına katıl'), layout);
     const { node, submit } = form(panel, msg('Test oturumu başlat'), async () => {
       const selected = role.value;
-      if (selected === 'provider' && !testnetAccount(account.value.trim())) fail(msg('Yalnızca .testnet hesabı veya 64 haneli hex testnet hesabı kullanın.'));
-      const { token, session, proof } = await api('/session', 'POST', { role: selected, displayName: name.value.trim(), ...(selected === 'provider' ? { paymentAccount: account.value.trim() } : {}) });
+      const { token, session, proof, wallet } = await api('/session', 'POST', { role: selected, displayName: name.value.trim() });
       if (!token || !session || session.role !== selected) fail(msg('Oturum doğrulanamadı.'));
-      state.proofCapability = proofCapability(proof); storage.setItem(TOKEN_KEY, token); state.token = token; state.session = session; state.vault = vaultFactory(session.id); state.draft = null; chrome();
-      win.history.pushState({}, '', selected === 'buyer' ? '/customer' : '/provider'); await render(); message(msg('Test oturumu açıldı. Kimliğiniz bu sekmede korunur.'));
+      state.proofCapability = proofCapability(proof); state.walletCapability = wallet ?? null; storage.setItem(TOKEN_KEY, token); state.token = token; state.session = session; state.vault = vaultFactory(session.id); state.draft = null; chrome();
+      win.history.pushState({}, '', '/settings'); await render(); message(linkedWallet(state.session) ? msg('Testnet cüzdanı imzayla doğrulandı.') : msg('Test oturumu açıldı. Devam etmek için testnet cüzdanını imzayla bağla.'));
     });
     const name = field(node, msg('Görünen ad (kişisel veri kullanmayın)'), { value: '', maxLength: 60, name: 'displayName' });
     const roleWrap = el('label', null, 'field'); roleWrap.append(el('span', msg('Rol'))); const role = el('select'); role.name = 'role';
     for (const [value, text] of [['buyer', msg('Müşteri — iş yayımla')], ['provider', msg('Sağlayıcı — teklif ver')]]) { const o = el('option', text); o.value = value; role.append(o); }
     roleWrap.append(role); node.append(roleWrap);
-    const account = field(node, msg('Testnet ödeme hesabı'), { required: false, name: 'paymentAccount', placeholder: msg('ornek.testnet'), maxLength: 64 });
-    const update = () => { account.parentElement.hidden = role.value !== 'provider'; account.required = role.value === 'provider'; }; role.addEventListener('change', update); update();
-    node.append(submit); paragraph(msg('Davet veya gerçek kimlik doğrulaması yerine test kimliği oluşturulur. Rolünüz sunucu oturumuyla belirlenir. CSV ve özel anahtarlar bu cihazdaki kasada kalır.'), panel);
+    node.append(submit); paragraph(msg('Müşteri ve sağlayıcı, testnet hesabını cüzdan imzasıyla doğrular. CSV, çözücü ve teklif şifreleme anahtarları yerel kasada kalır; cüzdan imza anahtarı NOPE’a verilmez.'), panel);
   }
   async function newJob() {
     requireRole('buyer'); title(msg('Yeni şifreli iş'), msg('1. CSV seçin → 2. Yerel önizlemeyi kontrol edin → 3. Şifreleyip yayımlayın'));
+    if (!walletConfigured() || !linkedWallet(state.session) || state.proofCapability?.enabled !== true || state.proofCapability.contractId !== walletPolicy?.contractId) {
+      walletPanel(); paragraph(msg('Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı v4 sonuç kanıtı gerekir. Eski sürüme geçilmedi.')); link(msg('Kimlik ve kasa'), '/settings'); return;
+    }
     const panel = card(msg('CSV hazırlığı'));
-    const proofEnabled = state.proofCapability?.enabled === true;
-    paragraph(proofEnabled ? msg('Ajan işleri v4 bağımsız sonuç kanıtı gerektirir. Gizli eşleme yayımlamadan önce bu cihazda sabitlenir; hazırlık başarısızsa eski sürüme geçilmez. Manuel tarif ayrı eski v2 akışıdır.') : msg('Ajan işleri mevcut v3 akışını kullanır; bağımsız sonuç kanıtı içermez. Manuel tarif ayrı eski v2 akışıdır.'), panel);
+    const proofEnabled = true;
+    paragraph(msg('Yeni işler v4 sonuç kanıtı ve müşterinin kendi cüzdanından emanet yatırmasını gerektirir. Hazırlık veya cüzdan kullanılamıyorsa eski sürüme geçilmez.'), panel);
     paragraph(msg('Seçilen sütuna uygulanacak tarifi belirleyin. Sayı: 1–32 satır, boş veya 0–254 tam sayı (255 boş hücre için ayrılmıştır). Metin: en fazla 8 satır ve hücre başına 16 bayt yazdırılabilir ASCII. Tarif herkese açıktır; CSV başlıkları, dosya adı ve değerler bu cihazda kalır.'), panel);
     const { node, submit } = form(panel, msg('Şifrele ve işi yayımla'), async () => {
+      if (!walletConfigured() || !linkedWallet(state.session) || mode.value !== 'agent') fail(msg('Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı v4 sonuç kanıtı gerekir. Eski sürüme geçilmedi.'));
       if ((await unresolvedJobIds()).length && !state.newDraftAllowed) fail(msg('Önce belirsiz yayımlamayı kontrol edin veya uyarıyı onaylayarak ayrı bir yeni taslak başlatın.'));
       if (!dataset) fail(msg('Önce geçerli bir CSV seçin.'));
       const agentMode = mode.value === 'agent', revision = draftRevision, source = dataset, approvedPlan = agentApproval;
@@ -457,7 +562,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       for (const [value, text] of options) { const option = el('option', text); option.value = value; input.append(option); }
       wrap.append(input); parent.append(wrap); return input;
     }
-    const mode = select(msg('Hazırlama modu'), 'planningMode', [['manual', proofEnabled ? msg('Manuel tarif · eski v2') : msg('Manuel tarif · eski v2 (varsayılan)')], ['agent', proofEnabled ? msg('Yerel AI ajanı · v4 bağımsız sonuç kanıtı (varsayılan)') : msg('Yerel AI ajanı · v3 yerel kontrol')]]);
+    const mode = select(msg('Hazırlama modu'), 'planningMode', [['agent', msg('Yerel AI ajanı · v4 bağımsız sonuç kanıtı (varsayılan)')]]);
     mode.value = proofEnabled ? 'agent' : 'manual';
     const recipeType = select(msg('Sütun türü'), 'recipeType', [['number', msg('Sayı')], ['text', msg('Metin (ASCII)')]]);
     const fill = field(node, msg('Boş sayıları doldur'), { type: 'checkbox', required: false, name: 'recipeFill' }); fill.checked = true;
@@ -656,6 +761,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       }, row);
       button(msg('Aynı kimlik ve içerikle güvenli tekrar dene'), async () => {
         if (!local?.payload) fail(msg('Yerel yayımlama kaydı eksik. Aynı iş kimliği ve mevcut kasa korunuyor; durumu kontrol edin.'));
+        if (!walletConfigured() || !linkedWallet(state.session) || local.payload.profile !== PROOF_PROFILE || local.payload.task?.proofManifest?.context?.contractId !== walletPolicy.contractId || local.payload.task.proofManifest.context.buyerCommitment !== await sha256('NOPE:buyer:'+state.session.id)) fail(msg('Yeni iş için doğrulanmış müşteri cüzdanı ve aynı sözleşmeye bağlı v4 sonuç kanıtı gerekir. Eski sürüme geçilmedi.'));
         try { const { job } = await api('/jobs', 'POST', local.payload); await finishPublish(job, local, jobId); }
         catch (err) { if (err.status === 400) fail(msg('Eski girişim doğrulanamadı; son zamanı geçmiş olabilir. Eski kayıt ve çözücü korunuyor. Durumu kontrol edebilir veya uyarıyı onaylayarak ayrı bir yeni taslak açabilirsiniz.')); throw err; }
       }, row, 'btn secondary');
@@ -686,27 +792,49 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     return escrowMetadata(job) && job.payment.verified === true && ['AWARDED', 'DELIVERED', 'REVISION', 'ACCEPTED'].includes(job.status) &&
       ['HELD', 'RELEASE_READY'].includes(job.payment.status) && deadlinePassed(job.payment.reviewDeadlineNs);
   }
-  async function escrowOperation(job, action, { resume = false } = {}) {
-    if (action !== 'refresh') {
-      if (!escrowMetadata(job) || state.escrowUncertain.has(job.id)) fail(msg('Önce escrow durumunu yenileyin. Belirsiz işlem için yeni gönderim yapılmaz.'));
-      const allowed = resume ? resumeActionFor(job) === action && (isBuyer(job) || action === 'record' && isSelected(job)) :
-        action === 'fund' ? isBuyer(job) && job.status === 'AWARDED' && job.payment.status === 'NOT_FUNDED' && !deadlineReached(job.payment.executionDeadlineNs) :
-        action === 'record' ? (isBuyer(job) || isSelected(job)) && canRecordDelivery(job) :
-        action === 'release' ? isBuyer(job) && job.status === 'ACCEPTED' && job.payment.status === 'RELEASE_READY' && escrowRecordedDelivery(job) && !deadlineReached(job.payment.reviewDeadlineNs) :
-        action === 'refund' && isBuyer(job) && canRefund(job);
-      if (!allowed) fail(msg('Bu ödeme işlemi güncel iş ve teslim durumunda kullanılamaz. Önce durumu yenileyin.'));
-      state.escrowUncertain.add(job.id);
-    }
-    try {
-      const { job: updated } = await api('/jobs/' + encodeURIComponent(job.id) + '/payment/' + action, 'POST', {});
-      if (updated?.id !== job.id || !escrowJob(updated) || updated.payment.network !== 'testnet' || !Object.hasOwn(escrowStatuses, updated.payment.status)) throw productError(msg('Unverified payment response'));
-      if (['UNKNOWN', 'ERROR'].includes(updated.payment.status)) state.escrowUncertain.add(job.id); else state.escrowUncertain.delete(job.id);
+  async function confirmWalletTransaction(pending) {
+    if (!pending || pending.kind !== 'transaction' || !TX_HASH.test(pending.transactionHash) || !/^[a-f0-9]{32}$/.test(pending.jobId) || !RESUME_ACTIONS.has(pending.action) || linkedWallet(state.session)?.accountId !== pending.accountId) fail(msg('Cüzdan işlem kaydı bu oturumla eşleşmiyor. Yeni işlem gönderilmedi.'));
+    const {job:updated} = await api('/jobs/' + encodeURIComponent(pending.jobId) + '/payment/confirm','POST',{action:pending.action,transactionHash:pending.transactionHash});
+    if (updated?.id !== pending.jobId || !walletJob(updated) || updated.payment.contractId !== walletPolicy?.contractId || updated.payment.bindingHash !== pending.bindingHash || !Object.hasOwn(escrowStatuses,updated.payment.status)) fail(msg('Cüzdan işlem kaydı bu oturumla eşleşmiyor. Yeni işlem gönderilmedi.'));
+    // Confirmation registers the exact hash for the server's read-only observer.
+    // A wallet response never grants a local FINAL or PAID status.
+    await clearWalletResume();
+    if (['UNKNOWN','ERROR'].includes(updated.payment.status)) state.escrowUncertain.add(pending.jobId); else state.escrowUncertain.delete(pending.jobId);
+    return updated;
+  }
+  async function escrowOperation(job, action, {allowMissingLocal = false} = {}) {
+    if (!walletJob(job)) fail(msg('Bu eski sponsor işi yalnızca okunur. Yeni imza veya ödeme başlatılmaz.'));
+    if (action === 'refresh') {
+      const {job:updated} = await api('/jobs/' + encodeURIComponent(job.id) + '/payment/refresh','POST',{});
+      if (updated?.id !== job.id || !walletJob(updated) || updated.payment.contractId !== job.payment.contractId || !Object.hasOwn(escrowStatuses,updated.payment.status)) fail(msg('Cüzdan işlem kaydı bu oturumla eşleşmiyor. Yeni işlem gönderilmedi.'));
+      if (['UNKNOWN','ERROR'].includes(updated.payment.status)) state.escrowUncertain.add(job.id); else state.escrowUncertain.delete(job.id);
       return updated;
-    } catch (error) {
+    }
+    if (!walletConfigured() || job.payment.contractId !== walletPolicy.contractId || state.walletPending || state.escrowUncertain.has(job.id) || !walletActionAllowed(job,action,state.session)) fail(msg('Bu ödeme işlemi güncel iş ve teslim durumunda kullanılamaz. Önce durumu yenileyin.'));
+    try {
+      const local = action === 'fund' ? await localVaultFor(job).loadJob(job.id) : null;
+      if (action === 'fund') await verifyFundingCommitments(job,local?.payload,{allowMissingLocal});
+      const signer = await client(), accountId = linkedWallet(state.session).accountId;
+      const account = await signer.currentAccount() || await signer.connect({accountId});
+      if (account?.network !== 'testnet' || account.accountId !== accountId) fail(msg('Yalnızca bağlı testnet cüzdanı kullanılabilir.'));
+      const {job:latest,intent} = await api('/jobs/' + encodeURIComponent(job.id) + '/payment/prepare','POST',{action});
+      if (!walletActionAllowed(latest,action,state.session) || latest.id !== job.id || latest.payment.bindingHash !== job.payment.bindingHash || latest.payment.contractId !== walletPolicy.contractId || latest.selectedOffer?.paymentAccount !== job.selectedOffer?.paymentAccount || latest.selectedOffer?.amountYocto !== job.selectedOffer?.amountYocto || latest.buyerWallet?.accountId !== job.buyerWallet?.accountId || ['record','release'].includes(action) && (latest.delivery?.version !== job.delivery?.version || latest.delivery?.outputSha256 !== job.delivery?.outputSha256) || intent?.action !== action || intent.bindingHash !== latest.payment.bindingHash || typeof intent.id !== 'string' || !HASH.test(intent.id)) fail(msg('İmzalanacak işlem güncel iş, tutar veya teslimle eşleşmiyor. İmza istenmedi.'));
+      if (action === 'fund') await verifyFundingCommitments(latest,local?.payload,{allowMissingLocal});
+      const pending = {kind:'transaction',jobId:job.id,action,intentId:intent.id,accountId,bindingHash:latest.payment.bindingHash};
+      await saveWalletResume(pending);
       state.escrowUncertain.add(job.id);
+      const bounds = {action,jobId:job.id,bindingHash:latest.payment.bindingHash,accountId,contractId:walletPolicy.contractId,provider:latest.selectedOffer.paymentAccount,amountYocto:latest.selectedOffer.amountYocto,buyerAccount:latest.buyerWallet.accountId,...(action === 'fund'?{buyerCommitment:await sha256('NOPE:buyer:'+latest.buyerId),inputHash:latest.taskHash,programHash:latest.programHash,planHash:latest.planSha256 || '0'.repeat(64),executionDeadlineNs:latest.payment.executionDeadlineNs,reviewDeadlineNs:latest.payment.reviewDeadlineNs}:{}),...(['record','release'].includes(action)?{version:latest.delivery.version,outputHash:latest.delivery.outputSha256}:{})};
+      message(msg('Cüzdanında sözleşmeyi, tam tutarı ve işlemi inceleyip açıkça imzala. Henüz kesinleşmedi.'));
+      const result = await signer.sendTransaction(intent,bounds);
+      if (result?.redirected === true) return latest;
+      if (!TX_HASH.test(result?.transactionHash)) fail(msg('Cüzdan işlemi tamamlanamadı veya sonucu belirsiz. Yeni imza istemeden mevcut işlemi kontrol edin.'));
+      await saveWalletResume({...pending,transactionHash:result.transactionHash});
+      return await confirmWalletTransaction(state.walletPending);
+    } catch (error) {
+      if (['WALLET_REJECTED','WALLET_INVALID_INTENT','WALLET_ACCOUNT_REQUIRED','WALLET_ACCOUNT_CHANGED','WALLET_WRONG_NETWORK','WALLET_POLICY_DISABLED','WALLET_STORAGE_UNAVAILABLE'].includes(error?.code)) { await clearWalletResume(); state.escrowUncertain.delete(job.id); }
       await render();
-      if (error instanceof FriendlyError && [401, 403].includes(error.status)) throw error;
-      fail(msg('Escrow işleminin sonucu doğrulanamadı. Yeni işlem göndermeden “Escrow durumunu yenile” ile aynı işlemin durumunu kontrol edin. Kabul edilmiş teslim korunur; ödeme tamamlandı sayılmaz.'));
+      if (error instanceof FriendlyError) throw error;
+      fail(walletError(error));
     }
   }
   function scheduleEscrowRefresh(job, target) {
@@ -724,48 +852,51 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     };
     state.escrowPoll = win.setTimeout(poll, 2500); state.escrowPoll?.unref?.();
   }
-  function escrowPanel(job, target = root) {
-    const panel = card(msg('Sponsorlu testnet escrow'), target), payment = job.payment;
-    paragraph(msg('Bu deneme sonlu, önceden yüklenmiş testNEAR sponsor havuzunu kullanır. Sizden para veya cüzdan anahtarı alınmaz. Seçilen sağlayıcı ve fiyat zincirde herkese açıktır; sponsor bütçesi bitince yeni fon ayrılamaz.'), panel);
-    const trusted = escrowMetadata(job) && (!['HELD', 'RELEASE_READY', 'PAID', 'REFUNDED'].includes(payment.status) || payment.verified === true) &&
-      (payment.status !== 'PAID' || job.status === 'PAID') && (payment.status !== 'REFUNDED' || job.status === 'REFUNDED'), uncertain = state.escrowUncertain.has(job.id);
-    paragraph(msg`Durum: ${trusted ? escrowStatuses[payment.status] : msg('Bilinmeyen veya eksik testnet ödeme bilgisi · yalnızca durum kontrolü')}`, panel, trusted && payment.status === 'PAID' ? 'badge' : 'muted');
-    if (uncertain) paragraph(msg('Önceki işlemin sonucu doğrulanmadı. Yeni fonlama, kayıt, ödeme veya iade göndermeden durumu yenileyin.'), panel, 'danger');
+  async function escrowPanel(job, target = root) {
+    const legacy = legacyJob(job), panel = card(legacy ? msg('Eski sponsor işi · yalnızca okunur') : msg('Cüzdan destekli testnet escrow'),target), payment = job.payment;
+    panel.className += ' wallet-payment';
+    paragraph(legacy ? msg('Bu kayıt eski sponsor akışına aittir. Durumu ve geçmiş işlem özetleri gösterilir; yeni fonlama, yürütme, kabul veya ödeme başlatılmaz.') : msg('Bu işin tutarını müşteri kendi testnet cüzdanından yatırır. Her işin ayrı bakiye kaydı vardır; ortak müşteri havuzundan çekim yapılmaz. Özel cüzdan anahtarını NOPE almaz.'),panel);
+    const trusted = escrowMetadata(job) && (!['HELD','RELEASE_READY','PAID','REFUNDED'].includes(payment.status) || payment.verified === true) && (payment.status !== 'PAID' || job.status === 'PAID') && (payment.status !== 'REFUNDED' || job.status === 'REFUNDED');
+    paragraph(msg`Durum: ${legacy ? payment.status : trusted ? escrowStatuses[payment.status] : msg('Bilinmeyen veya eksik testnet ödeme bilgisi · yalnızca durum kontrolü')}`,panel,trusted && payment.status === 'PAID' ? 'badge' : 'muted');
     if (job.selectedOffer) {
-      paragraph(msg`Herkese açık seçilen tutar: ${formatNearAmount(job.selectedOffer.amountYocto)} testNEAR`, panel);
-      paragraph(msg`Testnet alıcısı: ${job.selectedOffer.paymentAccount}`, panel);
+      paragraph(msg`Herkese açık seçilen tutar: ${formatNearAmount(job.selectedOffer.amountYocto)} testNEAR`,panel);
+      paragraph(msg`Testnet alıcısı: ${job.selectedOffer.paymentAccount}`,panel);
+    }
+    if (walletJob(job) && job.buyerWallet?.accountId) paragraph(msg`Müşteri cüzdanı: ${job.buyerWallet.accountId}`,panel);
+    if (walletJob(job)) {
+      if (HASH.test(job.taskHash)) paragraph(msg`${msg('Şifreli girdi özeti')}: ${job.taskHash}`,panel);
+      if (HASH.test(job.programHash)) paragraph(msg`${msg('Program özeti')}: ${job.programHash}`,panel);
+      if (HASH.test(job.planSha256)) paragraph(msg`Plan SHA-256: ${job.planSha256}`,panel);
     }
     if (trusted) {
-      paragraph(msg`Testnet sözleşmesi: ${payment.contractId} · bağ SHA-256: ${payment.bindingHash}`, panel);
-      if (Number.isInteger(payment.recordedVersion) && payment.recordedVersion > 0 && HASH.test(payment.recordedOutputHash)) paragraph(msg`Zincirde kesinleşmiş teslim: sürüm ${payment.recordedVersion} · şifreli çıktı SHA-256: ${payment.recordedOutputHash}`, panel);
-      for (const [key, label] of [['executionDeadlineNs', msg('Yürütme sonu')], ['reviewDeadlineNs', msg('İnceleme ve iade sınırı')]]) {
-        if (typeof payment[key] === 'string' && /^[1-9]\d{0,19}$/.test(payment[key])) paragraph(msg`${label}: ${displayDate(Number(BigInt(payment[key]) / 1_000_000n))}`, panel);
-      }
-      for (const [key, label] of [['fundTransactionHash', msg('Fon ayırma')], ['recordTransactionHash', msg('Teslim kaydı')], ['releaseTransactionHash', msg('Serbest bırakma')], ['refundTransactionHash', msg('Sponsor havuzuna dönüş')]]) {
-        if (typeof payment[key] !== 'string' || !TX_HASH.test(payment[key])) continue;
-        const a = el('a', msg`${label} · testnet işlem kaydı`, 'btn secondary'); a.href = 'https://testnet.nearblocks.io/txns/' + payment[key]; a.target = '_blank'; a.rel = 'noopener noreferrer'; panel.append(a);
+      paragraph(msg`Testnet sözleşmesi: ${payment.contractId} · bağ SHA-256: ${payment.bindingHash}`,panel);
+      if (Number.isInteger(payment.recordedVersion) && payment.recordedVersion > 0 && HASH.test(payment.recordedOutputHash)) paragraph(msg`Zincirde kesinleşmiş teslim: sürüm ${payment.recordedVersion} · şifreli çıktı SHA-256: ${payment.recordedOutputHash}`,panel);
+      for (const [key,label] of [['executionDeadlineNs',msg('Yürütme sonu')],['reviewDeadlineNs',msg('İnceleme ve iade sınırı')]]) if (typeof payment[key] === 'string' && /^[1-9]\d{0,19}$/.test(payment[key])) paragraph(msg`${label}: ${displayDate(Number(BigInt(payment[key])/1_000_000n))}`,panel);
+      for (const [key,label] of [['fundTransactionHash',msg('Yatırma')],['recordTransactionHash',msg('Teslim kaydı')],['releaseTransactionHash',msg('Serbest bırakma')],['refundTransactionHash',msg('İade')]]) {
+        if (!TX_HASH.test(payment[key] || '')) continue;
+        const a = el('a',msg`${label} · testnet işlem kaydı`,'btn secondary'); a.href = 'https://testnet.nearblocks.io/txns/' + payment[key]; a.target = '_blank'; a.rel = 'noopener noreferrer'; panel.append(a);
       }
     }
-    const act = (label, action) => button(label, async () => { await escrowOperation(job, action); await render(); }, panel, 'btn secondary');
-    if (isBuyer(job) || isSelected(job)) act(msg('Escrow durumunu yenile'), 'refresh');
-    if (trusted && !uncertain) {
-      if (isBuyer(job) && job.status === 'AWARDED' && payment.status === 'NOT_FUNDED' && !deadlineReached(payment.executionDeadlineNs)) act(msg('Sponsor havuzundan fon ayır'), 'fund');
-      if ((isBuyer(job) || isSelected(job)) && canRecordDelivery(job)) act(msg('Son teslimi zincirde kaydet'), 'record');
-      if (isBuyer(job) && job.status === 'ACCEPTED' && payment.status === 'RELEASE_READY' && escrowRecordedDelivery(job)) {
-        const release = act(msg('Kabul edilen teslimin ödemesini serbest bırak'), 'release'); release.disabled = deadlineReached(payment.reviewDeadlineNs);
-      }
-      if (isBuyer(job) && canRefund(job)) act(msg('Süre doldu · ayrılan fonu sponsor havuzuna döndür'), 'refund');
-      const resumeAction = resumeActionFor(job);
-      if (resumeAction && (isBuyer(job) || resumeAction === 'record' && isSelected(job))) {
-        paragraph(msg('Sunucu bu işlemin henüz yayımlanmadığını doğruladı. Yalnızca aşağıdaki düğmeyle aynı mevcut imzalı işlem sürdürülebilir; otomatik tekrar gönderilmez.'), panel);
-        button(msg`Mevcut imzalı işlemi sürdür · ${{ fund: msg('fon ayırma'), record: msg('teslim kaydı'), release: msg('ödeme'), refund: msg('sponsor havuzuna dönüş') }[resumeAction]}`, async () => {
-          await escrowOperation(job, resumeAction, { resume: true }); await render();
-        }, panel, 'btn secondary');
+    if (legacy) return panel;
+    const pending = state.walletPending?.jobId === job.id;
+    if (state.escrowUncertain.has(job.id) || pending) paragraph(msg('Önceki işlemin sonucu doğrulanmadı. Yeni fonlama, kayıt, ödeme veya iade göndermeden durumu yenileyin.'),panel,'danger');
+    if (!linkedWallet(state.session)) { walletPanel(panel); return panel; }
+    if (isBuyer(job) || isSelected(job)) button(msg('Escrow durumunu yenile'),async () => { await escrowOperation(job,'refresh'); await render(); },panel,'btn secondary');
+    if (pending && state.walletPending.transactionHash) button(msg('Mevcut işlem kaydını doğrula'),async () => { await confirmWalletTransaction(state.walletPending); await render(); },panel,'btn secondary');
+    if (trusted && !pending && !state.walletPending && !state.escrowUncertain.has(job.id) && walletConfigured() && job.payment.contractId === walletPolicy.contractId) {
+      let fundConsent;
+      if (walletActionAllowed(job,'fund',state.session) && !(await localVaultFor(job).loadJob(job.id))?.payload?.task) fundConsent = field(panel,msg('Bu cihazda özgün şifreli istek yok. Yerel dosya kontrolü olmadan görünen iş özetlerini ve tam tutarı yatırmayı açıkça onaylıyorum.'),{type:'checkbox',required:false,name:'confirmMissingLocalFunding'});
+      for (const [action,label] of [['fund',msg('Kendi cüzdanımdan tam tutarı yatır')],['record',msg('Sağlayıcı cüzdanımla son teslimi kaydet')],['release',msg('Son teslimin ödemesini cüzdanımda onayla')],['refund',msg('Süre doldu · kendi cüzdanıma iade iste')]]) {
+        if (walletActionAllowed(job,action,state.session)) {
+          const act = button(label,async () => { await escrowOperation(job,action,{allowMissingLocal:action === 'fund' && fundConsent?.checked === true}); await render(); },panel,'btn secondary');
+          if (action === 'fund' && fundConsent) { act.disabled = !fundConsent.checked; fundConsent.addEventListener('change',() => { act.disabled = !fundConsent.checked; }); }
+        }
       }
     }
-    if (job.status === 'DELIVERED' && !escrowRecordedDelivery(job)) paragraph(msg('Son teslim sürümünün ve çıktı özetinin zincir kaydı kesinleşmeden kabul ve düzeltme kapalıdır. Sağlayıcı tamamlamadıysa müşteri de son teslimi kaydedebilir. Kayıt, teslimi kabul etmek değildir.'), panel);
-    paragraph(msg('Ödeme yalnızca son teslimin yerel kontrolü, müşterinin açık kabulü ve zincirde kesinleşen transferden sonra tamamlanır. Sessizlik ödeme başlatmaz. Süre sonrası iade ziyaretçiye değil sponsor havuzuna döner.'), panel);
-    if (trusted && ['FUNDING_PENDING', 'RECORD_PENDING', 'PAYOUT_PENDING', 'REFUND_PENDING'].includes(payment.status)) scheduleEscrowRefresh(job, panel);
+    if (!walletConfigured()) paragraph(msg('Testnet cüzdan emaneti kullanılamıyor. Yeni iş veya eski ödeme akışına geçiş yapılmadı.'),panel,'danger');
+    if (job.status === 'DELIVERED' && !escrowRecordedDelivery(job)) paragraph(msg('Kabul ve düzeltmeden önce sağlayıcı son teslimin zincir kaydını kendi cüzdanıyla kesinleştirmelidir. Kayıt teslimi kabul etmek değildir.'),panel);
+    paragraph(msg('Cüzdanın imza veya gönderim cevabı ödeme kanıtı değildir. Yerel kontrol, güncel SNARK, açık kabul ve zincirde kesinleşmiş transfer ayrı adımlardır. Süre sonrası iade yalnızca bu işin müşterisine döner.'),panel);
+    if (trusted && ESCROW_PENDING.has(payment.status)) scheduleEscrowRefresh(job,panel);
     return panel;
   }
   function proofPanel(job, local, localCorrect) {
@@ -825,7 +956,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
         cancel.hidden = true; cancel.disabled = true; await render();
       }
     }
-    if (job.status === 'DELIVERED' && localCorrect && local?.proofWitness) button(msg('Sonuç kanıtını oluştur ve doğrula'), () => perform('prove'), panel);
+    if (walletJob(job) && job.status === 'DELIVERED' && localCorrect && local?.proofWitness) button(msg('Sonuç kanıtını oluştur ve doğrula'), () => perform('prove'), panel);
     else if (!local?.proofWitness) paragraph(msg('Gizli kanıt eşlemesi bu cihazda yok. Var olan herkese açık kanıt doğrulanabilir; yeni kanıt üretilemez.'), panel);
     if (serverProofMatches(job)) button(msg('Kanıtı bu cihazda bağımsız doğrula'), () => perform('verify'), panel, 'btn secondary');
     panel.append(cancel);
@@ -838,20 +969,17 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     for (const offer of job.offers) {
       const row = card(offer.providerName || msg('Sağlayıcı'), panel);
       try {
-        const quote = await state.vault.decryptQuote(offer.envelope);
+        const quote = await localVaultFor(job).decryptQuote(offer.envelope);
         if (await quoteCommitment(job.id, offer.providerId, quote.amountYocto, quote.salt) !== offer.commitment || quote.jobId !== job.id || quote.providerId !== offer.providerId) fail(msg('Teklif bağı doğrulanamadı.'));
         paragraph(msg`${formatNearAmount(quote.amountYocto)} testNEAR · ${quote.deliveryHours} saat`, row); paragraph(quote.note || msg('Not eklenmedi.'), row);
         paragraph(msg`Testnet alıcı hesabı: ${offer.paymentAccount}`, row);
-        if (job.status === 'CLOSED') {
-          const consent = field(row, escrowJob(job) ? msg('Seçtiğim sağlayıcının ve teklif tutarının sponsorlu testnet escrow için zincirde herkese açık olmasını onaylıyorum.') : msg('Seçtiğim teklif tutarının manuel testnet ödeme için açık olmasını onaylıyorum.'), { type: 'checkbox', required: false });
+        if (walletJob(job) && job.status === 'CLOSED') {
+          const consent = field(row, msg('Seçilen sağlayıcının, cüzdan hesaplarının ve tam tutarın zincirde herkese açık olmasını onaylıyorum. Yatırmayı kendi cüzdanımda ayrıca imzalayacağım.'), { type: 'checkbox', required: false });
           button(msg('Bu sağlayıcıyı seç'), async () => {
             if (!consent.checked) fail(msg('Seçilen fiyatın açık hâle gelmesini onaylayın.'));
             const { job: awarded } = await api('/jobs/' + encodeURIComponent(job.id) + '/award', 'POST', { offerId: offer.id, amountYocto: quote.amountYocto, salt: quote.salt });
-            if (escrowJob(job) && awarded?.id === job.id && awarded.status === 'AWARDED' && awarded.payment?.status === 'NOT_FUNDED') {
-              const ready = escrowMetadata(awarded) ? awarded : await escrowOperation(awarded, 'refresh');
-              if (escrowMetadata(ready) && ready.payment.status === 'NOT_FUNDED') await escrowOperation(ready, 'fund');
-            }
-            await render(); message(escrowJob(job) ? msg('Sağlayıcı seçildi. Sponsor fonunun zincirde kesinleşmesini bekleyin.') : msg('Sağlayıcı seçildi. Bu seçim otomatik MPC sonucu değildir.'));
+            if (awarded?.id !== job.id || !walletJob(awarded)) fail(msg('Cüzdan işlem kaydı bu oturumla eşleşmiyor. Yeni işlem gönderilmedi.'));
+            await render(); message(msg('Sağlayıcı seçildi. Tam tutarı kendi cüzdanından ayrıca yatır; kesinleşmeden yürütme başlamaz.'));
           }, row);
         }
       } catch { paragraph(msg('Teklif bu cihazdaki anahtarla açılamadı veya taahhüdü doğrulanamadı. Seçim kapalı.'), row, 'danger'); }
@@ -869,48 +997,51 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const panel = card(msg('İş bilgisi')); paragraph(job.description, panel); paragraph(msg`İş kimliği: ${job.id}`, panel); paragraph(msg`${job.rowCount} satır · ${job.profile}`, panel);
     if (job.recipe) paragraph(msg`Herkese açık tarif: ${recipeText(job.recipe)}`, panel);
     publicPlanInfo(job, panel);
+    if (legacyJob(job)) paragraph(msg('Bu eski sponsor işi yalnızca okunur. Yeni imza veya ödeme başlatılmaz.'),panel,'notice');
     paragraph(msg`Teklif sonu: ${displayDate(job.deadlineISO)}`, panel);
     for (const [key, label] of [['taskHash', msg('Şifreli girdi özeti')], ['programHash', msg('Program özeti')]]) { const hash = job[key] || job.delivery?.[key]; if (hash) paragraph(msg`${label}: ${hash}`, panel); }
     if (isBuyer(job)) {
-      const local = await state.vault.loadJob(job.id);
+      const local = await localVaultFor(job).loadJob(job.id);
       if (local?.payload?.task) { paragraph(msg`Yerel şifreli girdi SHA-256: ${await taskInputHash(local.payload.task)}`, panel); paragraph(msg`Program SHA-256: ${await taskProgramHash(local.payload.task)}`, panel); }
-      if (job.status === 'OPEN') button(msg('Teklifleri şimdi kapat'), async () => { await api('/jobs/' + encodeURIComponent(job.id) + '/close', 'POST', {}); await render(); message(msg('Teklifler kapatıldı. Yeni teklif alınmaz.')); }, panel, 'btn secondary');
+      if (walletJob(job) && job.status === 'OPEN') button(msg('Teklifleri şimdi kapat'), async () => { await api('/jobs/' + encodeURIComponent(job.id) + '/close', 'POST', {}); await render(); message(msg('Teklifler kapatıldı. Yeni teklif alınmaz.')); }, panel, 'btn secondary');
       await offers(job, root);
       if (job.delivery) link(msg('Teslimi yerel olarak doğrula'), jobLink('/delivery', job.id));
     } else if (state.session.role === 'provider') {
       if (job.ownOffer) {
         const local = await state.vault.loadJob(job.id);
         paragraph(local?.ownQuote ? msg`Kendi teklifiniz: ${formatNearAmount(local.ownQuote.amountYocto)} testNEAR · ${local.ownQuote.deliveryHours} saat` : msg('Teklifiniz sunucuda kayıtlı. Yerel teklif bu cihazda bulunamadı.'), panel);
-      } else if (job.status === 'OPEN') link(msg('Şifreli teklif ver'), jobLink('/offer', job.id), panel);
+      } else if (walletJob(job) && job.status === 'OPEN') link(msg('Şifreli teklif ver'), jobLink('/offer', job.id), panel);
       if (isSelected(job)) link(msg('Şifreli işi yürüt / teslim'), jobLink('/delivery', job.id), panel);
     }
     if (job.selectedOffer) { paragraph(msg`Seçilen tutar: ${formatNearAmount(job.selectedOffer.amountYocto)} testNEAR · ${job.selectedOffer.paymentAccount}`, panel); link(msg('Ödeme ve makbuz'), jobLink('/payments', job.id), panel); }
-    if (escrowJob(job) && (isBuyer(job) || isSelected(job)) && job.selectedOffer) escrowPanel(job);
+    if (escrowJob(job) && (isBuyer(job) || isSelected(job)) && job.selectedOffer) await escrowPanel(job);
     button(msg('Durumu yenile'), render, panel, 'btn secondary');
   }
   async function offerForm(job) {
     requireRole('provider'); title(msg('Şifreli teklif ver'), job.title);
+    if (!walletJob(job)) { paragraph(msg('Bu eski sponsor işi yalnızca okunur. Yeni imza veya ödeme başlatılmaz.')); return; }
+    if (!walletConfigured() || !linkedWallet(state.session) || state.session.paymentAccount !== linkedWallet(state.session).accountId) { walletPanel(); return; }
     if (job.status !== 'OPEN' || job.ownOffer || new Date(job.deadlineISO).getTime() <= Date.now()) fail(msg('Bu iş yeni teklif almıyor veya teklifiniz zaten kayıtlı.'));
     if (!testnetAccount(state.session.paymentAccount)) fail(msg('Geçerli bir testnet ödeme hesabına sahip sağlayıcı oturumu gerekli.'));
     const panel = card(msg('Teklifiniz yalnızca müşteriye açılır')); paragraph(msg('Fiyat, teslim süresi ve not tarayıcıda müşterinin RSA anahtarıyla hibrit şifrelenir. Sunucuya açık fiyat gönderilmez. Müşteri kapanıştan sonra teklifleri kendi cihazında karşılaştırır; otomatik MPC seçimi yapılmaz.'), panel);
-    if (escrowJob(job)) paragraph(msg('Seçilirseniz sağlayıcı hesabınız ve teklif tutarınız sponsorlu testnet escrow için zincirde herkese açık olur. Bu deneme müşteri parası yerine sonlu sponsor testNEAR havuzunu kullanır. İş başına teklif üst sınırı 0.01 testNEAR’dır.'), panel);
+    paragraph(msg('Seçilirsen bağlı sağlayıcı hesabın ve teklif tutarın zincirde görünür olur. Müşteri tam tutarı kendi cüzdanından yatırır. Bu sözleşmede iş başına üst sınır 1 testNEAR’dır.'), panel);
     if (job.recipe) paragraph(msg`Herkese açık tarif: ${recipeText(job.recipe)}`, panel);
     publicPlanInfo(job, panel);
     const { node, submit } = form(panel, msg('Şifrele ve teklif gönder'), async () => {
       let amountYocto; try { amountYocto = parseNearAmount(amount.value).toString(); } catch { fail(msg('Geçerli bir testNEAR tutarı girin (en fazla 24 ondalık).')); }
       if (BigInt(amountYocto) <= 0n) fail(msg('Teklif tutarı sıfırdan büyük olmalı.'));
-      if (escrowJob(job) && BigInt(amountYocto) > MAX_SPONSORED_OFFER) fail(msg('Sponsorlu denemede teklif en fazla 0.01 testNEAR olabilir.'));
+      if (BigInt(amountYocto) > 10n ** 24n) fail(msg('Bu cüzdan sözleşmesinde teklif en fazla 1 testNEAR olabilir.'));
       const hoursValue = Number(hours.value); if (!Number.isInteger(hoursValue) || hoursValue < 1 || hoursValue > 720) fail(msg('Teslim süresi 1–720 tam saat olmalı.'));
       const previous = await state.vault.loadJob(job.id) || {};
       const quote = previous.pendingOffer?.quote || { jobId: job.id, providerId: state.session.id, amountYocto, deliveryHours: hoursValue, note: note.value.trim(), salt: randomSalt() };
-      if (escrowJob(job) && BigInt(quote.amountYocto) > MAX_SPONSORED_OFFER) fail(msg('Önceki teklif sponsorlu denemenin 0.01 testNEAR sınırını aşıyor; aynı eski teklif yeniden gönderilmedi.'));
+      if (BigInt(quote.amountYocto) > 10n ** 24n) fail(msg('Bu cüzdan sözleşmesinde teklif en fazla 1 testNEAR olabilir.'));
       const envelope = previous.pendingOffer?.envelope || await state.vault.encryptQuote(job.buyerPublicKey, quote);
       const commitment = await quoteCommitment(job.id, state.session.id, quote.amountYocto, quote.salt);
       await state.vault.saveJob(job.id, { ...previous, ownQuote: quote, pendingOffer: { quote, envelope } });
       await api('/jobs/' + encodeURIComponent(job.id) + '/offers', 'POST', { envelope, commitment });
       await state.vault.saveJob(job.id, { ...previous, ownQuote: quote }); win.history.pushState({}, '', jobLink('/job', job.id)); await render(); message(msg('Şifreli teklif kaydedildi.'));
     });
-    const amount = field(node, escrowJob(job) ? msg('Teklif (testNEAR; en fazla 0.01)') : msg('Teklif (testNEAR)'), { name: 'amount', placeholder: msg('0.001') }); amount.inputMode = 'decimal';
+    const amount = field(node, msg('Teklif (testNEAR; en fazla 1)'), { name: 'amount', placeholder: msg('0.001') }); amount.inputMode = 'decimal';
     const hours = field(node, msg('Teslim süresi (saat)'), { type: 'number', value: '1', name: 'deliveryHours' }); hours.min = '1'; hours.max = '720'; hours.step = '1';
     const note = field(node, msg('Teklif notu (kişisel veri eklemeyin)'), { type: 'textarea', required: false, maxLength: 500, name: 'note' }); node.append(submit);
     paragraph(msg`Ödeme hesabınız: ${state.session.paymentAccount} · yalnızca testnet`, panel);
@@ -923,22 +1054,21 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       const panel = card(msg('Şifreli yürütme')); paragraph(msg('Yalnızca seçilen sağlayıcı bu işi yürütebilir. Sunucu şifreli devreyi işler; sağlayıcıya CSV veya çözülmüş değer gösterilmez.'), panel);
       if (job.recipe) paragraph(msg`Yürütülecek tarif: ${recipeText(job.recipe)}`, panel);
       publicPlanInfo(job, panel);
-      if (escrowJob(job)) escrowPanel(job);
-      if (['AWARDED', 'REVISION'].includes(job.status)) {
+      if (escrowJob(job)) await escrowPanel(job);
+      if (walletJob(job) && ['AWARDED', 'REVISION'].includes(job.status)) {
         const execute = button(job.status === 'REVISION' ? msg('Düzeltmeyi yeniden yürüt') : msg('Şifreli işi yürüt ve teslim et'), async () => {
-          if (!escrowExecutionAllowed(job) || state.escrowUncertain.has(job.id)) fail(msg('Yürütmeden önce sponsor fonunun zincirde kesinleşmesini bekleyip escrow durumunu yenileyin.'));
-          const { job: executed } = await api('/jobs/' + encodeURIComponent(job.id) + '/execute', 'POST', {});
-          if (escrowJob(job) && executed?.id === job.id && canRecordDelivery(executed)) await escrowOperation(executed, 'record');
-          await render(); message(msg('Şifreli teslim oluşturuldu. Müşteri kendi cihazında doğrulayacak; escrow varsa son teslimin zincir kaydı da kesinleşmelidir.'));
+          if (!escrowExecutionAllowed(job) || state.escrowUncertain.has(job.id) || state.walletPending) fail(msg('Yürütmeden önce müşterinin cüzdan yatırmasının zincirde kesinleşmesini bekle.'));
+          await api('/jobs/' + encodeURIComponent(job.id) + '/execute', 'POST', {});
+          await render(); message(msg('Şifreli teslim oluşturuldu. Sağlayıcı son teslimin zincir kaydını kendi cüzdanında ayrıca imzalamalı.'));
         }, panel);
-        execute.disabled = !escrowExecutionAllowed(job) || state.escrowUncertain.has(job.id);
-        if (execute.disabled) paragraph(msg('Şifreli yürütme, sponsor fonu zincirde kesinleşene kadar kapalıdır. Yeni fon gönderimi yerine mevcut işlemin durumunu kontrol edin.'), panel);
+        execute.disabled = !escrowExecutionAllowed(job) || state.escrowUncertain.has(job.id) || Boolean(state.walletPending);
+        if (execute.disabled) paragraph(msg('Yürütmeden önce müşterinin cüzdan yatırmasının zincirde kesinleşmesini bekle.'), panel);
       }
       if (job.delivery) paragraph(msg`Teslim sürümü ${job.delivery.version} · şifreli çıktı SHA-256: ${job.delivery.outputSha256}`, panel);
       return;
     }
     if (!isBuyer(job)) fail(msg('Teslim yalnızca iş sahibi ve seçilen sağlayıcıya açıktır.'));
-    if (escrowJob(job)) escrowPanel(job);
+    if (escrowJob(job)) await escrowPanel(job);
     if (!job.delivery) { paragraph(msg('Henüz teslim yok.'), root, 'empty'); return; }
     const panel = card(msg('Bu cihazda doğrulama'));
     paragraph(msg('Sonuç etiketleri bu işin yerel çözücüsüyle açılır ve orijinal değerlerle karşılaştırılır. Bu kontrol yürütme kaynağı veya bağımsız operatör kanıtı değildir.'), panel);
@@ -954,7 +1084,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     function clearDeliveryStage() { bindText(pending, ''); pending.hidden = true; }
     try {
       await deliveryStage(msg('Yerel kasa açılıyor; veri ve çözücü bu cihazda yükleniyor…'));
-      local = await state.vault.loadJob(job.id); if (!local?.dataset || (isPlan ? !local.agentApproval || !local.values : !Array.isArray(local.values))) throw Error();
+      local = await localVaultFor(job).loadJob(job.id); if (!local?.dataset || (isPlan ? !local.agentApproval || !local.values : !Array.isArray(local.values))) throw Error();
       await deliveryStage(isProof ? msg('Şifreli teslim çözülüyor; v4 eşleme ve giriş bağları denetleniyor…') : msg('Şifreli teslim bu cihazda çözülüyor…'));
       outputs = isProof ? await decodeProofPlan(encodedResult(job.delivery), local.proofDecoder) : await state.vault.decodeDelivery(job.id, isRecipe || isPlan ? job.delivery : job.delivery.outputs);
     }
@@ -967,7 +1097,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       const base = baseTask(task);
       if (!task || task.profile !== job.profile || taskRows(task) !== job.rowCount || (!isPlan && outputs.length !== local.values.length)) throw Error();
       if (isPlan) {
-        if (isProof) validateProofPlanContext(task, { jobId: job.id, buyerCommitment: await sha256('NOPE:buyer:' + state.session.id), contractId: job.payment?.contractId });
+        if (isProof) validateProofPlanContext(task, { jobId: job.id, buyerCommitment: await sha256('NOPE:buyer:' + job.buyerId), contractId: job.payment?.contractId });
         const approval = local.agentApproval, checked = await acceptAgentProposal(job.publicTask, base.plan);
         if (checked.taskHash !== approval.taskHash || checked.planSha256 !== approval.planSha256 || checked.planSha256 !== job.planSha256 ||
             await hashPlan(job.plan) !== checked.planSha256 || base.planSha256 !== checked.planSha256 ||
@@ -1019,7 +1149,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       }, panel, 'btn secondary');
     }
     const acceptReady = decisionAllowed(job, verified, state.session, state.proofVerifications.get(job.id)) && (!escrowJob(job) || !state.escrowUncertain.has(job.id));
-    if (acceptReady || escrowJob(job) && job.status === 'DELIVERED' && verified.correct) {
+    if (walletJob(job) && (acceptReady || job.status === 'DELIVERED' && verified.correct)) {
       const accept = button(msg('Doğrulanan teslimi kabul et'), async () => {
         if (!decisionAllowed(job, verified, state.session, state.proofVerifications.get(job.id)) || escrowJob(job) && state.escrowUncertain.has(job.id)) fail(msg('Yerel sonuç, son teslimin zincir kaydı ve v4 için bağımsız sonuç kanıtı doğrulanmadan kabul edilemez.'));
         if (job.profile === PROOF_PROFILE) {
@@ -1029,15 +1159,12 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
         const { job: accepted } = await api('/jobs/' + encodeURIComponent(job.id) + '/decision', 'POST', { decision: 'accept', version: verified.version, outputSha256: verified.outputSha256 });
         if (escrowJob(job)) {
           if (accepted?.id !== job.id || accepted.status !== 'ACCEPTED' || !escrowRecordedDelivery(accepted)) { await render(); fail(msg('Kabulün ve son teslim kaydının durumunu yenileyin. Yeni ödeme gönderilmedi.')); }
-          const released = await escrowOperation(accepted, 'release'), displayed = await render();
-          const current = displayed?.id === job.id ? displayed : released;
-          message(current.status === 'PAID' && current.payment?.status === 'PAID' && current.payment.verified === true ?
-            msg('Teslim kabul edildi. Testnet ödemesi zincirde kesinleşti.') : msg('Teslim kabul edildi. Ödeme durumu zincirden kontrol ediliyor; kesinleşmeden tamamlandı sayılmaz.'));
+          await render(); message(msg('Teslim açıkça kabul edildi. Ödeme henüz yapılmadı; son teslimin serbest bırakmasını cüzdanında ayrıca imzala.'));
         } else { await render(); message(msg('Teslim kabul edildi. Manuel testnet ödeme henüz yapılmadı.')); }
       }, panel);
       accept.disabled = !acceptReady;
     }
-    if (job.status === 'DELIVERED') {
+    if (walletJob(job) && job.status === 'DELIVERED') {
       const revisionReady = !escrowJob(job) || job.payment.status === 'HELD' && escrowRecordedDelivery(job) && !state.escrowUncertain.has(job.id);
       const revise = button(msg('Düzeltme iste'), async () => {
         if (!revisionReady) fail(msg('Sürüm atlanmaması için önce son teslimin zincir kaydını kesinleştirin. Bu kayıt teslimi kabul etmek değildir.'));
@@ -1048,34 +1175,17 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     if (['ACCEPTED', 'PAID'].includes(job.status)) link(msg('Ödeme durumunu aç'), jobLink('/payments', job.id), panel);
   }
   async function payments(job) {
-    if (escrowJob(job)) {
-      title(msg('Sponsorlu testnet escrow'), job.title);
-      if (!isBuyer(job) && !isSelected(job)) fail(msg('Bu ödeme kaydına erişiminiz yok.'));
-      escrowPanel(job); return;
-    }
-    if (job.payment?.kind && job.payment.kind !== 'DIRECT_TESTNET_TRANSFER') { title(msg('Ödeme durumu'), job.title); paragraph(msg('Bu ödeme türü tanınmıyor. Yeni transfer göndermeden iş durumunu yenileyin.'), root, 'danger'); return; }
-    title(msg('Manuel testnet ödeme'), job.title); const panel = card(msg('Doğrudan transfer · escrow değil'));
-    paragraph(msg('Gerçek para veya kart kullanılmaz. Uygulama imza atmaz, para göndermez ve bakiye saklamaz. Testnet cüzdanınızda tek bir doğrudan NEAR transferi yapın; ardından makbuzu doğrulatın.'), panel);
-    if (!job.selectedOffer) { paragraph(msg('Önce bir sağlayıcı seçilmeli.'), panel); return; }
     if (!isBuyer(job) && !isSelected(job)) fail(msg('Bu ödeme kaydına erişiminiz yok.'));
-    const selected = job.selectedOffer;
-    paragraph(msg`Tam tutar: ${formatNearAmount(selected.amountYocto)} testNEAR`, panel); paragraph(msg`YoctoNEAR: ${selected.amountYocto}`, panel); paragraph(msg`Alıcı: ${selected.paymentAccount}`, panel);
-    button(msg('Tutarı kopyala'), async () => { await win.navigator.clipboard.writeText(formatNearAmount(selected.amountYocto)); message(msg('TestNEAR tutarı kopyalandı.')); }, panel, 'btn secondary');
-    button(msg('Alıcı hesabını kopyala'), async () => { await win.navigator.clipboard.writeText(selected.paymentAccount); message(msg('Alıcı hesabı kopyalandı.')); }, panel, 'btn secondary');
-    if (job.status === 'PAID') { paragraph(msg('PAID — sunucu gerçek testnet işlem makbuzunu doğruladı.'), panel, 'badge'); if (job.payment?.transactionHash) paragraph(msg`İşlem: ${job.payment.transactionHash}`, panel); return; }
-    if (job.status !== 'ACCEPTED' || job.payment?.status !== 'DUE') { paragraph(msg('Ödeme henüz vadesinde değil. Önce müşteri teslimi kabul etmeli.'), panel); return; }
-    paragraph(msg('Ödeme bekleniyor (DUE). Makbuz doğrulanana kadar ödenmiş sayılmaz.'), panel);
-    const wallet = el('a', msg('Testnet cüzdanını ayrı sekmede aç'), 'btn secondary'); wallet.href = 'https://testnet.mynearwallet.com/'; wallet.target = '_blank'; wallet.rel = 'noopener noreferrer'; panel.append(wallet);
-    if (!isBuyer(job)) return;
-    const { node, submit } = form(panel, msg('Testnet makbuzunu doğrula'), async () => {
-      if (!testnetAccount(account.value.trim())) fail(msg('Gönderen için geçerli bir testnet hesabı girin.'));
-      if (!/^[1-9A-HJ-NP-Za-km-z]{43,44}$/.test(tx.value.trim())) fail(msg('Geçerli testnet işlem hashini girin.'));
-      const { job: updated } = await api('/jobs/' + encodeURIComponent(job.id) + '/payment/verify', 'POST', { buyerAccount: account.value.trim(), transactionHash: tx.value.trim() });
-      if (updated?.status !== 'PAID') { message(msg('Makbuz henüz doğrulanmadı; ödeme bekliyor. Kesinleşmeyi bekleyip yeniden kontrol edin.'), true); return; }
-      await render(); message(msg('Gerçek testnet makbuzu doğrulandı. Ödeme tamamlandı.'));
-    });
-    const account = field(node, msg('Transferi yapan testnet hesabınız'), { name: 'buyerAccount', maxLength: 64 });
-    const tx = field(node, msg('Testnet işlem hashi'), { name: 'transactionHash', maxLength: 44 }); node.append(submit);
+    title(walletJob(job) ? msg('Cüzdan destekli testnet escrow') : msg('Eski ödeme kaydı · yalnızca okunur'),job.title);
+    if (escrowJob(job)) { await escrowPanel(job); return; }
+    const panel = card(msg('Eski ödeme kaydı · yalnızca okunur'));
+    paragraph(msg('Bu eski kayıt için yeni transfer veya imza başlatılmaz. Mevcut tutar, alıcı ve doğrulanmış makbuz bilgileri gösterilir.'),panel);
+    if (job.selectedOffer) {
+      paragraph(msg`Tam tutar: ${formatNearAmount(job.selectedOffer.amountYocto)} testNEAR`,panel);
+      paragraph(msg`Alıcı: ${job.selectedOffer.paymentAccount}`,panel);
+    }
+    paragraph(msg`Durum: ${job.payment?.status || job.status}`,panel);
+    if (TX_HASH.test(job.payment?.transactionHash || '')) paragraph(msg`İşlem: ${job.payment.transactionHash}`,panel);
   }
   async function activity() {
     title(msg('Hareketler'), msg('Sunucunun sağladığı durum kayıtları')); const epoch = state.epoch; const jobs = await jobsList(); if (epoch !== state.epoch) return;
@@ -1088,18 +1198,21 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     paragraph(msg('Geçmiş kaydı sunulmadığında yalnızca güncel sunucu durumu gösterilir; eksik hareketler oluşturulmaz.'));
   }
   function settings() {
-    title(msg('Kimlik ve yerel kasa'), msg('Anahtarlar bu tarayıcı ve cihaza bağlıdır.')); const panel = card(msg('Mevcut test kimliği'));
+    title(msg('Kimlik ve yerel kasa'), msg('Anahtarlar bu tarayıcı ve cihaza bağlıdır.')); const panel = card(msg('Oturum ve cüzdan hesabı'));
     paragraph(msg`${state.session.displayName} · ${state.session.role === 'buyer' ? msg('Müşteri') : msg('Sağlayıcı')} · ${state.session.id}`, panel);
     if (state.session.paymentAccount) paragraph(msg`Testnet hesabı: ${state.session.paymentAccount}`, panel);
-    paragraph(msg('Oturum belirteci yalnızca bu sekmenin sessionStorage alanında tutulur; sayfayı yenileyince korunur. Özel RSA anahtarları, CSV ve çözücü şifreli IndexedDB kasasındadır. Anahtar dışa aktarımı yoktur. Site verilerini temizlemek, farklı cihaz veya yeni kimlik kullanmak eski işlerin çözülmesini engelleyebilir.'), panel);
-    paragraph(msg('Çıkış yalnızca oturumu kapatır, eski kasayı silmez. Yeni oturum yeni kimlik oluşturur; önceki kasanın saklanması yeni kimliğe erişim sağlamaz.'), panel, 'danger');
-    const consent = field(panel, msg('Yeni kimliğin eski iş ve anahtarlara erişmeyeceğini anladım; mevcut kasayı koruyarak çıkış yap.'), { type: 'checkbox', required: false });
-    button(msg('Rol değiştirmek için yeni oturum başlat'), async () => { if (!consent.checked) fail(msg('Önce yerel anahtar ve eski kimlik uyarısını onaylayın.')); await logout(); }, panel, 'btn secondary');
+    paragraph(msg('Oturum bu sekmede korunur; cüzdan yönlendirmesi öncesinde kısa süreli dönüş kaydı da yerel şifreli kasaya yazılır. Aynı cüzdan ve rol iş sahipliğini geri getirir; farklı cihazda özel CSV veya çözücü geri gelmez. Yerel kasayı silmek çözme ve kanıt üretme yeteneğini kaybettirebilir.'), panel);
+    walletPanel();
+    paragraph(msg('Çıkış yerel kasayı silmez. Aynı cüzdan ve rolle yeniden bağlanınca iş sahipliği geri gelir; bu cihazdaki kasa korunuyorsa özel verilere erişilebilir. Farklı cüzdan veya rol iş yetkilerini değiştirir. Kayıp CSV ve çözücü yeniden girişle kurtarılamaz.'), panel, 'danger');
+    const consent = field(panel, msg('Başka cüzdan veya rolün iş yetkilerini değiştirdiğini ve yerel kasayı silmenin dosya ile çözücüyü kaybettirebileceğini anladım. Kasayı koruyarak çıkış yapmayı onaylıyorum.'), { type: 'checkbox', required: false });
+    button(msg('Rol değiştirmek için yeni oturum başlat'), async () => { if (!consent.checked) fail(msg('Önce yerel kasa ve cüzdan yetkileri uyarısını onaylayın.')); await logout(); }, panel, 'btn secondary');
   }
   async function logout() {
     state.proofAbort?.abort(); state.proofVerifications.clear(); state.proofCapability = null;
+    if (state.walletPending?.kind === 'transaction') fail(msg('Önceki cüzdan işlemi bekliyor. Yeni işlem imzalamadan mevcut kaydı doğrula.'));
+    await clearWalletResume(); state.walletCapability = null; walletClient = undefined;
     state.epoch++; storage.removeItem(TOKEN_KEY); state.token = null; state.session = null; state.vault = null; state.draft = null; state.uncertain = false; state.newDraftAllowed = false;
-    win.history.pushState({}, '', '/workspace'); await render(); message(msg('Oturum kapandı. Eski yerel kasa silinmedi; yeni oturum eski kimliğe erişim sağlamaz.'));
+    win.history.pushState({}, '', '/workspace'); await render(); message(msg('Oturum kapandı. Yerel kasa korundu. Aynı cüzdan ve rolle yeniden bağlanabilirsin; kayıp yerel dosyalar yeniden girişle geri gelmez.'));
   }
   async function render() {
     state.proofAbort?.abort();
@@ -1128,6 +1241,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
           if (route.path === '/provider') requireRole('provider');
           title(route.path === '/jobs' ? (state.session.role === 'buyer' ? msg('İşlerim') : msg('Açık işler ve tekliflerim')) : state.session.role === 'buyer' ? msg('İşlerin, kontrolün altında.') : msg('Bir sonraki işin burada.'), msg('İşleri, teklifleri ve teslimleri tek yerden takip et.'));
           if (state.session.role === 'buyer') link(msg('Yeni şifreli iş oluştur'), '/jobs/new');
+          if (!linkedWallet(state.session) || !walletConfigured()) walletPanel();
           if (state.session.role === 'buyer') await renderRecovery(root);
           const summary = el('div', null, 'dashboard-summary'); root.append(summary);
           try {
@@ -1148,6 +1262,19 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     } finally { if (epoch === state.epoch) { root.removeAttribute('aria-busy'); if (state.busy) controlsBusy(true); } }
   }
   let listenersBound = false;
+  async function completeWalletReturn() {
+    if (!state.walletPending) return;
+    const result = await (await client()).completeRedirect();
+    if (!result) return;
+    const pending = state.walletPending;
+    if (result.kind === 'challenge' && pending.kind === 'challenge' && result.result?.challengeId === pending.challengeId && result.result.accountId === pending.accountId) {
+      await verifyWalletResult(result.result); return;
+    }
+    if (result.kind === 'transaction' && pending.kind === 'transaction' && result.intentId === pending.intentId && TX_HASH.test(result.transactionHash)) {
+      await saveWalletResume({...pending,transactionHash:result.transactionHash}); await confirmWalletTransaction(state.walletPending); return;
+    }
+    fail(msg('Cüzdan işlem kaydı bu oturumla eşleşmiyor. Yeni işlem gönderilmedi.'));
+  }
   async function start() {
     if (!listenersBound) {
     listenersBound = true;
@@ -1159,12 +1286,22 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     win.addEventListener('popstate', () => { if (state.busy) { state.pendingNavigation = true; state.proofAbort?.abort(); } else void render(); });
     $('workspace-logout')?.addEventListener('click', () => run(logout));
     }
+    let resume;
+    try { resume = await redirectVault().loadJob(WALLET_RESUME_RECORD); } catch { /* Existing sessions still open when IndexedDB is unavailable. */ }
+    if (!state.token && win.location.pathname === '/settings' && resume?.version === 1 && typeof resume.token === 'string' && resume.expiresAt > Date.now()) { state.token = resume.token; storage.setItem(TOKEN_KEY,resume.token); }
     if (state.token) {
-      try { const { session, proof } = await api('/session'); if (!session || !['buyer', 'provider'].includes(session.role)) throw Error(); state.proofCapability = proofCapability(proof); state.session = session; state.vault = vaultFactory(session.id); }
+      try { const { session, proof, wallet } = await api('/session'); if (!session || !['buyer', 'provider'].includes(session.role)) throw Error(); state.proofCapability = proofCapability(proof); state.walletCapability = wallet ?? null; state.session = session; state.vault = vaultFactory(session.id); }
       catch (err) {
         if (!state.token) await render();
         else { root.replaceChildren(); title(msg('Oturum doğrulanamadı')); paragraph(msg('Kimliğiniz korunuyor. Yeni kimlik oluşturmadan bağlantıyı yeniden deneyin.')); button(msg('Oturumu yeniden doğrula'), start); }
         message(err instanceof FriendlyError ? errorText(err) : msg('Oturum geri yüklenemedi. Yeniden deneyin.'), true); return;
+      }
+    }
+    if (state.session && resume?.version === 1 && resume.token === state.token && (resume.sessionId === state.session.id || resume.pending?.kind === 'challenge' && linkedWallet(state.session)?.accountId === resume.pending.accountId)) {
+      state.walletPending = resume.pending;
+      if (win.location.pathname === '/settings') {
+        try { await completeWalletReturn(); }
+        catch (error) { await render(); message(error instanceof FriendlyError ? errorText(error) : walletError(error),true); return; }
       }
     }
     await render();

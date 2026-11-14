@@ -1,0 +1,13 @@
+import {NearConnector}from'@hot-labs/near-connect';
+const manifest={version:'NOPE-PINNED-1',wallets:[{id:'intear-wallet',name:'Intear Wallet',description:'Official Intear web wallet',website:'https://intea.rs/',icon:'',version:'pinned-6decc283',executor:'/wallet-runtime/intear-executor.js',type:'sandbox',platform:[],features:{signMessage:true,signAndSendTransaction:true,signInWithoutAddKey:true,testnet:true,mainnet:false},permissions:{storage:true,allowsOpen:['https://wallet.intear.tech']}}]};
+function memoryStorage(){const s=Object.create(null);Object.defineProperties(s,{getItem:{value:k=>Object.hasOwn(s,k)?s[k]:null},setItem:{value:(k,v)=>{s[k]=String(v);}},removeItem:{value:k=>{delete s[k];}}});return s;}
+function sheet(){if(!document.getElementById('nope-wallet-sheet')){const link=document.createElement('link');link.id='nope-wallet-sheet';link.rel='stylesheet';link.href=new URL('./wallet.css',import.meta.url).href;document.head.append(link);}}
+async function choose(c){sheet();const dialog=document.createElement('dialog');dialog.className='nope-wallet-dialog';const title=document.createElement('h2');title.textContent=c.__nopeLabels.title;dialog.append(title);
+ return new Promise((resolve,reject)=>{const finish=(id)=>{dialog.remove();id?resolve(id):reject(Error('User rejected'));};for(const w of c.availableWallets){const b=document.createElement('button');b.type='button';b.className='btn secondary';b.textContent=w.manifest.name;b.addEventListener('click',()=>finish(w.manifest.id),{once:true});dialog.append(b);}const cancel=document.createElement('button');cancel.type='button';cancel.textContent=c.__nopeLabels.cancel;cancel.addEventListener('click',()=>finish(null));dialog.append(cancel);dialog.addEventListener('cancel',e=>{e.preventDefault();finish(null);});document.body.append(dialog);dialog.showModal();});
+}
+export function createConnector({network='testnet',labels}={}){
+ if(network!=='testnet')throw Error('Only testnet is supported');sheet();const storage=new Map();
+ const c=new NearConnector({network:'testnet',autoConnect:false,features:{testnet:true,signMessage:true,signAndSendTransaction:true},manifest,footerBranding:null,
+  storage:{get:async k=>k==='selected-wallet'?(storage.get(k)??null):null,set:async(k,v)=>{if(k==='selected-wallet')storage.set(k,v);},remove:async k=>storage.delete(k)}});
+ c.setLabels=value=>{if(!value||!['title','cancel','frameTitle','open','prompt'].every(k=>typeof value[k]==='string'&&value[k].trim()))throw Error('Wallet labels required');c.__nopeLabels={...value};};c.setLabels(labels);c.__nopeWalletStorage=memoryStorage();c.selectWallet=()=>choose(c);return c;
+}

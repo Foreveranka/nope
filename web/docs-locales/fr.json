@@ -37,7 +37,7 @@
         {
           "id": "browser",
           "title": "Navigateur et coffre du client",
-          "text": "Le CSV est ouvert ici ; les véritables noms de colonnes, les champs non traités et les informations de déchiffrement restent en local. Le coffre local chiffré conserve les clés privées et le témoin de preuve. Si vous perdez le profil du navigateur ou les données du site, une simple reconnexion ne permet pas de récupérer ce coffre.",
+          "text": "Le CSV est ouvert ici ; les noms réels des colonnes, les champs non traités et les données de décodage restent locaux. Le coffre chiffré conserve les clés de chiffrement des offres et le témoin de preuve, jamais la clé de signature du portefeuille. Perdre le profil du navigateur ou les données du site ne se répare pas par une simple reconnexion.",
           "code": "",
           "href": ""
         },
@@ -71,8 +71,8 @@
         },
         {
           "id": "escrow",
-          "title": "Séquestre sur NEAR testnet",
-          "text": "Le contrat lie les hashes de la tâche, le prestataire, le montant, les échéances et la version de livraison. Après l’acceptation, il effectue le transfert natif de testNEAR. Le contrat ne vérifie pas les SNARK ; cette condition est appliquée par le navigateur et le serveur. La réserve de parrainage est limitée et aucun argent réel n’est utilisé.",
+          "title": "Séquestre avec portefeuille sur NEAR testnet",
+          "text": "Le client dépose le montant exact choisi en testNEAR depuis son propre portefeuille dans le contrat. Chaque travail possède un solde distinct ; aucun retrait ne provient d’un fonds client commun. Le prestataire signe l’enregistrement de la livraison et le client signe la libération ou un remboursement autorisé dans son portefeuille. NOPE ne reçoit jamais la clé privée du portefeuille. Le contrat ne vérifie pas les SNARK ; ce contrôle a lieu hors chaîne.",
           "code": "",
           "href": ""
         }
@@ -114,15 +114,15 @@
         },
         {
           "id": "award",
-          "title": "Choisir le prestataire et réserver le séquestre",
-          "text": "Lorsque vous choisissez une offre, le prestataire et le prix retenu deviennent visibles. Réservez le montant sponsorisé sur testnet et attendez la finalisation du séquestre. Une réservation échouée n’autorise pas l’exécution.",
+          "title": "Choisir un prestataire et déposer depuis son portefeuille",
+          "text": "Le prestataire et le prix choisi deviennent publics. Vérifie le montant exact et les frais, puis signe explicitement le dépôt dans le portefeuille lié du client. L’exécution reste fermée jusqu’à la confirmation définitive du dépôt sur la chaîne. Un clic ou un écran de réussite du portefeuille ne suffit pas.",
           "code": "",
           "href": ""
         },
         {
           "id": "evaluate",
-          "title": "Évaluer et enregistrer la livraison",
-          "text": "Le prestataire choisi lance l’exécution. Le serveur produit le résultat chiffré ; la version de livraison et son hash sont enregistrés sur NEAR. L’enregistrement d’une ancienne version ne remplace pas celui de la nouvelle livraison.",
+          "title": "Évaluer et signer l’enregistrement de livraison",
+          "text": "Le prestataire choisi lance l’exécution. Le serveur produit le résultat chiffré ; le prestataire enregistre sa version actuelle et son empreinte avec son propre portefeuille lié. L’enregistrement d’une ancienne version ne remplace pas la nouvelle livraison.",
           "code": "",
           "href": ""
         },
@@ -135,8 +135,8 @@
         },
         {
           "id": "settle",
-          "title": "Payer ou suivre la révision",
-          "text": "Après l’acceptation, libérez le paiement. L’état payé est vérifié à partir du transfert réel, du rappel réussi et de l’enregistrement du contrat. Vous pouvez demander une révision en cas de livraison incorrecte ; une fois l’échéance applicable dépassée, le remboursement restitue le montant réservé à la réserve de parrainage. Il n’y a pas de résolution automatique des litiges.",
+          "title": "Libérer ou demander un remboursement dans son portefeuille",
+          "text": "Après acceptation explicite, le client signe dans son portefeuille la libération pour la dernière livraison uniquement. Le statut payé exige le transfert réel et l’état du contrat. Une révision nécessite une nouvelle preuve ; après l’échéance autorisée, le remboursement rend le montant inutilisé de ce travail au portefeuille du client. Aucun règlement automatique des litiges n’est prévu.",
           "code": "",
           "href": ""
         }
@@ -146,19 +146,19 @@
       "id": "directions",
       "kind": "directions",
       "title": "Instructions pour les clients et les prestataires",
-      "intro": "Les rôles correspondent à des sessions de test distinctes. Le nom de session ou la connexion ne constitue ni une vérification d’identité ni un contrôle KYC.",
+      "intro": "Les deux rôles lient un portefeuille testnet par signature. Cela vérifie le contrôle du compte ; le nom de session, la connexion ou la possession du portefeuille ne constituent pas une vérification KYC.",
       "items": [
         {
           "id": "customer",
-          "title": "Commencer en tant que client",
-          "text": "Choisissez le rôle client dans l’espace de travail. Sur la page de création de tâche, sélectionnez le CSV d’exemple et saisissez l’objectif ; publiez après avoir approuvé l’aperçu. Dans les détails de la tâche, clôturez les offres, déchiffrez-les et choisissez-en une. Effectuez le décodage, la preuve et la décision sur l’écran de livraison ; suivez la finalisation sur l’écran de paiement.",
+          "title": "Commencer comme client",
+          "text": "Choisis le rôle client et lie ton portefeuille testnet par une vérification signée. Sélectionne le CSV, approuve le plan et publie le travail. Ferme et ouvre les offres, choisis un prestataire et dépose le montant exact depuis ton portefeuille. Attends la confirmation définitive. Vérifie localement le résultat et les preuves, accepte explicitement, puis signe la libération pour la livraison actuelle.",
           "code": "/workspace → /jobs/new → /job?id=<jobId> → /delivery?id=<jobId> → /payments?id=<jobId>",
           "href": "/workspace"
         },
         {
           "id": "provider",
-          "title": "Participer en tant que prestataire",
-          "text": "Ouvrez une session prestataire dans un profil de navigateur distinct et indiquez votre propre compte de paiement testnet. Examinez le plan, les limites et le délai de la tâche ouverte avant de proposer une offre. Si vous êtes choisi, attendez la finalisation du séquestre ; lancez l’évaluation uniquement pour la tâche qui vous est attribuée. Suivez la nouvelle livraison et le paiement depuis cette même tâche.",
+          "title": "Participer comme prestataire",
+          "text": "Ouvre une session prestataire dans un profil de navigateur distinct et lie ton portefeuille testnet par une vérification signée. Le compte de l’offre doit correspondre à ce portefeuille. Examine le plan et l’échéance, puis fais une offre. Une fois choisi, attends la confirmation définitive du dépôt du client ; lance l’évaluation et signe l’enregistrement de la dernière livraison dans ton portefeuille.",
           "code": "/workspace → /provider → /offer?id=<jobId> → /job?id=<jobId>",
           "href": "/workspace"
         }
@@ -253,7 +253,7 @@
         {
           "id": "public",
           "title": "Informations pouvant être publiques",
-          "text": "La description de l’annonce, les types de colonnes anonymes, le plan, les nombres de lignes et de colonnes, les dates, les hashes, le prestataire choisi et le prix sont visibles. Rédigez votre objectif en conséquence. La page publique de preuve ne présente que la tâche chiffrée, la livraison, la preuve et les informations de liaison filtrées pour publication.",
+          "text": "L’annonce, les types de colonnes anonymes, le plan, les nombres, les dates, les empreintes, les comptes de portefeuille du client et du prestataire ainsi que le prix choisi sont visibles. Rédige l’objectif en conséquence. La page publique présente uniquement la tâche chiffrée filtrée, la livraison, les preuves et les données de liaison.",
           "code": "",
           "href": ""
         },
@@ -304,7 +304,7 @@
         {
           "id": "vault-loss",
           "title": "Mon fichier sera-t-il accessible si je me connecte depuis un autre appareil ?",
-          "text": "Accéder à la même session ne signifie pas accéder au coffre de l’ancien appareil. Si le coffre local et la clé sont perdus, la capacité à décoder et à générer des preuves peut aussi être perdue. Ne supprimez pas les données du site pendant une tâche ; aucun service de récupération automatique n’est disponible.",
+          "text": "Relier le même portefeuille et le même rôle rétablit la propriété du travail et les droits de remboursement autorisés, mais ne transfère pas le CSV privé ni le décodeur sur un autre appareil. Perdre le coffre local et ses clés peut empêcher le décodage et les preuves. Ne supprime pas les données du site pendant un travail ; aucun service de récupération automatique des fichiers n’est prévu.",
           "code": "",
           "href": ""
         },
@@ -317,15 +317,15 @@
         },
         {
           "id": "refund",
-          "title": "Le paiement est-il automatique à l’échéance ?",
-          "text": "Non. Le silence ne vaut pas acceptation. Surveillez séparément dans l’interface la clôture des offres, la fin de l’exécution et la fin de l’examen. Une fois le délai d’examen applicable dépassé, une demande de remboursement libère la réservation de parrainage ; il ne s’agit ni d’un transfert au client ni d’une décision automatique sur un litige.",
+          "title": "L’expiration déclenche-t-elle un paiement automatique ?",
+          "text": "Non. Le silence ne vaut pas acceptation. Suis séparément la clôture des offres et les échéances d’exécution et de vérification. Après l’échéance autorisée, le client signe la demande de remboursement dans son portefeuille. Le contrat lui rend le solde remboursable de ce travail ; ne tente aucun nouveau paiement ou remboursement pendant un transfert en attente.",
           "code": "",
           "href": ""
         },
         {
           "id": "sponsor",
-          "title": "Pourquoi les fonds peuvent-ils manquer pour une tâche de test ?",
-          "text": "La réserve de parrainage et le budget de gaz de la clé de transaction sont limités. Au maximum 0,01 testNEAR est réservé par tâche ; d’autres tâches ou le coût du réseau peuvent bloquer l’opération. La réserve ne se reconstitue pas automatiquement. Aucun argent réel ni aucune transaction sur le réseau principal n’est nécessaire.",
+          "title": "Que faire si le portefeuille ou le réseau est indisponible ?",
+          "text": "Les nouveaux travaux exigent le séquestre testnet configuré avec portefeuille ; aucun repli vers le fonds sponsorisé ou un ancien paiement n’a lieu. Ton portefeuille doit contenir assez de testNEAR pour le montant choisi et les frais. Annulation, échec et transaction incertaine ont des états distincts ; rien n’est terminé sans vérification. Les anciens travaux sponsorisés sont en lecture seule.",
           "code": "",
           "href": ""
         }

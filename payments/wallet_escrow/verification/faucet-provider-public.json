@@ -1,0 +1,12 @@
+{
+  "network": "testnet",
+  "role": "provider",
+  "accountId": "nope-provider-44384e2f.testnet",
+  "publicKey": "ed25519:6TycxXeGAanrvZUumqsx3GyDbK6q2sotToPBDxiTibYc",
+  "balanceYocto": "10000000000000000000000000",
+  "codeHash": "11111111111111111111111111111111",
+  "blockHash": "BPKhcZfijR7sAkMeXsMLmAE8roGzctwLUe58cHxfFMq3",
+  "blockHeight": 277616570,
+  "verifiedAt": "2026-11-14T05:51:42.206Z",
+  "actualExternalChain": true
+}

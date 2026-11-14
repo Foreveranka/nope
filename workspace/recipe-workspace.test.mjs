@@ -12,6 +12,11 @@ import {prepareRecipe} from '../web/recipe-client.mjs';
 import {parseCSV} from '../web/csv-input.mjs';
 import {parseRecipeColumn, applyRecipeOutput} from '../web/recipe-csv.mjs';
 
+// Migration map: independent v2 API/GC/AES-vault/schema tests remain intact.
+// Historical SPA creation is retired: these two browser tests seed actual v2
+// ciphertext via the isolated backend fixture, then check readonly rendering and
+// GET reconciliation. Wallet/v4 publication/finality is covered in proof-ui,
+// escrow-ui and wallet-ui tests; no legacy production bypass is introduced.
 const ORIGIN='http://localhost:8712';
 const numberRecipe={type:'number',steps:[{op:'fill',value:7},{op:'clamp',min:10,max:80}]};
 const textRecipe={type:'text',steps:[{op:'trim'},{op:'lowercase'},{op:'redactDigits'}]};
@@ -149,10 +154,11 @@ class Element {
 const descendants=node=>[node,...node.children.flatMap(descendants)];
 function browser(f,who,path,{transform,losePublish=false}={}){
  const elements=new Map(['workspace-root','workspace-nav','workspace-identity','workspace-message','workspace-logout','workspace-heading','workspace-subtitle'].map(k=>[k,new Element('div')]));
+ let signingAttempts=0;
  const saved=new Map([[TOKEN_KEY,who.token]]),storage={getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)},calls=[];
  const win={location:new URL(ORIGIN+path),sessionStorage:storage,addEventListener(){},navigator:{clipboard:{writeText:async()=>{}}},URL,setTimeout,history:{pushState:(_,__,href)=>win.location=new URL(href,win.location),replaceState:(_,__,href)=>win.location=new URL(href,win.location)}};
  const doc={getElementById:k=>elements.get(k),createElement:tag=>new Element(tag),addEventListener(){},querySelectorAll:()=>[...descendants(elements.get('workspace-root')).filter(n=>['BUTTON','INPUT','SELECT','TEXTAREA'].includes(n.tagName)),elements.get('workspace-logout')]};
- const app=createBrowserWorkspace({document:doc,window:win,storage,vaultFactory:session=>createVault(session,{storage:f.localStore}),fetch:async(url,options)=>{
+ const app=createBrowserWorkspace({document:doc,window:win,storage,walletFactory:async()=>{signingAttempts++;throw Error('Readonly legacy UI never requests a signer');},vaultFactory:session=>createVault(session,{storage:f.localStore}),fetch:async(url,options)=>{
   const parsed=new URL(url,ORIGIN),route='/'+parsed.searchParams.get('route'),body=options.body?JSON.parse(options.body):undefined;calls.push({route,body,method:options.method});
   const result=await f.call(route,who,body,options.method);
   if(losePublish&&route==='/jobs'&&options.method==='POST')throw Error('synthetic lost response after committed publication');
@@ -161,7 +167,7 @@ function browser(f,who,path,{transform,losePublish=false}={}){
  }});
  const all=()=>descendants(elements.get('workspace-root')),get=name=>all().find(e=>e.name===name);
  async function settle(){for(let i=0;i<30000&&app.state.busy;i++)await new Promise(resolve=>setTimeout(resolve,1));assert.equal(app.state.busy,false,'UI operation settles');}
- return {app,calls,all,get,text:()=>elements.get('workspace-root').textContent,message:()=>elements.get('workspace-message').textContent,
+ return {app,calls,all,get,signingAttempts:()=>signingAttempts,text:()=>elements.get('workspace-root').textContent,message:()=>elements.get('workspace-message').textContent,
   change:async(name,value)=>{const input=get(name);assert.ok(input,name);if(input.type==='checkbox')input.checked=value;else input.value=value;await input.fire('change');await settle();},
   upload:async(source)=>{const file=get('csv');file.files=[{size:new TextEncoder().encode(source).length,arrayBuffer:async()=>new TextEncoder().encode(source).buffer}];await file.fire('change');await settle();},
   submit:async()=>{await all().find(e=>e.tagName==='FORM').fire('submit');await settle();},
@@ -169,35 +175,26 @@ function browser(f,who,path,{transform,losePublish=false}={}){
  };
 }
 
-test('buyer/provider SPA runs configurable text recipe, reloads encrypted decoder, verifies before/after and accepts exact delivery',async()=>{
- const f=await fixture(),buyer=browser(f,f.buyer,'/jobs/new');await buyer.app.start();
- await buyer.change('recipeType','text');await buyer.change('recipeCase','uppercase');await buyer.change('recipeRedactDigits',true);
- await buyer.upload('private-key,secret-column,keep\nK1,"  Secret97  ",untouched\nK2,Ab C3,retained\n');await buyer.change('column','1');
- buyer.get('title').value='Synthetic text cleanup';buyer.get('deadlineISO').value='2026-11-15T15:00';
- assert.ok(buyer.text().includes('SECRET**'));assert.equal(buyer.all().find(e=>e.type==='submit').disabled,false);
- await buyer.submit();const publication=buyer.calls.find(c=>c.route==='/jobs'&&c.method==='POST');assert.ok(publication,buyer.message());
- const {jobId,task}=publication.body;assert.equal(task.profile,PROFILE);assert.deepEqual(task.recipe,{type:'text',steps:[{op:'trim'},{op:'uppercase'},{op:'redactDigits'}]});
- for(const secret of ['private-key','secret-column','Secret97','untouched','outputPairs','decoder'])assert.ok(!JSON.stringify(publication.body).includes(secret),secret);
- assert.equal((await f.buyer.vault.loadJob(jobId)).pending,false);
- const j={payload:publication.body,post:(action,body={},who=f.buyer)=>f.call('/jobs/'+jobId+'/'+action,who,body)};await f.award(j);
- const provider=browser(f,f.provider,'/delivery?id='+jobId);await provider.app.start();assert.ok(provider.text().includes('büyük harf'));assert.ok(!provider.text().includes('Secret97'));
- await provider.click('Şifreli işi yürüt ve teslim et');
+test('legacy recipe SPA reloads real encrypted decoder and reference results without execution or acceptance actions',async()=>{
+ const f=await fixture(),recipe={type:'text',steps:[{op:'trim'},{op:'uppercase'},{op:'redactDigits'}]},dataset=parseCSV('private-key,secret-column,keep\nK1,"  Secret97  ",untouched\nK2,Ab C3,retained\n'),values=parseRecipeColumn(dataset,1,recipe),j=await f.publish(values,recipe),jobId=j.payload.jobId;
+ await f.buyer.vault.saveJob(jobId,{dataset,values,column:1,recipe,payload:j.payload,pending:false});await f.buyer.vault.saveDecoder(jobId,j.prepared);
+ assert.equal((await j.publish()).status,201);assert.equal(j.payload.task.profile,PROFILE);assert.deepEqual(j.payload.task.recipe,recipe);
+ for(const secret of ['private-key','secret-column','Secret97','untouched','outputPairs','decoder'])assert.ok(!JSON.stringify(j.payload).includes(secret),secret);
+ assert.equal((await f.buyer.vault.loadJob(jobId)).pending,false);await f.award(j);
+ const provider=browser(f,f.provider,'/delivery?id='+jobId);await provider.app.start();assert.ok(provider.text().includes('büyük harf'));assert.ok(!provider.text().includes('Secret97'));assert.equal(provider.all().some(e=>e.textContent==='Şifreli işi yürüt ve teslim et'),false);assert.equal(provider.calls.some(c=>c.method==='POST'),false);assert.equal(provider.signingAttempts(),0);
+ assert.equal((await j.post('execute',{},f.provider)).status,200,'actual delivery seeded outside the readonly SPA');
  const reopened=browser(f,f.buyer,'/delivery?id='+jobId);await reopened.app.start();assert.ok(reopened.text().includes('Yerel kontrol başarılı'));assert.ok(reopened.text().includes('Secret97'));assert.ok(reopened.text().includes('SECRET**'));
- const corrupted=browser(f,f.buyer,'/delivery?id='+jobId,{transform:job=>{job.delivery.programSha256='0'.repeat(64);}});await corrupted.app.start();assert.ok(!corrupted.all().some(e=>e.textContent==='Doğrulanan teslimi kabul et'));
- await reopened.click('Doğrulanan teslimi kabul et');assert.equal((await f.call('/jobs/'+jobId,f.buyer)).data.job.status,'ACCEPTED');
+ const corrupted=browser(f,f.buyer,'/delivery?id='+jobId,{transform:job=>{job.delivery.programSha256='0'.repeat(64);}});await corrupted.app.start();assert.match(corrupted.text(),/Yerel kontrol başarısız|orijinal CSV veya çözme anahtarı yok/);assert.ok(!corrupted.text().includes('Yerel kontrol başarılı'));assert.ok(!corrupted.all().some(e=>e.textContent==='Doğrulanan teslimi kabul et'));
+ for(const label of ['Doğrulanan teslimi kabul et','Düzeltme iste'])assert.equal(reopened.all().some(e=>e.textContent===label),false);assert.equal(reopened.calls.some(c=>c.method==='POST'),false);assert.equal(reopened.signingAttempts(),0);assert.equal((await f.call('/jobs/'+jobId,f.buyer)).data.job.status,'DELIVERED');
 });
 
-test('v2 pending publication recovers same payload and encrypted decoder after a lost server response',async()=>{
- const f=await fixture(),buyer=browser(f,f.buyer,'/jobs/new',{losePublish:true});await buyer.app.start();
- await buyer.change('recipeFillValue','7');await buyer.change('recipeMin','10');await buyer.change('recipeMax','80');
- await buyer.upload('key,points\nS1,190\nS2,\n');await buyer.change('column','1');buyer.get('title').value='Recover recipe';buyer.get('deadlineISO').value='2026-11-15T15:00';await buyer.submit();
- const post=buyer.calls.find(c=>c.route==='/jobs'&&c.method==='POST');assert.ok(post,buyer.message());const id=post.body.jobId;
- assert.equal(post.body.profile,PROFILE);assert.deepEqual(post.body.task.recipe,numberRecipe);assert.equal((await f.buyer.vault.loadJob(id)).pending,true);assert.ok(buyer.app.state.uncertain);
- const reloaded=browser(f,f.buyer,'/customer');await reloaded.app.start();assert.ok(reloaded.text().includes(id));await reloaded.click('Aynı işin durumunu kontrol et');
- assert.equal((await f.buyer.vault.loadJob(id)).pending,false);assert.deepEqual((await f.buyer.vault.loadJob('__pending_publish__')).unresolvedJobIds,[]);
- const task=(await f.call('/jobs/'+id+'/task',f.buyer)).data.task;assert.deepEqual(task,post.body.task);
- assert.deepEqual(await createVault(f.buyer.session.id,{storage:f.localStore}).decodeDelivery(id,await executeTask(task)),[80,10]);
- assert.equal(reloaded.calls.filter(c=>c.method==='POST').length,0,'lookup does not republish or create another job');
+test('legacy v2 pending publication reconciles exact payload/decoder by GET without allowing a replay POST',async()=>{
+ const f=await fixture(),dataset=parseCSV('key,points\nS1,190\nS2,\n'),values=parseRecipeColumn(dataset,1,numberRecipe),j=await f.publish(values,numberRecipe),id=j.payload.jobId;
+ await f.buyer.vault.saveJob(id,{dataset,values,column:1,recipe:numberRecipe,payload:j.payload,pending:true});await f.buyer.vault.saveDecoder(id,j.prepared);await f.buyer.vault.saveJob('__pending_publish__',{jobId:id,unresolvedJobIds:[id]});assert.equal((await j.publish()).status,201);
+ assert.equal(j.payload.profile,PROFILE);assert.deepEqual(j.payload.task.recipe,numberRecipe);assert.equal((await f.buyer.vault.loadJob(id)).pending,true);
+ const reloaded=browser(f,f.buyer,'/customer');await reloaded.app.start();assert.ok(reloaded.text().includes(id));await reloaded.click('Aynı kimlik ve içerikle güvenli tekrar dene');assert.equal(reloaded.calls.filter(c=>c.method==='POST').length,0);assert.equal((await f.buyer.vault.loadJob(id)).pending,true);
+ await reloaded.click('Aynı işin durumunu kontrol et');assert.equal((await f.buyer.vault.loadJob(id)).pending,false);assert.deepEqual((await f.buyer.vault.loadJob('__pending_publish__')).unresolvedJobIds,[]);
+ const task=(await f.call('/jobs/'+id+'/task',f.buyer)).data.task;assert.deepEqual(task,j.payload.task);assert.deepEqual(await createVault(f.buyer.session.id,{storage:f.localStore}).decodeDelivery(id,await executeTask(task)),[80,10]);assert.equal(reloaded.calls.filter(c=>c.method==='POST').length,0,'lookup never republishes');
 });
 
 test('only bounded v2 job creation can exceed 1MiB, up to the 3MiB transport cap',async()=>{

@@ -1,0 +1,36 @@
+{
+  "verifiedAt": "2026-11-14T06:10:56.038439+00:00",
+  "rootTests": {
+    "command": "npm test",
+    "passed": 482,
+    "failed": 0,
+    "skipped": 0,
+    "logSha256": "e24916eadbc7120148604ac0f143808f5c906291fc09f86eaffa635f906d937c"
+  },
+  "contractUnitTests": 13,
+  "actualLocalWasmSandbox": true,
+  "actualExternalTestnetPayoutAndRefund": true,
+  "actualLocalHttpEncryptedAndSNARKLifecycle": true,
+  "actualBrowserWalletPopupSigning": false,
+  "localCUA": {
+    "syntheticWalletPaymentUIFiveLanguages": true,
+    "mobile375NoDocumentOverflowAfterFix": true,
+    "actualOpaqueBridgeInitializedNoSigning": true
+  },
+  "catalogs": {
+    "languages": [
+      "tr",
+      "en",
+      "de",
+      "es",
+      "fr"
+    ],
+    "keysEach": 889,
+    "docsSectionsEach": 10,
+    "docsItemsEach": 39
+  },
+  "notes": [
+    "Raw hashed contract test logs intentionally preserve their final blank lines.",
+    "Offline UI and mocked RPC cases are separate from actual external-chain evidence."
+  ]
+}

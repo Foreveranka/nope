@@ -234,3 +234,10 @@ footer .footer-note{font-size:10px}
 
 /* Documentation remains reachable in the compact mobile sidebar too. */
 .side-bottom > a.docs-link{display:inline-flex;align-items:center;min-height:32px}
+
+/* Keep payment facts and translated actions inside the existing terminal card. */
+.wallet-payment{overflow-wrap:anywhere}
+.wallet-payment p,.wallet-payment .field{min-width:0;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:620px){
+ .wallet-payment .btn,.wallet-payment .secondary{min-width:0;width:100%;max-width:100%;justify-self:stretch;white-space:normal;overflow-wrap:anywhere;line-height:1.2}
+}

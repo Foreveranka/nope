@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-11-14T06:07:15.930510+00:00",
+  "deployment": "https://veil-procurement-7q9fana3c-omermetehanizal-9130s-projects.vercel.app",
+  "actualVercelResponse": true,
+  "authenticatedCLI": true,
+  "claim": "CSP/frame/CORS routing only, not browser signing or current final backend version",
+  "headers": {
+    "bridge": {
+      "status": "HTTP/2 200",
+      "access-control-allow-origin": "*",
+      "content-security-policy": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self' https://huggingface.co https://us.aws.cdn.hf.co https://test.rpc.fastnear.com; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; worker-src 'self'; frame-src 'self'",
+      "content-type": "text/html; charset=utf-8",
+      "cross-origin-resource-policy": "cross-origin",
+      "x-frame-options": "SAMEORIGIN"
+    },
+    "module": {
+      "status": "HTTP/2 200",
+      "access-control-allow-origin": "*",
+      "content-security-policy": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self' https://huggingface.co https://us.aws.cdn.hf.co https://test.rpc.fastnear.com; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; worker-src 'self'; frame-src 'self'",
+      "content-type": "application/javascript; charset=utf-8",
+      "cross-origin-resource-policy": "cross-origin",
+      "x-frame-options": "DENY"
+    }
+  }
+}

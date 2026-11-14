@@ -11,7 +11,7 @@ const canonical=value=>JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Arra
 export const proofBundleHash=bundle=>digest(canonical(bundle));
 
 export function proofBindingForJob(job){
- check(job?.profile===PROFILE&&job.payment?.kind==='SPONSORED_TESTNET_ESCROW'&&job.delivery&&job.selectedOffer);
+ check(job?.profile===PROFILE&&['SPONSORED_TESTNET_ESCROW','WALLET_TESTNET_ESCROW'].includes(job.payment?.kind)&&job.delivery&&job.selectedOffer);
  return {jobId:job.id,version:job.delivery.version,contractId:job.payment.contractId,bindingHash:job.payment.bindingHash,
   provider:job.selectedOffer.paymentAccount,amountYocto:job.selectedOffer.amountYocto};
 }

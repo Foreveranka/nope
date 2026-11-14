@@ -13,7 +13,10 @@ import {executeTask} from './gc.mjs';
 // are real local code; proof-worker responses and API verification are mocked.
 // This file is NOT evidence of actual SNARK proving, model accuracy or chain use.
 const ID='a'.repeat(32),CONTRACT='proof-ui.testnet',BINDING='b'.repeat(64);
-const BUYER={id:'proof-ui-fixture',role:'buyer',displayName:'Unit buyer'};
+const wallet=accountId=>({accountId,publicKey:'ed25519:'+ '1'.repeat(32),network:'testnet',verifiedAt:'2026-11-14T00:00:00Z'});
+const POLICY={network:'testnet',contractId:CONTRACT,codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const WALLET_CAPABILITY={required:true,enabled:true,network:'testnet',contractId:CONTRACT};
+const BUYER={id: (await sha256('NOPE:wallet-session:v1:testnet:buyer:proof-buyer.testnet')).slice(0,32),role:'buyer',displayName:'Unit buyer',wallet:wallet('proof-buyer.testnet')};
 const TASK={version:1,goal:'Fill C1 blanks with 7.',columns:[{id:'C1',type:'number'}]};
 const STEPS=[{column:'C1',recipe:{type:'number',steps:[{op:'fill',value:7}]}}];
 const CSV='private-score,private-keep\n,secret-value\n';
@@ -37,9 +40,9 @@ async function baseFixture(){
 const bindingFor=job=>({jobId:job.id,version:job.delivery.version,contractId:job.payment.contractId,bindingHash:job.payment.bindingHash,provider:job.selectedOffer.paymentAccount,amountYocto:job.selectedOffer.amountYocto});
 async function fixture(){
  const base=await baseFixture(),store=new LocalStorage(),vault=createVault(BUYER.id,{storage:store});
- const local={dataset:base.dataset,values:base.values,agentApproval:base.approval,payload:{jobId:ID,task:base.prepared.request,publicTask:TASK},proofDecoder:base.prepared.decoder,proofWitness:base.prepared.witness};
+ const local={dataset:base.dataset,values:base.values,agentApproval:base.approval,payload:{jobId:ID,profile:PROOF_PROFILE,task:base.prepared.request,publicTask:TASK},proofDecoder:base.prepared.decoder,proofWitness:base.prepared.witness};
  await vault.saveJob(ID,local);
- const job={id:ID,buyerId:BUYER.id,title:'UNIT v4 proof task',description:'Public fixture',profile:PROOF_PROFILE,status:'DELIVERED',rowCount:1,publicTask:TASK,plan:base.approval.plan,planSha256:base.approval.planSha256,deadlineISO:new Date(Date.now()+3600000).toISOString(),events:[],offers:[],delivery:{...base.result,version:1},selectedOffer:{providerId:'unit-provider',paymentAccount:'supplier.testnet',amountYocto:'1000000000000000000000'},payment:{kind:'SPONSORED_TESTNET_ESCROW',network:'testnet',status:'HELD',verified:true,contractId:CONTRACT,bindingHash:BINDING,executionDeadlineNs:FUTURE,reviewDeadlineNs:FUTURE,recordedVersion:1,recordedOutputHash:base.result.outputSha256}};
+ const job={id:ID,buyerId:BUYER.id,buyerWallet:structuredClone(BUYER.wallet),title:'UNIT v4 proof task',description:'Public fixture',profile:PROOF_PROFILE,status:'DELIVERED',rowCount:1,publicTask:TASK,plan:base.approval.plan,planSha256:base.approval.planSha256,deadlineISO:new Date(Date.now()+3600000).toISOString(),events:[],offers:[],delivery:{...base.result,version:1},selectedOffer:{providerId:'unit-provider',wallet:wallet('supplier.testnet'),paymentAccount:'supplier.testnet',amountYocto:'1000000000000000000000'},payment:{kind:'WALLET_TESTNET_ESCROW',network:'testnet',status:'HELD',verified:true,contractId:CONTRACT,bindingHash:BINDING,executionDeadlineNs:FUTURE,reviewDeadlineNs:FUTURE,recordedVersion:1,recordedOutputHash:base.result.outputSha256}};
  const bundle={version:1,scheme:SCHEME,finalContext:await finalProofContext(base.prepared.request,job.delivery,bindingFor(job)),rows:[{column:'C1',row:0,proof:{fixture:'UNIT-ONLY-NOT-A-REAL-SNARK'}}]};
  async function metadata(){return {status:'VERIFIED',scheme:SCHEME,version:1,bundleSha256:await hashPublicProofBundle(bundle),finalContext:bundle.finalContext,requestSha256:job.delivery.inputSha256,manifestSha256:await hashProofManifest(base.prepared.request),programSha256:job.delivery.programSha256,planSha256:job.planSha256,deliveryVersion:job.delivery.version,outputSha256:job.delivery.outputSha256,bindingHash:BINDING,rowProofCount:1};}
  return {...base,store,vault,local,job,bundle,metadata};
@@ -63,7 +66,7 @@ class Element {
 function descendants(node) { return [node, ...node.children.flatMap(descendants)]; }
 async function settle(app) { for (let i = 0; i < 10000 && app.state.busy; i++) await new Promise(resolve => setTimeout(resolve, 1)); assert.equal(app.state.busy, false, 'UI action settled'); }
 
-function browser(f,{path='/delivery?id='+ID,capability={profile:PROOF_PROFILE,enabled:true,contractId:CONTRACT},worker,garbleProofPlan,garblePlan,hook,proposalSteps=STEPS}={}){
+function browser(f,{path='/delivery?id='+ID,capability={profile:PROOF_PROFILE,enabled:true,contractId:CONTRACT},worker,identity=BUYER,walletCapability=WALLET_CAPABILITY,walletPolicy=POLICY,garbleProofPlan,garblePlan,hook,proposalSteps=STEPS}={}){
  const elements=new Map(['workspace-root','workspace-nav','workspace-identity','workspace-message','workspace-logout','workspace-heading','workspace-subtitle'].map(k=>[k,new Element('div')]));
  const storage={getItem:()=> 'unit-token',setItem(){},removeItem(){}},events={},timers=new Map();let timerId=0;
  const win={location:new URL('http://localhost'+path),sessionStorage:storage,addEventListener:(k,fn)=>events[k]=fn,
@@ -72,13 +75,13 @@ function browser(f,{path='/delivery?id='+ID,capability={profile:PROOF_PROFILE,en
  const all=()=>descendants(elements.get('workspace-root'));
  const doc={getElementById:k=>elements.get(k),createElement:tag=>new Element(tag),addEventListener(){},querySelectorAll:()=>all().filter(n=>['BUTTON','INPUT','SELECT','TEXTAREA'].includes(n.tagName))};
  const modelFactory=()=>({terminate(){},postMessage(){queueMicrotask(()=>this.onmessage({data:{type:'plan',raw:JSON.stringify({steps:proposalSteps}),model:{id:'UNIT-ONLY-MODEL',revision:'fixture'}}}));}});
- const calls=[];const app=createWorkspace({document:doc,window:win,storage,proofWorkerFactory:worker?.factory,agentWorkerFactory:modelFactory,garbleProofPlan,garblePlan,vaultFactory:()=>createVault(BUYER.id,{storage:f.store}),fetch:async(url,options)=>{
+ const calls=[];const app=createWorkspace({document:doc,window:win,storage,walletPolicy,walletFactory:async()=>{throw Error('This proof test must not request a wallet signature');},proofWorkerFactory:worker?.factory,agentWorkerFactory:modelFactory,garbleProofPlan,garblePlan,vaultFactory:()=>createVault(BUYER.id,{storage:f.store}),fetch:async(url,options)=>{
   const route='/'+new URL(url,'http://localhost').searchParams.get('route'),body=options.body?JSON.parse(options.body):undefined,call={route,body,method:options.method};calls.push(call);let data;
-  if(route==='/session')data={session:BUYER,proof:capability};
+  if(route==='/session')data={session:identity,proof:capability,wallet:walletCapability};
   else if(route==='/jobs'&&options.method==='POST'){
    f.request=body.task;f.job={...f.job,id:body.jobId,status:'OPEN',profile:body.profile,rowCount:body.rowCount,publicTask:body.publicTask,plan:body.task.task?.plan||body.task.plan,planSha256:body.task.task?.planSha256||body.task.planSha256,delivery:null,selectedOffer:null,proof:undefined};data={job:f.job};
   }else if(route==='/jobs')data={jobs:[f.job]};
-  else if(route.endsWith('/proof/evidence'))data={version:1,network:'testnet',jobId:f.job.id,task:f.prepared.request,delivery:f.job.delivery,binding:bindingFor(f.job),proof:f.job.proof,bundle:f.bundle};
+  else if(route.endsWith('/proof/evidence'))data={version:1,network:'testnet',jobId:f.job.id,task:f.prepared.request,delivery:f.job.delivery,binding:bindingFor(f.job),walletBuyerAccount:f.job.buyerWallet.accountId,proof:f.job.proof,bundle:f.bundle};
   else if(route.endsWith('/task'))data={task:f.prepared.request};
   else if(route.endsWith('/proof')&&options.method==='POST'){
    assert.deepEqual(Object.keys(body).sort(),['bundle','outputSha256','version']);assert.equal(body.version,f.job.delivery.version);assert.equal(body.outputSha256,f.job.delivery.outputSha256);
@@ -86,7 +89,7 @@ function browser(f,{path='/delivery?id='+ID,capability={profile:PROOF_PROFILE,en
   }else if(route.endsWith('/decision')){
    assert.equal(body.version,f.job.delivery.version);assert.equal(body.outputSha256,f.job.delivery.outputSha256);
    f.job.status=body.decision==='accept'?'ACCEPTED':'REVISION';if(body.decision==='accept')f.job.payment.status='RELEASE_READY';data={job:f.job};
-  }else if(route.endsWith('/payment/release')){assert.deepEqual(body,{});f.job.payment.status='PAYOUT_PENDING';f.job.payment.verified=false;data={job:f.job};}
+  }else if(route.includes('/payment/')&&options.method==='POST'){assert.fail('Proof/acceptance must not automatically request a payment: '+route);}
   else data={job:f.job};
   const custom=await hook?.(call,f,data);if(custom)return custom;return {ok:true,status:200,json:async()=>structuredClone(data)};
  }});
@@ -116,23 +119,26 @@ test('enabled v4 initialization failure never invokes v3 fallback or publishes a
  assert.equal(v3,0);assert.equal(buyer.calls.filter(c=>c.route==='/jobs'&&c.method==='POST').length,0);assert.match(buyer.message(),/İşlem tamamlanamadı/);assert.ok(!buyer.message().includes('UNIT proof assets unavailable'),'unknown SDK diagnostic is never visitor-facing copy');
 });
 
-test('session capability preserves explicit legacy agent v3 and manual v2 while malformed enabled capability never downgrades',async()=>{
- for(const manual of [false,true]){
-  const f=await fixture(),buyer=browser(f,{path:'/jobs/new',capability:{profile:PROOF_PROFILE,enabled:manual,contractId:manual?CONTRACT:null},garbleProofPlan:()=>{throw Error('Proof preparation not expected in this legacy test');}});await buyer.app.start();await buyer.upload();buyer.get('title').value='UNIT explicit legacy';
-  assert.equal(buyer.get('planningMode').value,manual?'agent':'manual');
-  if(manual)await buyer.change('planningMode','manual');
-  else{await buyer.change('planningMode','agent');await buyer.change('agentColumn1','number');await buyer.change('agentGoal',TASK.goal);await buyer.click('Yerel ajanla plan üret');await buyer.change('agentApprove',true);}
-  await buyer.submit();const post=buyer.calls.find(c=>c.route==='/jobs'&&c.method==='POST');assert.ok(post,buyer.message());assert.equal(post.body.profile,manual?'nope-csv-recipe-gc-v2':'nope-csv-plan-gc-v3');
-  const saved=await f.vault.loadJob(post.body.jobId);assert.equal(saved.proofWitness,undefined);assert.equal(saved.proofDecoder,undefined);
+test('new jobs fail closed without matching wallet/proof capabilities or a signed wallet, never preparing manual/v3 fallback',async()=>{
+ for(const options of [
+  {capability:{profile:PROOF_PROFILE,enabled:false,contractId:null}},
+  {capability:{profile:PROOF_PROFILE,enabled:true,contractId:'invalid.near'}},
+  {walletCapability:null},{walletCapability:{...WALLET_CAPABILITY,required:false}},
+  {walletCapability:{...WALLET_CAPABILITY,network:'mainnet'}},
+  {walletCapability:{...WALLET_CAPABILITY,contractId:'different.testnet'}},
+  {walletPolicy:null},{identity:{...BUYER,wallet:null}},
+ ]){
+  const f=await fixture();let preparations=0;
+  const buyer=browser(f,{path:'/jobs/new',...options,garbleProofPlan:()=>{preparations++;},garblePlan:()=>{preparations++;}});await buyer.app.start();
+  assert.equal(buyer.get('planningMode'),undefined);assert.equal(buyer.get('csv'),undefined);assert.equal(preparations,0);assert.equal(buyer.calls.some(c=>c.method==='POST'),false);
  }
- const bad=browser(await fixture(),{path:'/jobs/new',capability:{profile:PROOF_PROFILE,enabled:true,contractId:'invalid.near'}});await bad.app.start();assert.equal(bad.get('planningMode'),undefined);assert.equal(bad.calls.some(c=>c.method==='POST'),false);
 });
 
 test('v4 unit fixture requires the worker verification response AND exact server metadata; witness stays in the local prove worker',async()=>{
  const f=await fixture(),w=workers(f),buyer=browser(f,{worker:w});await buyer.app.start();assert.ok(buyer.text().includes('Yerel kontrol başarılı'));assert.equal(buyer.enabled('Doğrulanan teslimi kabul et'),false);assert.equal(buyer.enabled('Düzeltme iste'),true);
  await buyer.click('Sonuç kanıtını oluştur ve doğrula');assert.deepEqual(w.messages.map(m=>m.type),['prove','verify']);assert.ok(w.messages[0].witness.rows[0].inputPairs);assert.equal(w.messages[1].witness,undefined);assert.ok(w.instances.every(instance=>instance.terminated));assert.equal(buyer.enabled('Doğrulanan teslimi kabul et'),true,buyer.message());assert.ok(buyer.text().includes('Bağımsız sonuç kanıtı doğrulandı'));
  const submission=buyer.calls.find(c=>c.route.endsWith('/proof')&&c.method==='POST');assert.ok(submission);for(const secret of ['inputPairs','inputSalt','proofWitness','private-score','secret-value'])assert.ok(!JSON.stringify(submission.body).includes(secret),secret);
- await buyer.click('Doğrulanan teslimi kabul et');assert.equal(f.job.status,'ACCEPTED');assert.equal(f.job.payment.status,'PAYOUT_PENDING');assert.ok(buyer.calls.some(c=>c.route.endsWith('/payment/release')));
+ await buyer.click('Doğrulanan teslimi kabul et');assert.equal(f.job.status,'ACCEPTED');assert.equal(f.job.payment.status,'RELEASE_READY');assert.ok(!buyer.calls.some(c=>c.route.includes('/payment/')),'acceptance requires a separate explicit wallet release');
 });
 
 test('reload ignores saved/server booleans and independently verifies public evidence again before enabling acceptance',async()=>{
@@ -199,4 +205,23 @@ test('delivery clears pending status when local vault or decoder fails and shows
   else await f.vault.saveJob(ID,{...f.local,proofDecoder:{}});
   const buyer=browser(f,{worker:workers(f)});await buyer.app.start();const pending=buyer.all().find(e=>e.dataset.deliveryPending==='true');assert.equal(pending.hidden,true);assert.equal(pending.textContent,'');assert.ok(buyer.text().includes('orijinal CSV veya çözme anahtarı yok'));assert.equal(buyer.enabled('Doğrulanan teslimi kabul et'),false);
  }
+});
+
+test('every proof metadata hash is bound exactly; a worker boolean cannot replace request, manifest, plan, program, output or context bindings',async()=>{
+ for(const key of ['requestSha256','manifestSha256','programSha256','planSha256','outputSha256','bindingHash','finalContext','bundleSha256']){
+  const f=await fixture(),buyer=browser(f,{worker:workers(f),hook:call=>{if(call.route.endsWith('/proof')&&call.method==='POST')f.job.proof[key]='f'.repeat(64);}});await buyer.app.start();await buyer.click('Sonuç kanıtını oluştur ve doğrula');assert.equal(buyer.enabled('Doğrulanan teslimi kabul et'),false,key);assert.equal(buyer.app.state.proofVerifications.size,0,key);assert.equal(buyer.calls.some(c=>c.route.endsWith('/decision')),false,key);
+ }
+});
+
+test('independent public proof verification without the local decoder never grants customer acceptance',async()=>{
+ const f=await fixture();f.job.proof=await f.metadata();await f.vault.saveJob(ID,{...f.local,proofDecoder:null,clientProofVerified:true});const w=workers(f),buyer=browser(f,{worker:w});await buyer.app.start();assert.equal(buyer.enabled('Doğrulanan teslimi kabul et'),false);await buyer.click('Kanıtı bu cihazda bağımsız doğrula');assert.deepEqual(w.messages.map(m=>m.type),['verify']);assert.equal(buyer.enabled('Doğrulanan teslimi kabul et'),false);assert.equal(buyer.calls.some(c=>c.route.endsWith('/decision')),false);
+});
+
+test('verified proof and correct local decode still require the latest chain record and the immutable buyer wallet',async()=>{
+ const f=await fixture(),buyer=browser(f,{worker:workers(f)});await buyer.app.start();await buyer.click('Sonuç kanıtını oluştur ve doğrula');const verification=buyer.app.state.proofVerifications.get(ID),decoded={correct:true,version:1,outputSha256:f.job.delivery.outputSha256};assert.equal(decisionAllowed(f.job,decoded,BUYER,verification),true);
+ for(const mutate of [j=>j.payment.verified=false,j=>j.payment.recordedVersion=0,j=>j.payment.recordedOutputHash='f'.repeat(64),j=>j.delivery.version=2,j=>j.delivery.outputSha256='f'.repeat(64),j=>j.status='REVISION']){
+  const changed=structuredClone(f.job);mutate(changed);assert.equal(decisionAllowed(changed,decoded,BUYER,verification),false);
+ }
+ assert.equal(decisionAllowed(f.job,decoded,{...BUYER,wallet:wallet('wrong-wallet.testnet')},verification),false);assert.equal(decisionAllowed(f.job,decoded,{...BUYER,wallet:null},verification),false);
+ f.job.payment.recordedVersion=0;await buyer.click('Doğrulanan teslimi kabul et');assert.equal(buyer.calls.some(c=>c.route.endsWith('/decision')),false,'a retained enabled button rechecks the chain record');
 });

@@ -85,3 +85,10 @@
 !scripts/check-locales.mjs
 
 !scripts/check-docs-locales.mjs
+
+!wallet-runtime
+!wallet-runtime/*.mjs
+!wallet-runtime/*.js
+!wallet-runtime/*.css
+!wallet-runtime/package.json
+!wallet-runtime/package-lock.json

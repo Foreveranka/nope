@@ -5,11 +5,14 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {packageAgentModel} from './package-agent-model.mjs';
+import {WALLET_ESCROW_POLICY} from '../workspace/wallet-config.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const target = path.join(root, 'dist');
+if(!WALLET_ESCROW_POLICY||WALLET_ESCROW_POLICY.network!=='testnet'||WALLET_ESCROW_POLICY.requireKeyless!==true)throw Error('Reviewed keyless wallet escrow pin required before publication');
+if(await fs.readFile(path.join(root,'workspace/wallet-config.mjs'),'utf8')!==await fs.readFile(path.join(root,'web/wallet-pins.mjs'),'utf8'))throw Error('Server/browser wallet policy mismatch');
 execFileSync(process.execPath,[path.join(root,'scripts/check-locales.mjs')],{stdio:'inherit'});
 execFileSync(process.execPath,[path.join(root,'scripts/check-docs-locales.mjs')],{stdio:'inherit'});
-const files = ['docs.html','docs.js','docs.css','docs-locales/tr.json','docs-locales/en.json','docs-locales/de.json','docs-locales/es.json','docs-locales/fr.json','i18n.mjs','i18n.css','locales/en.mjs','locales/tr.json','locales/en.json','locales/de.json','locales/es.json','locales/fr.json','proof-plan-core.mjs','proof-plan-client.mjs','proof-worker.mjs','public-proof.mjs','verify-proof.css','agent-plan.mjs','plan-core.mjs','plan-client.mjs','agent-model-worker.mjs','agent-model-runtime.mjs','recipes.html','recipes.js','recipe-csv.mjs','recipe-core.mjs','recipe-client.mjs','nope-landing.css','nope-pixels.svg','nope-logo.svg','nope-display.ttf','PressStart2P-OFL.txt','nope-pixel.ttf','nope-mono.ttf','VT323-OFL.txt','SpaceMono-OFL.txt','workspace.html','workspace.css','workspace.js','workspace-vault.mjs','gc-verify-worker.mjs','csv-browser.js','csv-gc-worker.mjs','gc-core.mjs','gc-client.mjs','verify.html','verify.js','csv.html','csv.js','csv.css','csv-input.mjs','try.html','try.css','try.js','private-sum.mjs','privacy.html','privacy.js','privacy.css','testnet.html', 'testnet.js', 'market.html', 'market.js', 'market.css', 'sealed.mjs', 'index.html', 'app.html', 'demo.html', 'styles.css','landing.js', 'app.js', 'input.mjs', 'demo.js', 'deployment.mjs'];
+const files = ['wallet-pins.mjs','wallet-client.mjs','docs.html','docs.js','docs.css','docs-locales/tr.json','docs-locales/en.json','docs-locales/de.json','docs-locales/es.json','docs-locales/fr.json','i18n.mjs','i18n.css','locales/en.mjs','locales/tr.json','locales/en.json','locales/de.json','locales/es.json','locales/fr.json','proof-plan-core.mjs','proof-plan-client.mjs','proof-worker.mjs','public-proof.mjs','verify-proof.css','agent-plan.mjs','plan-core.mjs','plan-client.mjs','agent-model-worker.mjs','agent-model-runtime.mjs','recipes.html','recipes.js','recipe-csv.mjs','recipe-core.mjs','recipe-client.mjs','nope-landing.css','nope-pixels.svg','nope-logo.svg','nope-display.ttf','PressStart2P-OFL.txt','nope-pixel.ttf','nope-mono.ttf','VT323-OFL.txt','SpaceMono-OFL.txt','workspace.html','workspace.css','workspace.js','workspace-vault.mjs','gc-verify-worker.mjs','csv-browser.js','csv-gc-worker.mjs','gc-core.mjs','gc-client.mjs','verify.html','verify.js','csv.html','csv.js','csv.css','csv-input.mjs','try.html','try.css','try.js','private-sum.mjs','privacy.html','privacy.js','privacy.css','testnet.html', 'testnet.js', 'market.html', 'market.js', 'market.css', 'sealed.mjs', 'index.html', 'app.html', 'demo.html', 'styles.css','landing.js', 'app.js', 'input.mjs', 'demo.js', 'deployment.mjs'];
 await fs.rm(target, { recursive: true, force: true });
 await fs.mkdir(target, { recursive: true });
 for (const name of files) {
@@ -18,6 +21,20 @@ for (const name of files) {
   await fs.mkdir(path.dirname(path.join(target,name)),{recursive:true});
   await fs.copyFile(source, path.join(target, name));
 }
+// Reviewed wallet code is packaged offline; opaque bridge has no parent data access.
+execFileSync(process.execPath,[path.join(root,'wallet-runtime/package-browser.mjs')],{stdio:'inherit'});
+const walletOut=path.join(root,'wallet-runtime/dist');
+const walletManifest=JSON.parse(await fs.readFile(path.join(walletOut,'asset-manifest.json'),'utf8'));
+const walletAllowed=new Set(['wallet-sdk.js','bridge.js','bridge.html','intear-executor.js','wallet.css']);
+if(walletManifest.version!==1||walletManifest.network!=='testnet'||walletManifest.totalBytes>4*1024*1024)throw Error('Invalid wallet assets');
+for(const asset of walletManifest.files){
+ if(!walletAllowed.delete(asset.path)||!Number.isSafeInteger(asset.bytes)||asset.bytes<1||asset.bytes>2*1024*1024)throw Error('Unapproved wallet asset');
+ const source=path.join(walletOut,asset.path),data=await fs.readFile(source);
+ if(data.length!==asset.bytes||createHash('sha256').update(data).digest('hex')!==asset.sha256)throw Error('Wallet asset integrity mismatch');
+ await fs.mkdir(path.join(target,'wallet-runtime'),{recursive:true});await fs.writeFile(path.join(target,'wallet-runtime',asset.path),data);
+}
+if(walletAllowed.size)throw Error('Incomplete wallet assets');
+await fs.copyFile(path.join(walletOut,'asset-manifest.json'),path.join(target,'wallet-runtime/asset-manifest.json'));
 // Only vetted JS/WASM/model manifests enter the deployment, never model weights or caches.
 const plannerAssets = await packageAgentModel();
 const plannerTarget = path.join(target,'agent-model');

@@ -1,0 +1,554 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nope.invalid/wallet-escrow-v1-call.schema.json",
+  "title": "NOPE customer wallet-funded testnet escrow v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "const": "fund"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "terms": {
+              "$ref": "#/$defs/terms"
+            }
+          },
+          "required": [
+            "terms"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "args"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "const": "record_delivery"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
+            },
+            "output_hash": {
+              "$ref": "#/$defs/hash"
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id",
+            "version",
+            "output_hash"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "args"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "const": "accept_and_release"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
+            },
+            "output_hash": {
+              "$ref": "#/$defs/hash"
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id",
+            "version",
+            "output_hash"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "args"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "const": "refund"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "args"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "const": "get_hold"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "args"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "const": "get_config"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {},
+          "required": []
+        }
+      },
+      "required": [
+        "method",
+        "args"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "const": "on_transfer"
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            },
+            "nonce": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "action": {
+              "enum": [
+                "payout",
+                "refund"
+              ]
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id",
+            "nonce",
+            "action"
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "args"
+      ]
+    }
+  ],
+  "$defs": {
+    "account": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 64,
+      "pattern": "^(?:[a-z0-9]+(?:[-_][a-z0-9]+)*(?:\\.[a-z0-9]+(?:[-_][a-z0-9]+)*)*\\.testnet|[0-9a-f]{64})$"
+    },
+    "job": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "amount": {
+      "type": "string",
+      "pattern": "^(?:[1-9][0-9]{0,23}|1000000000000000000000000)$",
+      "x-max": "1000000000000000000000000"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{0,19}$",
+      "x-max": "18446744073709551615"
+    },
+    "terms": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "$ref": "#/$defs/job"
+        },
+        "buyer_commitment": {
+          "$ref": "#/$defs/hash"
+        },
+        "buyer_account": {
+          "$ref": "#/$defs/account"
+        },
+        "provider": {
+          "$ref": "#/$defs/account"
+        },
+        "amount": {
+          "$ref": "#/$defs/amount"
+        },
+        "input_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "program_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "plan_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "execution_deadline_ns": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "review_deadline_ns": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "required": [
+        "job_id",
+        "buyer_commitment",
+        "buyer_account",
+        "provider",
+        "amount",
+        "input_hash",
+        "program_hash",
+        "plan_hash",
+        "execution_deadline_ns",
+        "review_deadline_ns"
+      ]
+    },
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967295
+        },
+        "output_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "required": [
+        "version",
+        "output_hash"
+      ]
+    }
+  },
+  "x-protocol": {
+    "domain": "NOPE:WALLET-ESCROW:V1:testnet",
+    "namespace": [
+      "buyer_account",
+      "job_id"
+    ],
+    "bindingTuple": [
+      "DOMAIN",
+      "contractId",
+      "job_id",
+      "buyer_commitment",
+      "buyer_account",
+      "provider",
+      "amount",
+      "input_hash",
+      "program_hash",
+      "plan_hash",
+      "execution_deadline_ns",
+      "review_deadline_ns"
+    ],
+    "bindingEncoding": "SHA-256 of UTF-8 compact JSON array, every element a string; lowercase hex digest",
+    "termsFieldOrder": [
+      "job_id",
+      "buyer_commitment",
+      "buyer_account",
+      "provider",
+      "amount",
+      "input_hash",
+      "program_hash",
+      "plan_hash",
+      "execution_deadline_ns",
+      "review_deadline_ns"
+    ],
+    "limits": {
+      "max_jobs": 50,
+      "max_hold_amount": "1000000000000000000000000",
+      "min_hold_amount": "1",
+      "max_horizon_ns": "2592000000000000",
+      "storage_headroom_bytes": 131072,
+      "gas_buffer_yocto": "100000000000000000000000",
+      "min_transfer_gas_tgas": 100,
+      "callback_gas_tgas": 20
+    },
+    "methods": {
+      "fund": {
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "terms": {
+              "$ref": "#/$defs/terms"
+            }
+          },
+          "required": [
+            "terms"
+          ]
+        },
+        "deposit": "exact terms.amount",
+        "caller": "predecessor == terms.buyer_account; never idempotent; duplicate namespace/job rejects"
+      },
+      "record_delivery": {
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
+            },
+            "output_hash": {
+              "$ref": "#/$defs/hash"
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id",
+            "version",
+            "output_hash"
+          ]
+        },
+        "deposit": "0",
+        "caller": "immutable buyer or selected provider"
+      },
+      "accept_and_release": {
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
+            },
+            "output_hash": {
+              "$ref": "#/$defs/hash"
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id",
+            "version",
+            "output_hash"
+          ]
+        },
+        "deposit": "0",
+        "caller": "immutable buyer only"
+      },
+      "refund": {
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id"
+          ]
+        },
+        "deposit": "0",
+        "caller": "immutable buyer only"
+      },
+      "get_hold": {
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id"
+          ]
+        },
+        "deposit": "0",
+        "caller": "public view"
+      },
+      "get_config": {
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {},
+          "required": []
+        },
+        "deposit": "0",
+        "caller": "public view"
+      },
+      "on_transfer": {
+        "args": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buyer_account": {
+              "$ref": "#/$defs/account"
+            },
+            "job_id": {
+              "$ref": "#/$defs/job"
+            },
+            "nonce": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "action": {
+              "enum": [
+                "payout",
+                "refund"
+              ]
+            }
+          },
+          "required": [
+            "buyer_account",
+            "job_id",
+            "nonce",
+            "action"
+          ]
+        },
+        "deposit": "0",
+        "caller": "private self callback, exactly one promise result"
+      }
+    },
+    "states": [
+      "Held",
+      "Delivered",
+      "PayoutPending",
+      "RefundPending",
+      "Paid",
+      "Refunded"
+    ],
+    "deadlines": "now < execution < review <= now+30days; record <= execution; payout <= review; refund strictly > review",
+    "accounting": "total_deposited == liabilities + total_paid + total_refunded; pending_outgoing <= liabilities; each pending holds one nonce/action; transfers spend only immutable per-hold amount",
+    "storage": "Existing contract balance pays storage/gas buffer, never customer payment pool. No owner withdrawal, top-up allocation, upgrade method or sponsor pool. Successful funding attaches exactly the liability amount.",
+    "delivery": "First version 1; exact same version/hash is idempotent; changes require strict next version. Buyer may record for recovery: record only commits public metadata and cannot change payee, amount, buyer or release authority.",
+    "callbacks": "Private self callback keyed by buyer_account/job_id/nonce/action. Native transfer success (empty result) terminalizes exactly once. Definitive failure restores pre-transfer Held/Delivered and leaves liabilities unchanged. Unknown outcome stays pending; never time-based resend/refund.",
+    "funding": "Duplicate job only within buyer namespace rejects and transaction receipt failure refunds attached deposit. Other buyers cannot occupy your namespace. Obtain authoritative intended buyer from immutable application job/payment; never discover buyer by untrusted first fund.",
+    "trust": "Buyer chooses acceptance; no automatic dispute arbitration or on-chain SNARK verification. No immutability claim until FINAL empty contract keylist is independently recorded.",
+    "returns": {
+      "fund": "Hold",
+      "record_delivery": "Hold",
+      "accept_and_release": "Promise -> final private on_transfer JSON boolean; true only definitive payout success; always confirm FINAL connected native Transfer and Paid hold/nonce",
+      "refund": "Promise -> final private on_transfer JSON boolean; true only definitive refund success; always confirm FINAL connected native Transfer and Refunded hold/nonce",
+      "get_hold": "Hold or null",
+      "on_transfer": "bool; false on definite failure OR unknown outcome, distinguish via get_hold pending/state/nonce"
+    },
+    "holdShape": {
+      "terms": "Terms",
+      "binding_hash": "hex64",
+      "state": "Held|Delivered|PayoutPending|RefundPending|Paid|Refunded",
+      "nonce": "U64 decimal string initially0",
+      "delivery": "null|{version:u32,output_hash:hex64}",
+      "last_transfer_failure_nonce": "null|U64 decimal string",
+      "pending": "null|{action:payout|refund,previous_state:Held|Delivered}"
+    }
+  }
+}

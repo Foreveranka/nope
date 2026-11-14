@@ -3,13 +3,20 @@ import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import {createWorkspace as createServerWorkspace,quoteCommitment} from './core.mjs';
 import {executeTask} from './gc.mjs';
-import {createWorkspace as createBrowserWorkspace,createPayload,TOKEN_KEY,generateAgentPlan,prepareApprovedAgentJob} from '../web/workspace.js';
+import {createWorkspace as createBrowserWorkspace,createPayload,TOKEN_KEY,PROOF_PROFILE,generateAgentPlan,prepareApprovedAgentJob} from '../web/workspace.js';
 import {createVault,randomSalt} from '../web/workspace-vault.mjs';
 import {publicTask,publicTaskHash,acceptAgentProposal,privatePlanInputs,applyAgentOutput} from '../web/agent-plan.mjs';
 import {PROFILE,hashPlan,hashPlanRequest,hashPlanProgram,hashPlanOutput} from '../web/plan-core.mjs';
 import {preparePlan} from '../web/plan-client.mjs';
 import {sha256} from '../web/gc-core.mjs';
 import {parseCSV} from '../web/csv-input.mjs';
+// Migration map: v3 backend/crypto/vault tests stay below unchanged. Old SPA
+// execution/acceptance is now legacy-readonly; publication/recovery is seeded
+// through that isolated historical API. New-job cancel/invalidation uses an
+// explicit signed-wallet/v4 capability fixture; complete v4 payment/proof flows
+// are covered by proof-ui, escrow-ui and wallet-ui tests, not a production bypass.
+const POLICY={network:'testnet',contractId:'agent-ui-wallet.testnet',codeHash:'2'.repeat(44),domain:'NOPE:WALLET-ESCROW:V1:testnet',requireKeyless:true};
+const wallet=accountId=>({accountId,network:'testnet',publicKey:'ed25519:'+ '1'.repeat(32),verifiedAt:'2026-11-14T00:00:00Z'});
 const ORIGIN='http://localhost:8712';
 const CSV='private-score,private-name,private-ignore\n209,  Hidden97  ,Retained-A\n,Ab C3,Retained-B\n';
 const TASK=publicTask({version:1,goal:'C1: fill blanks with 7 and clamp to 10..80. C2: trim, lowercase, redact digits.',columns:[{id:'C1',type:'number'},{id:'C2',type:'text'}]});
@@ -74,19 +81,21 @@ class Element {
 const descendants=node=>[node,...node.children.flatMap(descendants)];
 function browser(f,who,path,{transform,losePublish=false,agentWorkerFactory}={}){
  const elements=new Map(['workspace-root','workspace-nav','workspace-identity','workspace-message','workspace-logout','workspace-heading','workspace-subtitle'].map(k=>[k,new Element('div')]));
+ let signingAttempts=0;
  const saved=new Map([[TOKEN_KEY,who.token]]),storage={getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)},calls=[];
  const win={location:new URL(ORIGIN+path),sessionStorage:storage,addEventListener(){},navigator:{clipboard:{writeText:async()=>{}}},URL,setTimeout,history:{pushState:(_,__,href)=>win.location=new URL(href,win.location),replaceState:(_,__,href)=>win.location=new URL(href,win.location)}};
  const doc={getElementById:k=>elements.get(k),createElement:tag=>new Element(tag),addEventListener(){},querySelectorAll:()=>[...descendants(elements.get('workspace-root')).filter(n=>['BUTTON','INPUT','SELECT','TEXTAREA'].includes(n.tagName)),elements.get('workspace-logout')]};
- const app=createBrowserWorkspace({document:doc,window:win,storage,agentWorkerFactory,vaultFactory:session=>createVault(session,{storage:f.localStore}),fetch:async(url,options)=>{
+ const app=createBrowserWorkspace({document:doc,window:win,storage,walletPolicy:POLICY,walletFactory:async()=>{signingAttempts++;throw Error('This UI fixture never requests signatures');},agentWorkerFactory,vaultFactory:session=>createVault(session,{storage:f.localStore}),fetch:async(url,options)=>{
   const parsed=new URL(url,ORIGIN),route='/'+parsed.searchParams.get('route'),body=options.body?JSON.parse(options.body):undefined;calls.push({route,body,method:options.method});
   const result=await f.call(route,who,body,options.method);
+  if(route==='/session'&&path==='/jobs/new'){result.data={...result.data,session:{...result.data.session,wallet:wallet('agent-buyer.testnet')},wallet:{required:true,enabled:true,network:'testnet',contractId:POLICY.contractId},proof:{profile:PROOF_PROFILE,enabled:true,contractId:POLICY.contractId}};}
   if(losePublish&&route==='/jobs'&&options.method==='POST')throw Error('synthetic lost response after committed publication');
   if(transform&&result.data.job)transform(result.data.job);
   return {ok:result.status>=200&&result.status<300,status:result.status,json:async()=>result.data};
  }});
  const all=()=>descendants(elements.get('workspace-root')),get=name=>all().find(e=>e.name===name);
  async function settle(){for(let i=0;i<30000&&app.state.busy;i++)await new Promise(resolve=>setTimeout(resolve,1));assert.equal(app.state.busy,false,'UI operation settles');}
- return {app,calls,all,get,text:()=>elements.get('workspace-root').textContent,message:()=>elements.get('workspace-message').textContent,
+ return {app,calls,all,get,signingAttempts:()=>signingAttempts,text:()=>elements.get('workspace-root').textContent,message:()=>elements.get('workspace-message').textContent,
   change:async(name,value)=>{const input=get(name);assert.ok(input,name);if(input.type==='checkbox')input.checked=value;else input.value=value;await input.fire('change');await settle();},
   upload:async(source)=>{const file=get('csv');file.files=[{size:new TextEncoder().encode(source).length,arrayBuffer:async()=>new TextEncoder().encode(source).buffer}];await file.fire('change');await settle();},
   submit:async()=>{await all().find(e=>e.tagName==='FORM').fire('submit');await settle();},
@@ -190,7 +199,7 @@ test('actual encrypted v3 lifecycle: selected-provider-only execution, reload de
 });
 
 async function setupAgentUI(buyer){
- await buyer.app.start();assert.equal(buyer.get('planningMode').value,'manual');
+ await buyer.app.start();assert.equal(buyer.get('planningMode').value,'agent');assert.deepEqual(buyer.get('planningMode').children.map(o=>o.value),['agent']);
  await buyer.change('planningMode','agent');await buyer.upload(CSV);
  await buyer.change('agentColumn1','number');await buyer.change('agentColumn2','text');await buyer.change('agentGoal',TASK.goal);
  buyer.get('title').value='Synthetic agent cleanup';buyer.get('description').value='Separate public description';buyer.get('deadlineISO').value='2026-11-15T15:00';
@@ -210,22 +219,21 @@ test('agent UI keeps visible loading progress and cancellation available while a
  assert.equal(buyer.calls.filter(c=>c.route==='/jobs'&&c.method==='POST').length,0);
 });
 
-test('agent SPA lifecycle uses unit-only model fixture, real multi-column crypto/server/vault and buyer reference gate',async()=>{
- const f=await fixture(),model=modelFixture(),buyer=browser(f,f.buyer,'/jobs/new',{agentWorkerFactory:model.factory});await setupAgentUI(buyer);
- await buyer.click('Yerel ajanla plan üret');assert.ok(buyer.text().includes('UNIT-ONLY-NOT-A-REAL-MODEL'),buyer.message());
- assert.ok(buyer.text().includes(TASK.goal));assert.ok(buyer.text().includes('hidden**'));assert.ok(buyer.text().includes('Plan SHA-256:'));
- assert.equal(buyer.all().find(e=>e.type==='submit').disabled,true);await buyer.change('agentApprove',true);assert.equal(buyer.all().find(e=>e.type==='submit').disabled,false);
- await buyer.submit();const post=buyer.calls.find(c=>c.route==='/jobs'&&c.method==='POST');assert.ok(post,buyer.message());const id=post.body.jobId;
- assert.deepEqual(post.body.publicTask,TASK);assert.equal(post.body.profile,PROFILE);
- for(const secret of ['private-score','private-name','Hidden97','Retained-A','decoder','dataset','outputPairs'])assert.ok(!JSON.stringify(post.body).includes(secret),secret);
+test('legacy agent SPA preserves real multicolumn crypto/vault/reference display but cannot execute or accept',async()=>{
+ const f=await fixture(),model=modelFixture();await generateAgentPlan(TASK,{workerFactory:model.factory});const d=await planDraft(f),id=d.payload.jobId;
+ await f.buyer.vault.saveJob(id,{dataset:d.dataset,values:d.prepared.values,agentApproval:d.approval,payload:d.payload,pending:false});await f.buyer.vault.saveDecoder(id,d.prepared);
+ assert.equal((await f.call('/jobs',f.buyer,d.payload)).status,201);assert.deepEqual(d.payload.publicTask,TASK);assert.equal(d.payload.profile,PROFILE);
+ for(const secret of ['private-score','private-name','Hidden97','Retained-A','decoder','dataset','outputPairs'])assert.ok(!JSON.stringify(d.payload).includes(secret),secret);
  assert.deepEqual(model.messages[0].task,TASK);assert.ok(!JSON.stringify(model.messages).includes('private-score'));
- await f.award(post.body);const provider=browser(f,f.provider,'/delivery?id='+id);await provider.app.start();assert.ok(provider.text().includes(TASK.goal));assert.ok(!provider.text().includes('Hidden97'));
- await provider.click('Şifreli işi yürüt ve teslim et');
+ await f.award(d.payload);const provider=browser(f,f.provider,'/delivery?id='+id);await provider.app.start();assert.ok(provider.text().includes(TASK.goal));assert.ok(!provider.text().includes('Hidden97'));assert.equal(provider.all().some(e=>e.textContent==='Şifreli işi yürüt ve teslim et'),false);assert.equal(provider.calls.some(c=>c.method==='POST'),false);assert.equal(provider.signingAttempts(),0);
+ // Seed an actual legacy delivery through the isolated backend algorithm fixture.
+ assert.equal((await f.call('/jobs/'+id+'/execute',f.provider,{})).status,200);
  const reopened=browser(f,f.buyer,'/delivery?id='+id);await reopened.app.start();assert.ok(reopened.text().includes('Yerel kontrol başarılı'),reopened.text());assert.ok(reopened.text().includes('Hidden97'));assert.ok(reopened.text().includes('hidden**'));assert.ok(reopened.text().includes('private-score'));
  for(const transform of [job=>{job.delivery.programSha256='0'.repeat(64);},job=>{job.publicTask.goal='tampered public goal';},job=>{job.planSha256='0'.repeat(64);}]){
-  const bad=browser(f,f.buyer,'/delivery?id='+id,{transform});await bad.app.start();assert.ok(!bad.all().some(e=>e.textContent==='Doğrulanan teslimi kabul et'));
+  const bad=browser(f,f.buyer,'/delivery?id='+id,{transform});await bad.app.start();assert.ok(!bad.all().some(e=>e.textContent==='Doğrulanan teslimi kabul et'));assert.match(bad.text(),/Yerel kontrol başarısız|orijinal CSV veya çözme anahtarı yok/);assert.ok(!bad.text().includes('Yerel kontrol başarılı'));assert.equal(bad.calls.some(c=>c.method==='POST'),false);
  }
- await reopened.click('Doğrulanan teslimi kabul et');const accepted=reopened.calls.find(c=>c.route.endsWith('/decision'));assert.deepEqual(Object.keys(accepted.body).sort(),['decision','outputSha256','version']);assert.equal((await f.call('/jobs/'+id,f.buyer)).data.job.status,'ACCEPTED');
+ for(const label of ['Doğrulanan teslimi kabul et','Düzeltme iste'])assert.equal(reopened.all().some(e=>e.textContent===label),false);
+ assert.equal(reopened.calls.some(c=>c.method==='POST'),false);assert.equal(reopened.signingAttempts(),0);assert.equal((await f.call('/jobs/'+id,f.buyer)).data.job.status,'DELIVERED');
 });
 
 test('goal/schema/file/mode changes invalidate agent approval and silent task changes are rejected on publish',async()=>{
@@ -234,15 +242,16 @@ test('goal/schema/file/mode changes invalidate agent approval and silent task ch
  await approve();await buyer.change('agentGoal',TASK.goal+' ');assert.equal(buyer.get('agentApprove').checked,false);assert.equal(buyer.all().find(e=>e.type==='submit').disabled,true);
  await approve();await buyer.change('agentColumn2','ignore');assert.equal(buyer.get('agentApprove').checked,false);await buyer.change('agentColumn2','text');
  await approve();await buyer.upload(CSV);assert.equal(buyer.get('agentApprove').checked,false);assert.equal(buyer.get('agentColumn1').value,'ignore');await buyer.change('agentColumn1','number');await buyer.change('agentColumn2','text');
- await approve();await buyer.change('planningMode','manual');assert.equal(buyer.get('agentApprove').checked,false);await buyer.change('planningMode','agent');
+ await approve();await buyer.change('planningMode','agent');assert.equal(buyer.get('agentApprove').checked,false);assert.deepEqual(buyer.get('planningMode').children.map(o=>o.value),['agent']);
  await approve();buyer.get('agentGoal').value='Silently changed goal';await buyer.submit();assert.equal(buyer.calls.filter(c=>c.route==='/jobs'&&c.method==='POST').length,0);assert.match(buyer.message(),/plan|tanımı|sütun/i);
 });
 
-test('agent pending publication reload recovers the exact public task/ciphertext and local multicolumn decoder',async()=>{
- const f=await fixture(),model=modelFixture(),buyer=browser(f,f.buyer,'/jobs/new',{agentWorkerFactory:model.factory,losePublish:true});await setupAgentUI(buyer);await buyer.click('Yerel ajanla plan üret');await buyer.change('agentApprove',true);await buyer.submit();
- const post=buyer.calls.find(c=>c.route==='/jobs'&&c.method==='POST');assert.ok(post,buyer.message());const id=post.body.jobId;assert.equal((await f.buyer.vault.loadJob(id)).pending,true);
- const reloaded=browser(f,f.buyer,'/customer');await reloaded.app.start();await reloaded.click('Aynı işin durumunu kontrol et');assert.equal((await f.buyer.vault.loadJob(id)).pending,false);assert.equal(reloaded.calls.filter(c=>c.method==='POST').length,0);
- const task=(await f.call('/jobs/'+id+'/task',f.buyer)).data.task;assert.deepEqual(task,post.body.task);
+test('legacy agent pending publication reconciles by GET only, retaining exact public task and encrypted multicolumn decoder',async()=>{
+ const f=await fixture(),d=await planDraft(f),id=d.payload.jobId;
+ await f.buyer.vault.saveJob(id,{dataset:d.dataset,values:d.prepared.values,agentApproval:d.approval,payload:d.payload,pending:true});await f.buyer.vault.saveDecoder(id,d.prepared);await f.buyer.vault.saveJob('__pending_publish__',{jobId:id,unresolvedJobIds:[id]});
+ assert.equal((await f.call('/jobs',f.buyer,d.payload)).status,201,'seed a committed legacy publication with an unresolved local response');assert.equal((await f.buyer.vault.loadJob(id)).pending,true);
+ const reloaded=browser(f,f.buyer,'/customer');await reloaded.app.start();await reloaded.click('Aynı kimlik ve içerikle güvenli tekrar dene');assert.equal(reloaded.calls.filter(c=>c.method==='POST').length,0,'legacy task is never republished');assert.equal((await f.buyer.vault.loadJob(id)).pending,true);
+ await reloaded.click('Aynı işin durumunu kontrol et');assert.equal((await f.buyer.vault.loadJob(id)).pending,false);assert.equal(reloaded.calls.filter(c=>c.method==='POST').length,0);
+ const task=(await f.call('/jobs/'+id+'/task',f.buyer)).data.task;assert.deepEqual(task,d.payload.task);
  assert.deepEqual(await createVault(f.buyer.session.id,{storage:f.localStore}).decodeDelivery(id,await executeTask(task)),{C1:[80,10],C2:['hidden**','ab c*']});
 });
-

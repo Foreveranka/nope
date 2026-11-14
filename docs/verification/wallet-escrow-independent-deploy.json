@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-14T05:52:54.989Z",
+  "network": "testnet",
+  "contractId": "nope-wallet-44384e2f.testnet",
+  "codeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
+  "wasmSha256": "56d753677633d264a92acf3278e1708bc627b0b86a979b662011119c04c9dbe8",
+  "wasmBytes": 221852,
+  "finalBlockHash": "DY9dnYffiScUyMEKoRYUuN5cTUQGbYRnsF4jdGLLJENZ",
+  "finalBlockHeight": 277616691,
+  "keys": [],
+  "sameFinalSnapshot": true,
+  "sourceWasmMatched": true,
+  "accountingInvariant": true,
+  "actualExternalChain": true
+}

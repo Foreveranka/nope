@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "frozenContractCodeHash": "6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy",
+  "frozenWasmSha256": "56d753677633d264a92acf3278e1708bc627b0b86a979b662011119c04c9dbe8",
+  "unitTestsPassed": 13,
+  "actualLocalSandboxPassed": true,
+  "actualPublicTestnetPaidAndRefunded": true,
+  "keylessFinal": true,
+  "contractSourcesUnchangedAfterLock": true,
+  "privateRuntimeExcluded": true,
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 33,
+      "sha256": "1e6d4ccfc572deff5d2caf3966dd872abdcc4986699d52562f41088cebd87158"
+    },
+    {
+      "path": "Cargo.lock",
+      "bytes": 67976,
+      "sha256": "c35db1b3e82fb4907ed25741058504a336d5e8cd6987d8700a72a2eee7f8a3f0"
+    },
+    {
+      "path": "Cargo.toml",
+      "bytes": 470,
+      "sha256": "62cab18bee115fac392cc54b126c26a1539f176261edf43c1004d896abdef34a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 10545,
+      "sha256": "2709f9bd36afd635f307b2961f43f3edc06eb047acd550c17dc896b048f6859b"
+    },
+    {
+      "path": "cargo-local.sh",
+      "bytes": 646,
+      "sha256": "ab496771ba9072ce3b83415f194005ab00df632f91be235283385091cb40791a"
+    },
+    {
+      "path": "check-live.mjs",
+      "bytes": 8689,
+      "sha256": "085a428b4573ac17b3b73f9a7ab5c39a90a1efb67ef41a7758020599d48fcb42"
+    },
+    {
+      "path": "protocol.schema.json",
+      "bytes": 14807,
+      "sha256": "fc1333570867977ef133fabc5b0a135fb73e23d3fe48ba7cc2f2b77ce37745be"
+    },
+    {
+      "path": "provision.mjs",
+      "bytes": 11479,
+      "sha256": "94d4427a252a4c150cc1d1fefeb259cfe482bb641af7e054133fb23ffdf9c302"
+    },
+    {
+      "path": "sandbox/Cargo.lock",
+      "bytes": 94645,
+      "sha256": "0cfdb3dae24eca8fcff1efe77fe00ec01a4cb5501623c99687f36594a0f8e58b"
+    },
+    {
+      "path": "sandbox/Cargo.toml",
+      "bytes": 240,
+      "sha256": "061c8c19e4316cf8f9a3c49c4e5d04685a606f6415fe3547982dde0e20c8155a"
+    },
+    {
+      "path": "sandbox/refund-race/Cargo.lock",
+      "bytes": 32886,
+      "sha256": "35c51e033c09ad27fe9ea7a28f85e356d4a9ff941a7e9e809b0ff216a0681cab"
+    },
+    {
+      "path": "sandbox/refund-race/Cargo.toml",
+      "bytes": 283,
+      "sha256": "04c675375da86cfb55f99a5088d1de792f88cc89788922d4308a3f774e16b7f4"
+    },
+    {
+      "path": "sandbox/refund-race/src/lib.rs",
+      "bytes": 1265,
+      "sha256": "4f99c7cb003b4a2e0229dc951516949d49e5bc27f3256b5b6b414d65d9eb23e4"
+    },
+    {
+      "path": "sandbox/tests/lifecycle.rs",
+      "bytes": 10199,
+      "sha256": "4da2af58cb665be112c7ba232fc136be1b9551b99055c16d7497509a682b9907"
+    },
+    {
+      "path": "src/lib.rs",
+      "bytes": 14460,
+      "sha256": "653c9af30abb5fcbcec33cd5469880fa2ca83d7394ff4b7915b6598f8beb5818"
+    },
+    {
+      "path": "src/tests.rs",
+      "bytes": 12343,
+      "sha256": "f8b359e53c0bf6d1b5f4ca05883e98f6b8b6c73c778db04971815139613521f5"
+    },
+    {
+      "path": "verification/accounts-public.json",
+      "bytes": 1493,
+      "sha256": "6b21f055dc478b35909e85bf7e9ef8dac6e44281d1753a0cee20679700f06df0"
+    },
+    {
+      "path": "verification/build-public.json",
+      "bytes": 718,
+      "sha256": "b922b7d44da66b9a8276cd388bcebe714390b7e941c1cf460cd70ccdaaf60359"
+    },
+    {
+      "path": "verification/deployment-public.json",
+      "bytes": 1421,
+      "sha256": "07d20690cdeacd6676c3e29f8fe36d432debde7354788060af51492dc1724da4"
+    },
+    {
+      "path": "verification/faucet-buyer-public.json",
+      "bytes": 427,
+      "sha256": "f2080a040b9c9612b37f4fae4af128ea70a1c912018f2e011d89b91e0fe91ee6"
+    },
+    {
+      "path": "verification/faucet-contract-public.json",
+      "bytes": 431,
+      "sha256": "7f7a99580249ea5de07dc6df7ea5bd7c71e378944844a4b52e505d4ba1b38a05"
+    },
+    {
+      "path": "verification/faucet-provider-public.json",
+      "bytes": 433,
+      "sha256": "236a4a75a8cb15ce9afa65a64bf07f357784baa5eb87f758708705f311f97040"
+    },
+    {
+      "path": "verification/keyless-final-observer.json",
+      "bytes": 1063,
+      "sha256": "c745a82f2b86bb99aa37f94f2175256d50c11f233b00aa4cec10e87162564c2a"
+    },
+    {
+      "path": "verification/live-financial-checks.json",
+      "bytes": 2471,
+      "sha256": "0cd79dd533cd5e2e9f2739abb95a9ec724e3051c5c7ec9dcb53acf45ac84b032"
+    },
+    {
+      "path": "verification/live-payout-check.json",
+      "bytes": 886,
+      "sha256": "12365ae8ed9b6f960a44d273be54278b145d5e1da46e13397aab010926b2b1f7"
+    },
+    {
+      "path": "verification/live-payout-fund-rpc.json",
+      "bytes": 11910,
+      "sha256": "9c3a3ec7a2991e903540b96a6e243d55c4d02389cde8aa20b6ab6d1d11ca81ff"
+    },
+    {
+      "path": "verification/live-payout-record-rpc.json",
+      "bytes": 11430,
+      "sha256": "5db70ad5835b4b9b2a98680d7d9d0e08b359b31bc696a2df04c2e145a82e6a0d"
+    },
+    {
+      "path": "verification/live-payout-release-rpc.json",
+      "bytes": 20523,
+      "sha256": "1e293c5853436c875691c1c3989e8a6f06b35658d1ea391d1844f1d8ec380167"
+    },
+    {
+      "path": "verification/live-refund-fund-rpc.json",
+      "bytes": 9478,
+      "sha256": "a778a77b5b5c7f973892730e55d6318384b6e7f5f6ccceff798f69ad5c1cfc37"
+    },
+    {
+      "path": "verification/live-refund-return-rpc.json",
+      "bytes": 20825,
+      "sha256": "9bd212fadb2b4b728bfddfe73f16a4fe7f39a69adf4e026c0e24f0bebd594973"
+    },
+    {
+      "path": "verification/nope_wallet_escrow.wasm",
+      "bytes": 221852,
+      "sha256": "56d753677633d264a92acf3278e1708bc627b0b86a979b662011119c04c9dbe8"
+    },
+    {
+      "path": "verification/refund-fixture-build.log",
+      "bytes": 1744,
+      "sha256": "41d12ddb86cf9f72cb9fc6c48f50e297a3de4f51095264378d18c08aa2d1cb06"
+    },
+    {
+      "path": "verification/sandbox-tests.log",
+      "bytes": 8525,
+      "sha256": "a1594bd5091654c07a29c750893df0f7e7fa52786569cee50e9c869c80b69bce"
+    },
+    {
+      "path": "verification/unit-tests.log",
+      "bytes": 1352,
+      "sha256": "2bb98df5bb0972ef0aaeec43bb89336cff4560f9f2b6f13d85344732c6a6d669"
+    }
+  ]
+}

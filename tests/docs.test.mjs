@@ -59,7 +59,7 @@ function descendants(node) { return node.childNodes.flatMap(child => [child, ...
 test('Turkish documentation is complete, bounded, and explicitly describes the proof and trust boundary', () => {
   assert.equal(validateDocs(source, 'tr'), source);
   const prose = JSON.stringify(source);
-  for (const phrase of ['AES yürütme izini','SNARK doğrulaması sözleşmede yapılmaz','bağımsız bir hesaplama düğümü','KYC','site verilerini','40\'ı','sponsor havuzuna','Sessizlik kabul sayılmaz']) assert.ok(prose.includes(phrase), phrase);
+  for (const phrase of ['AES yürütme izini','Sözleşme SNARK doğrulamaz','bağımsız bir hesaplama düğümü','KYC','site verilerini','40\'ı','Her işin ayrı bir bakiye kaydı','Sessizlik kabul sayılmaz','kendi cüzdanından','yalnızca okunur']) assert.ok(prose.includes(phrase), phrase);
   const invalid = structuredClone(source); invalid.sections[0].items[0].href = 'javascript:alert(1)';
   assert.throws(() => validateDocs(invalid,'tr'));
   assert.throws(() => validateDocs(source,'en'));
