@@ -15,6 +15,10 @@ Müşteri verisini ajana veya hizmet sağlayıcıya açık hâliyle vermeden, gi
 
 `/verify?id=…` yalnız herkese açık şifreli kayıt, gerçek kanıt ve sabitlenmiş sözleşmenin kesinleşmiş RPC kaydıyla bağımsız doğrulama yapar; müşteri CSV’sini, çözücüsünü veya gizli eşlemeyi almaz. Testnet sözleşmesi `nope-work-da4cbb1e.testnet`tir. Bu uygulama, eski `/market` demo sözleşmelerinden ayrıdır.
 
+## Dil seçimi
+
+Arayüz Türkçe, İngilizce, Almanca, İspanyolca ve Fransızcadır. İlk dil IP ülkesinden seçilir: Türkiye/Türkçe, Almanya/Almanca, İspanya/İspanyolca, Fransa/Fransızca; diğer ülkeler/İngilizce. Menüden yapılan dil seçimi hatırlanır. Dil değişimi formu yenilemez ve müşteri verisini çevirmeye göndermez. [Uygulama ayrıntıları](docs/LOCALIZATION.md).
+
 ## Kapsam ve ispat sınırı
 
 Desteklenen araçlar sayı için boş değer doldurma/aralığa sınırlama; ASCII metin için baş/son boşluk silme, küçük/büyük harf ve rakam maskelemedir. En fazla4 sütun,32 sayısal satır,8 metin satırı,16 bayt metin hücresi ve40 işlenen hücre kanıtı desteklenir; ayrıca devre/istek sınırları uygulanır. Diğer sütunlar yerelde korunur. Bu, keyfî belgeler üzerinde genel gizli AI değildir. Yerel küçük modelin doğal dil yorumu yanılabilir; plan/sonuç önizlemesini onaylamak zorunludur.

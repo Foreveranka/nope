@@ -81,3 +81,5 @@
 !proof-runtime/assets/**
 !proof-runtime/artifacts
 !proof-runtime/artifacts/**
+
+!scripts/check-locales.mjs

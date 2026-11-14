@@ -1,0 +1,9 @@
+/* Shared product language control; the existing NOPE design remains primary. */
+.language-picker{display:inline-flex;align-items:center;gap:7px;margin:0;flex:0 0 auto;font:10px/1.4 var(--mono,monospace);color:var(--ink,#191b18)}
+.language-picker>span{margin:0}
+.language-picker select{display:inline-block;width:auto;min-height:34px;margin:0;padding:6px 24px 6px 9px;border:1px solid var(--line,#c9c5b7);border-radius:1px;background:var(--panel,#faf8f0);color:var(--ink,#191b18);font:11px/1.4 var(--mono,monospace);cursor:pointer}
+.topbar{flex-wrap:wrap}
+.topbar .terminal-path{margin-right:auto}
+.site-header{flex-wrap:wrap}
+.site-header .language-picker{align-self:center}
+@media(max-width:760px){.site-header{flex-wrap:wrap}.language-picker{font-size:10px}.language-picker select{min-height:34px;font-size:12px}.topbar .language-picker{margin-left:auto}.topbar .environment{order:3}.topbar .language-picker>span{display:none}}
