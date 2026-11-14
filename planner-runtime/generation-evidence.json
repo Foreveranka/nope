@@ -1,0 +1,232 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-14T01:51:42.732Z",
+  "summary": {
+    "correctSupported": 4,
+    "explicitUnsupported": 2,
+    "rejectedMalformedOrUnsupported": 2,
+    "passed": 8,
+    "total": 8
+  },
+  "syntheticOnly": true,
+  "actualNeuralInference": true,
+  "backend": "onnxruntime-node CPU",
+  "model": "onnx-community/Qwen3-0.6B-ONNX-OPT",
+  "revision": "4799e655597b49210adb5c1ebe5b9d3bd04005a0",
+  "dtype": "q4",
+  "runtime": "@huggingface/transformers@4.3.2",
+  "hashesVerified": [
+    {
+      "path": "config.json",
+      "bytes": 1770,
+      "sha256": "86c544072c56874ad015eb70647bba4a2df163f66968dfced8ea0ca387fcae16"
+    },
+    {
+      "path": "generation_config.json",
+      "bytes": 249,
+      "sha256": "7dfbda99ac3e2efae82d814cedf73f4a5f63eb46298d486b4ff779bab7ee496d"
+    },
+    {
+      "path": "tokenizer.json",
+      "bytes": 9117036,
+      "sha256": "40ae5d1ee027b985684a3bbeef4ee16b2b5697d1d90658bec5bc5d2a73018bd7"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "bytes": 5051,
+      "sha256": "04984a9d62f1a94b929fca5670c1ab4f66aa330877816038fa88a41a158bd4b6"
+    },
+    {
+      "path": "onnx/model_q4.onnx",
+      "bytes": 369635,
+      "sha256": "be5f0d8d03ac387bdd2d2582e4e114ca3c23a44b70bf03be609844542107745c"
+    },
+    {
+      "path": "onnx/model_q4.onnx_data",
+      "bytes": 403007488,
+      "sha256": "22f7763f31c1be426affc5b14cc37aa9c1c48e29d8ff043551a20606bd105e0f"
+    }
+  ],
+  "results": [
+    {
+      "id": "english",
+      "task": {
+        "version": 1,
+        "goal": "Trim leading and trailing spaces from C1, then convert C1 to lowercase. Fill missing C2 values with 0, then clamp C2 between 0 and 100.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          }
+        ]
+      },
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}",
+      "raw": "{\"steps\":[{\"column\":\"C1\",\"recipe\":{\"type\":\"text\",\"steps\":[{\"op\":\"trim\"},{\"op\":\"lowercase\"}]}},{\"column\":\"C2\",\"recipe\":{\"type\":\"number\",\"steps\":[{\"op\":\"fill\",\"value\":0},{\"op\":\"clamp\",\"min\":0,\"max\":100}]}}]}",
+      "disposition": "validated-exact-expected-plan",
+      "passed": true,
+      "elapsedMs": 3635
+    },
+    {
+      "id": "turkish",
+      "task": {
+        "version": 1,
+        "goal": "C1 sütunundaki baştaki ve sondaki boşlukları temizle, sonra küçük harfe dönüştür. C2 sütunundaki eksik değerleri 0 ile doldur, sonra değerleri 0 ile 100 arasında sınırla.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          }
+        ]
+      },
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}",
+      "raw": "{\"steps\":[{\"column\":\"C1\",\"recipe\":{\"type\":\"text\",\"steps\":[{\"op\":\"trim\"},{\"op\":\"lowercase\"}]}},{\"column\":\"C2\",\"recipe\":{\"type\":\"number\",\"steps\":[{\"op\":\"fill\",\"value\":0},{\"op\":\"clamp\",\"min\":0,\"max\":100}]}}]}",
+      "disposition": "validated-exact-expected-plan",
+      "passed": true,
+      "elapsedMs": 4288
+    },
+    {
+      "id": "holdout-english",
+      "task": {
+        "version": 1,
+        "goal": "Trim C2 then uppercase C2. Fill missing C3 with 7 and clamp C3 between 10 and 80.",
+        "columns": [
+          {
+            "id": "C2",
+            "type": "text"
+          },
+          {
+            "id": "C3",
+            "type": "number"
+          }
+        ]
+      },
+      "sourceRaw": "{\"operations\":[[\"C2\",\"trim\"],[\"C2\",\"uppercase\"],[\"C3\",\"fill\",7],[\"C3\",\"clamp\",10,80]]}",
+      "raw": "{\"steps\":[{\"column\":\"C2\",\"recipe\":{\"type\":\"text\",\"steps\":[{\"op\":\"trim\"},{\"op\":\"uppercase\"}]}},{\"column\":\"C3\",\"recipe\":{\"type\":\"number\",\"steps\":[{\"op\":\"fill\",\"value\":7},{\"op\":\"clamp\",\"min\":10,\"max\":80}]}}]}",
+      "disposition": "validated-exact-expected-plan",
+      "passed": true,
+      "elapsedMs": 3795
+    },
+    {
+      "id": "holdout-turkish",
+      "task": {
+        "version": 1,
+        "goal": "C2 metninin başındaki ve sonundaki boşlukları kırp, sonra büyük harfe dönüştür. C3 eksiklerini 7 ile doldur, ardından 10 ile 80 arasına sınırla.",
+        "columns": [
+          {
+            "id": "C2",
+            "type": "text"
+          },
+          {
+            "id": "C3",
+            "type": "number"
+          }
+        ]
+      },
+      "sourceRaw": "{\"operations\":[[\"C2\",\"trim\"],[\"C2\",\"uppercase\"],[\"C3\",\"fill\",7],[\"C3\",\"clamp\",10,80]]}",
+      "raw": "{\"steps\":[{\"column\":\"C2\",\"recipe\":{\"type\":\"text\",\"steps\":[{\"op\":\"trim\"},{\"op\":\"uppercase\"}]}},{\"column\":\"C3\",\"recipe\":{\"type\":\"number\",\"steps\":[{\"op\":\"fill\",\"value\":7},{\"op\":\"clamp\",\"min\":10,\"max\":80}]}}]}",
+      "disposition": "validated-exact-expected-plan",
+      "passed": true,
+      "elapsedMs": 4009
+    },
+    {
+      "id": "unsupported-mixed-english",
+      "task": {
+        "version": 1,
+        "goal": "Trim C1 then translate it into Turkish.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          }
+        ]
+      },
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"translate\", \"Turkish\"]}",
+      "generationError": "Model geçerli JSON üretmedi; plan çalıştırılmadı.",
+      "validationError": "Unexpected recipe protocol fields.",
+      "disposition": "rejected-malformed-or-unsupported-model-output",
+      "passed": true,
+      "elapsedMs": 3522
+    },
+    {
+      "id": "unsupported-mixed-turkish",
+      "task": {
+        "version": 1,
+        "goal": "C1 boşluklarını kırp ve metni İngilizceye çevir.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          }
+        ]
+      },
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",3],[\"C2\",\"clamp\",0,120\"]]}",
+      "generationError": "Model geçerli JSON üretmedi; plan çalıştırılmadı.",
+      "validationError": "Unexpected recipe protocol fields.",
+      "disposition": "rejected-malformed-or-unsupported-model-output",
+      "passed": true,
+      "elapsedMs": 4808
+    },
+    {
+      "id": "unsupported-translation",
+      "task": {
+        "version": 1,
+        "goal": "Translate C1 text into Turkish.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          }
+        ]
+      },
+      "sourceRaw": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}",
+      "raw": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}",
+      "validationError": "Model bu işi desteklenen gizli işlemlerle planlayamadı: Unsupported operation",
+      "disposition": "model-explicit-unsupported",
+      "passed": true,
+      "elapsedMs": 2461
+    },
+    {
+      "id": "unsupported-turkish",
+      "task": {
+        "version": 1,
+        "goal": "C1 metnini İngilizceye çevir ve duygusunu analiz et.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          }
+        ]
+      },
+      "sourceRaw": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}",
+      "raw": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}",
+      "validationError": "Model bu işi desteklenen gizli işlemlerle planlayamadı: Unsupported operation",
+      "disposition": "model-explicit-unsupported",
+      "passed": true,
+      "elapsedMs": 2464
+    }
+  ]
+}
