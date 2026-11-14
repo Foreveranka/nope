@@ -39,43 +39,43 @@
     },
     {
       "source": "/customer",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     },
     {
       "source": "/provider",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     },
     {
       "source": "/jobs",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     },
     {
       "source": "/jobs/new",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     },
     {
       "source": "/job",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     },
     {
       "source": "/offer",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     },
     {
       "source": "/delivery",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     },
     {
       "source": "/payments",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     },
     {
       "source": "/activity",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     },
     {
       "source": "/settings",
-      "destination": "/workspace.html"
+      "destination": "/workspace"
     }
   ],
   "cleanUrls": true,

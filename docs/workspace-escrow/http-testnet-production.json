@@ -1,0 +1,50 @@
+{
+  "recordedAt": "2026-11-14T03:10:45.370Z",
+  "origin": "https://veil-procurement.vercel.app",
+  "syntheticOnly": true,
+  "actualHTTP": true,
+  "actualExternalTestnet": true,
+  "nativeModelProposalReused": true,
+  "browserInference": false,
+  "jobId": "88ea670d9a332ab1d11fa75f2d034588",
+  "profile": "nope-csv-plan-gc-v3",
+  "status": "PAID",
+  "payment": {
+    "kind": "SPONSORED_TESTNET_ESCROW",
+    "network": "testnet",
+    "contractId": "nope-work-da4cbb1e.testnet",
+    "bindingHash": "207ced5eac74a978e7ba789d93999c91a7aebde9b94ecc38f0c0d00ab4f6c745",
+    "awardedAtISO": "2026-11-14T03:10:19.000Z",
+    "executionDeadlineNs": "1794712219000000000",
+    "reviewDeadlineNs": "1794798619000000000",
+    "status": "PAID",
+    "verified": true,
+    "recordedVersion": 1,
+    "recordedOutputHash": "e1a916f10c6139d33a729f54ebee3abc549e23c6fb4311aa20e601a0540c65c1",
+    "fundTransactionHash": "ASjvTmpUinYPMRiQsBT7UiNSWxnUHkRUXXRBAB8rAzid",
+    "recordTransactionHash": "4WexWHPw7qEbbxvdncQpY67kNg1wTLqRe9bzP3BWK9vs",
+    "releaseTransactionHash": "8aaARLUZji8Si4HkQnE5cqLPf9o9Pi3EZr5yzR6dzDKg",
+    "operation": {
+      "action": "release",
+      "status": "FINAL",
+      "operationId": "81d3e1fb80730a45ab1ede5a9dabbdd59daf62be4572409f027f9370dec43c77",
+      "transactionHash": "8aaARLUZji8Si4HkQnE5cqLPf9o9Pi3EZr5yzR6dzDKg"
+    }
+  },
+  "inputSha256": "2002bae53a76a2e01e4fd20329eb62354c2570ec78ea0ab54f2390107d8d296a",
+  "outputSha256": "e1a916f10c6139d33a729f54ebee3abc549e23c6fb4311aa20e601a0540c65c1",
+  "programSha256": "ebb7a626bf9a130bdcfd4d75b0f71cbf2fa11b8b3c53c08e4b277c87421c9586",
+  "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+  "checks": {
+    "sealedQuoteLocalDecrypt": true,
+    "actualEncryptedEvaluation": true,
+    "localReferenceMatched": true,
+    "finalizedFundingRequired": true,
+    "exactDeliveryRecorded": true,
+    "exactBuyerAcceptance": true,
+    "finalizedPayoutVerifiedByRelay": true,
+    "noFallbackOrReplacementTransaction": true
+  },
+  "elapsedMs": 36819,
+  "executionProof": false
+}

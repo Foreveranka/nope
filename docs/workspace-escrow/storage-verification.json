@@ -1,0 +1,125 @@
+{
+  "syntheticOnly": true,
+  "actualPrivateBlobRead": true,
+  "records": [
+    {
+      "jobId": "4581fd36104a2232f1c9f96f8aff76a8",
+      "records": [
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/task.json",
+          "sha256": "61018328aba425c1e92cc75e3179a185e6e00c007d29e5614e6493d558b76190",
+          "bytes": 1455114
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/0000.json",
+          "sha256": "85d6bd2f79322c345674e45fd53ed48ba04e3f0329f8e2e71e56c28c7be31008",
+          "bytes": 2002
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/0001.json",
+          "sha256": "e78b564ad451d79c9e0a1e5eda47dcf6cdf541f22fd793cad15452b7736ce78a",
+          "bytes": 3254
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/0002.json",
+          "sha256": "0b11a1a3fafb2833db2da7916c23af4b2f0569ee55040452a39c9ccb5794c8d7",
+          "bytes": 3370
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/0003.json",
+          "sha256": "fbf9a8c4875c1ab7c17463450b5bae515dc15ce0227fde2ac6d9194e704c6445",
+          "bytes": 3714
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/0004.json",
+          "sha256": "878a1115cd6f35fed1a1019839c857a2b59d2a8bb4606ccbedac40c5d08656c1",
+          "bytes": 4268
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/0005.json",
+          "sha256": "b25ede3446b8ea608240a47b432e6a46773e533697ce690d6114ce8a9b89aca9",
+          "bytes": 15870
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/0006.json",
+          "sha256": "266953dfb43e9ebbf407362402df8c3b61cd28111ae654c89c8b745898d5c986",
+          "bytes": 16171
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/0007.json",
+          "sha256": "f840fc886c8a01b4700274df815e2004b148cd9c09b004a79bd5f49f316349e7",
+          "bytes": 16444
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/4581fd36104a2232f1c9f96f8aff76a8/0008.json",
+          "sha256": "5e8f8725fcb607a990ba06fb620eb0a3df18adff4110442aa87c97bb145d70cf",
+          "bytes": 16614
+        }
+      ]
+    },
+    {
+      "jobId": "42526fa21053373dbcda664d9e272810",
+      "records": [
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/task.json",
+          "sha256": "f4dc76db850a86aca9ef7c6da4a0fe207c84c760ea6e97c3b62a248ed3e9ff8a",
+          "bytes": 1455114
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0000.json",
+          "sha256": "51437262a9d14594e3fe87933b8bc80c0e5980e817b64a5e419df7e36c8159d8",
+          "bytes": 2040
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0001.json",
+          "sha256": "6e4afd5c6dd0901a15c67902309000e4277eb2580206f24449c34476c6899588",
+          "bytes": 3304
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0002.json",
+          "sha256": "5551f9cc503736ba1c21c56e4cadc7a3ae3c27e0d238012a486c7b9cb19d5bb3",
+          "bytes": 3420
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0003.json",
+          "sha256": "8bfcb2d39cb50be292ec84594a18f24683e949fe08a2ccf6e12b43c88d914665",
+          "bytes": 3764
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0004.json",
+          "sha256": "b9aa404925f8261508c36047b92eec5bb35b5b266e64197e1a90a3167c1de4ec",
+          "bytes": 4063
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0005.json",
+          "sha256": "5ba9e43cf0d8ac9ef111d2cb0d73aebdcab2f47b52aa7c0f786733c89435877e",
+          "bytes": 4434
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0006.json",
+          "sha256": "57af65f9cda0f9dc3f8a0ae14efbf38a2323ce6b4e43cee58f4a97420a21a220",
+          "bytes": 16036
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0007.json",
+          "sha256": "9bc33cffad13776cbb109fe19dac6c7dde4a63531d9b05d8a42ec95eb0cd785c",
+          "bytes": 16337
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0008.json",
+          "sha256": "c1d5733cf6d6734c22383abb907694761be86d38573f4d0b8acf6aa1b6b53fd8",
+          "bytes": 16610
+        },
+        {
+          "pathname": "nope-workspace-v1/jobs/42526fa21053373dbcda664d9e272810/0009.json",
+          "sha256": "d15797b960ac0851ef640e2680f9003bf33f505376e4cad8183c4b1b1ab0f4ad",
+          "bytes": 16780
+        }
+      ]
+    }
+  ],
+  "forbiddenPlaintextMarkersAbsent": true,
+  "noDecoderFields": true,
+  "notAUniversalNonDisclosureProof": true,
+  "recordedAt": "2026-11-14T03:10:57.439Z"
+}
