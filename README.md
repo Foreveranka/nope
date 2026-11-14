@@ -10,6 +10,20 @@ Hire an agent to transform a CSV without sending its private rows to the plannin
 
 The canonical URL is [nope-workspace.vercel.app](https://nope-workspace.vercel.app). The [old URL](https://veil-procurement.vercel.app) remains usable for existing browser sessions and local vault data. Browser storage does not move between origins: use the old URL for existing CSV/decoder/witness data; a fresh wallet login on the new URL can recover wallet-owned job access, but cannot recover that local data.
 
+## Independent code review
+
+Start with the current `/workspace` path. This is the shortest route from each claim to its implementation and negative tests:
+
+| Check | Implementation | Regression evidence |
+| --- | --- | --- |
+| Private rows excluded from planner input | `web/agent-model-worker.mjs`, `web/agent-plan.mjs` | `planner-runtime/boundary.test.mjs`, `web/agent-plan.test.mjs` |
+| Sealed bid release and buyer/provider permissions | `workspace/core.mjs`, `web/workspace-vault.mjs` | `workspace/workspace.test.mjs`, `workspace/wallet-core.test.mjs` |
+| Wallet origin, nonce, account and callback binding | `workspace/wallet-auth.mjs`, `api/workspace.mjs` | `workspace/wallet-auth.test.mjs`, `workspace/origin.test.mjs` |
+| Precommitted result statement and rejection of changed labels, amount or revision | `web/proof-plan-core.mjs`, `web/proof-plan-client.mjs` | `tests/proof_plan.test.mjs`, `tests/public_proof.test.mjs`, `tests/wallet-public-proof.test.mjs` |
+| Exact escrow liabilities, transfer failure and refund authorization | `payments/wallet_escrow/src/lib.rs`, `workspace/wallet-escrow.mjs` | `payments/wallet_escrow/src/tests.rs`, `workspace/wallet-escrow.test.mjs` |
+
+Run the offline regression/build commands below first. No private wallet keys, customer CSVs, project Blob token or live transaction are needed for those checks. Use the public completed-job verifier for independent hosted proof/chain checks. A fresh full self-hosted marketplace needs your own storage credential; a static file server alone cannot run the API. Historical proof/evaluation experiments and the old Python `sdk/` receipt adapter are not the current application’s autonomous-agent SDK.
+
 ## What you can try
 
 A customer describes a bounded cleaning task using anonymous column names, approves a locally generated plan, and receives bids encrypted to their browser. The customer selects a provider and signs an exact-amount escrow deposit from their own wallet. The provider initiates computation on the encrypted task. The customer checks the output, produces a result proof and explicitly accepts the delivery before signing payment release.
