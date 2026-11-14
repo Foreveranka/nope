@@ -1,8 +1,11 @@
 import { MAX_BYTES, parseCSV, verifyValues, exportCSV } from './csv-input.mjs';
-import { hashRequest, hashOutput, hashProgram } from './gc-core.mjs';
+import { hashRequest, hashOutput, hashProgram, sha256 } from './gc-core.mjs';
 import { PROFILE as RECIPE_PROFILE, compileRecipe, referenceApply, estimateRecipe, hashRecipeRequest, hashRecipeOutput, hashRecipeProgram } from './recipe-core.mjs';
 import { prepareRecipe } from './recipe-client.mjs';
 import { parseRecipeColumn, applyRecipeOutput } from './recipe-csv.mjs';
+import { PROFILE as PLAN_PROFILE, estimatePlan, hashPlan, hashPlanRequest, hashPlanProgram, hashPlanOutput, validatePlanRequest, freezePlanData } from './plan-core.mjs';
+import { preparePlan } from './plan-client.mjs';
+import { publicTask, publicTaskHash, acceptAgentProposal, privatePlanInputs, applyAgentOutput } from './agent-plan.mjs';
 import { createVault, quoteCommitment, randomSalt, parseNearAmount, formatNearAmount } from './workspace-vault.mjs';
 
 export const TOKEN_KEY = 'nope.workspace.session.v1';
@@ -23,14 +26,58 @@ export function routeOf(href, origin = 'http://localhost') {
 export function testnetAccount(value) {
   return typeof value === 'string' && (/^[a-f0-9]{64}$/.test(value) || (value.length >= 8 && value.length <= 64 && /^[a-z0-9]+(?:[-_][a-z0-9]+)*(?:\.[a-z0-9]+(?:[-_][a-z0-9]+)*)*\.testnet$/.test(value)));
 }
-export function createPayload({ jobId, title, description, deadlineISO, task, buyerPublicKey }) {
-  if (!/^[a-f0-9]{32}$/.test(jobId) || ![PROFILE, RECIPE_PROFILE].includes(task?.profile) || !Number.isInteger(task.rowCount) || task.rowCount < 1 || task.rowCount > 32) throw new Error('Invalid prepared job');
+export function createPayload({ jobId, title, description, deadlineISO, task, buyerPublicKey, publicTask: publicTaskValue }) {
+  if (!/^[a-f0-9]{32}$/.test(jobId) || ![PROFILE, RECIPE_PROFILE, PLAN_PROFILE].includes(task?.profile) || !Number.isInteger(task.rowCount) || task.rowCount < 1 || task.rowCount > 32) throw new Error('Invalid prepared job');
   if (task.profile === RECIPE_PROFILE) estimateRecipe(task.recipe, task.rowCount);
-  return { jobId, title, description, deadlineISO, profile: task.profile, rowCount: task.rowCount, task, buyerPublicKey };
+  if (task.profile === PLAN_PROFILE) validatePlanRequest(task);
+  if (task.profile !== PLAN_PROFILE && publicTaskValue !== undefined) throw Error('Public planning task requires v3');
+  return { jobId, title, description, deadlineISO, profile: task.profile, rowCount: task.rowCount, task, buyerPublicKey, ...(task.profile === PLAN_PROFILE ? { publicTask: publicTask(publicTaskValue) } : {}) };
 }
 const recipeTask = task => task?.profile === RECIPE_PROFILE;
-const taskInputHash = task => recipeTask(task) ? hashRecipeRequest(task) : hashRequest(task);
-const taskProgramHash = task => recipeTask(task) ? hashRecipeProgram(task.recipe) : hashProgram();
+const taskInputHash = task => task?.profile === PLAN_PROFILE ? hashPlanRequest(task) : recipeTask(task) ? hashRecipeRequest(task) : hashRequest(task);
+const taskProgramHash = task => task?.profile === PLAN_PROFILE ? hashPlanProgram(task.plan) : recipeTask(task) ? hashRecipeProgram(task.recipe) : hashProgram();
+// A private local fingerprint; never included in the planning task or remote job.
+const datasetHash = dataset => sha256(JSON.stringify(dataset));
+
+/** Actual dedicated browser worker. workerFactory is an explicit unit-test seam;
+ * the production path never synthesizes a plan or falls back to a remote AI. */
+export async function generateAgentPlan(task, { workerFactory = () => new Worker(new URL('./agent-model-worker.mjs', import.meta.url), { type: 'module' }), onProgress = () => {} } = {}) {
+  task = publicTask(task);
+  const taskHash = await publicTaskHash(task);
+  const worker = workerFactory();
+  let timer;
+  try {
+    const result = await new Promise((resolve, reject) => {
+      timer = setTimeout(() => reject(Error('Yerel model zaman aşımına uğradı. Tekrar deneyin.')), 15 * 60 * 1000);
+      worker.onmessage = event => {
+        const value = event.data;
+        if (value?.type === 'progress') { try { onProgress(value); } catch {} }
+        else if (value?.type === 'plan') resolve(value);
+        else if (value?.type === 'error') reject(Error(typeof value.error === 'string' ? value.error : 'Yerel model çalıştırılamadı.'));
+        else reject(Error('Yerel modelden beklenmeyen cevap geldi.'));
+      };
+      worker.onerror = () => reject(Error('Yerel model yüklenemedi veya bu tarayıcıda çalıştırılamadı.'));
+      worker.postMessage({ type: 'plan', task, taskHash });
+    });
+    if (typeof result.raw !== 'string' || typeof result.model?.id !== 'string' || !result.model.id || typeof result.model.revision !== 'string' || !result.model.revision) throw Error('Model kimliği veya plan cevabı eksik.');
+    return freezePlanData({ ...await acceptAgentProposal(task, result.raw), model: { id: result.model.id, revision: result.model.revision } });
+  } finally { clearTimeout(timer); worker.terminate(); }
+}
+
+/** Recheck the entire local approval immediately before creating ciphertext. */
+export async function prepareApprovedAgentJob(dataset, task, approval, { approved = false, garblePlan = preparePlan } = {}) {
+  dataset = freezePlanData(structuredClone(dataset)); task = publicTask(task);
+  approval = approval && freezePlanData(structuredClone(approval));
+  if (!approved || !approval || approval.datasetSha256 !== await datasetHash(dataset)) throw Error('Dosya değişti veya plan onaylanmadı. Planı yeniden üretip onaylayın.');
+  const checked = await acceptAgentProposal(task, approval.plan);
+  if (checked.taskHash !== approval.taskHash || checked.planSha256 !== approval.planSha256 || JSON.stringify(checked.task) !== JSON.stringify(approval.task)) throw Error('İş tanımı veya sütun türleri değişti. Planı yeniden üretip onaylayın.');
+  const values = privatePlanInputs(dataset, checked.plan);
+  estimatePlan(checked.plan, dataset.rows.length);
+  const prepared = await garblePlan(values, checked.plan);
+  validatePlanRequest(prepared.request);
+  if (prepared.request.profile !== PLAN_PROFILE || prepared.request.rowCount !== dataset.rows.length || prepared.request.planSha256 !== checked.planSha256 || await hashPlan(prepared.request.plan) !== checked.planSha256) throw Error('Şifreli görev onaylı planla eşleşmiyor.');
+  return { ...prepared, values, approval: freezePlanData({ ...checked, datasetSha256: approval.datasetSha256, model: approval.model }) };
+}
 function recipeText(recipe) {
   const checked = compileRecipe(recipe).recipe;
   return (checked.type === 'text' ? 'Metin' : 'Sayı') + ': ' + checked.steps.map(step => {
@@ -50,7 +97,7 @@ class FriendlyError extends Error {}
 const fail = text => { throw new FriendlyError(text); };
 const statusText = { OPEN: 'Tekliflere açık', CLOSED: 'Teklifler kapandı', AWARDED: 'Sağlayıcı seçildi', DELIVERED: 'Teslim edildi', REVISION: 'Düzeltme istendi', ACCEPTED: 'Kabul edildi · ödeme bekliyor', PAID: 'Zincirde ödeme doğrulandı' };
 
-export function createWorkspace({ document: doc, window: win, fetch: fetcher = globalThis.fetch, storage = win.sessionStorage, vaultFactory = createVault, garble = prepareRecipe } = {}) {
+export function createWorkspace({ document: doc, window: win, fetch: fetcher = globalThis.fetch, storage = win.sessionStorage, vaultFactory = createVault, garble = prepareRecipe, garblePlan = preparePlan, agentWorkerFactory } = {}) {
   const $ = id => doc.getElementById(id);
   const root = $('workspace-root');
   const state = { token: storage.getItem(TOKEN_KEY), session: null, vault: null, epoch: 0, busy: false, draft: null, uncertain: false, newDraftAllowed: false };
@@ -137,6 +184,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       const badge = paragraph(statusText[job.status] || job.status, info, 'badge job-status'); badge.dataset.status = job.status;
       paragraph(`${job.rowCount} satır · Şifreli CSV görevi`, info);
       if (job.recipe) paragraph(recipeText(job.recipe), info);
+      if (job.publicTask) paragraph(`Herkese açık ajan hedefi: ${job.publicTask.goal}`, info);
       if (job.deadlineISO) paragraph(`Teklif sonu: ${new Date(job.deadlineISO).toLocaleString('tr-TR')}`, info);
       link('İşi aç', jobLink('/job', job.id), row);
     }
@@ -188,20 +236,28 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const { node, submit } = form(panel, 'Şifrele ve işi yayımla', async () => {
       if ((await unresolvedJobIds()).length && !state.newDraftAllowed) fail('Önce belirsiz yayımlamayı kontrol edin veya uyarıyı onaylayarak ayrı bir yeni taslak başlatın.');
       if (!dataset) fail('Önce geçerli bir CSV seçin.');
-      let recipe, values;
-      try { recipe = selectedRecipe(); values = parseRecipeColumn(dataset, Number(column.value), recipe); estimateRecipe(recipe, values.length); }
+      const agentMode = mode.value === 'agent', revision = draftRevision, source = dataset, approvedPlan = agentApproval;
+      let recipe, values, gcjob;
+      try {
+        if (agentMode) {
+          gcjob = await prepareApprovedAgentJob(source, currentTask(), agentApproval, { approved: approve.checked, garblePlan });
+          values = gcjob.values;
+        } else { recipe = selectedRecipe(); values = parseRecipeColumn(source, Number(column.value), recipe); estimateRecipe(recipe, values.length); }
+      }
       catch (error) { fail(error.message); }
       const deadline = new Date(deadlineInput.value);
       if (!Number.isFinite(deadline.getTime()) || deadline.getTime() <= Date.now()) fail('Teklif sonu gelecekte olmalı.');
       if (budget.value) { try { parseNearAmount(budget.value); } catch { fail('Gizli bütçe için geçerli bir testNEAR tutarı girin.'); } }
       message('Yerel şifreleme ve güvenli kasa kaydı hazırlanıyor…');
-      const jobId = randomSalt().slice(0, 32), gcjob = await garble(values, recipe);
+      const jobId = randomSalt().slice(0, 32);
+      gcjob ??= await garble(values, recipe);
       const buyerPublicKey = await state.vault.buyerPublicKey();
-      const payload = createPayload({ jobId, title: titleInput.value.trim(), description: description.value.trim(), deadlineISO: deadline.toISOString(), task: gcjob.request, buyerPublicKey });
-      const local = { dataset, column: Number(column.value), values, recipe, hiddenBudget: budget.value || null, payload, pending: true };
+      const payload = createPayload({ jobId, title: titleInput.value.trim(), description: description.value.trim(), deadlineISO: deadline.toISOString(), task: gcjob.request, buyerPublicKey, ...(agentMode ? { publicTask: gcjob.approval.task } : {}) });
+      const local = { dataset: source, values, ...(agentMode ? { agentApproval: gcjob.approval } : { column: Number(column.value), recipe }), hiddenBudget: budget.value || null, payload, pending: true };
       // Store and read back *both* local records before any network publication.
       await state.vault.saveJob(jobId, local); await state.vault.saveDecoder(jobId, gcjob);
       if (!(await state.vault.loadJob(jobId))) fail('Yerel kasa kaydı doğrulanamadı; iş yayımlanmadı.');
+      if (agentMode && (revision !== draftRevision || mode.value !== 'agent' || !approve.checked || agentApproval !== approvedPlan || await publicTaskHash(currentTask()) !== approvedPlan.taskHash)) fail('Taslak değişti. Planı yeniden üretip onaylayın; iş yayımlanmadı.');
       await updateUnresolved(jobId, true);
       state.draft = { jobId, payload }; state.uncertain = true; state.newDraftAllowed = false;
       let job;
@@ -219,11 +275,12 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const budget = field(node, 'Gizli bütçe (isteğe bağlı testNEAR; yalnızca yerel kasa)', { required: false, name: 'hiddenBudget' });
     const deadlineInput = field(node, 'Teklif son zamanı', { type: 'datetime-local', value: localDate(new Date(Date.now() + 3600000)), name: 'deadlineISO' });
     const file = field(node, 'CSV dosyası — bu cihazda okunur', { type: 'file', required: false, name: 'csv' }); file.accept = '.csv,text/csv';
-    function select(label, name, options) {
+    function select(label, name, options, parent = node) {
       const wrap = el('label', null, 'field'); wrap.append(el('span', label)); const input = el('select'); input.name = name;
       for (const [value, text] of options) { const option = el('option', text); option.value = value; input.append(option); }
-      wrap.append(input); node.append(wrap); return input;
+      wrap.append(input); parent.append(wrap); return input;
     }
+    const mode = select('Hazırlama modu', 'planningMode', [['manual', 'Manuel tarif (varsayılan)'], ['agent', 'Yerel AI ajanı ile planla']]);
     const recipeType = select('Sütun türü', 'recipeType', [['number', 'Sayı'], ['text', 'Metin (ASCII)']]);
     const fill = field(node, 'Boş sayıları doldur', { type: 'checkbox', required: false, name: 'recipeFill' }); fill.checked = true;
     const fillValue = field(node, 'Boş hücre yerine (0–254)', { type: 'number', value: '0', name: 'recipeFillValue' }); fillValue.min = '0'; fillValue.max = '254'; fillValue.step = '1';
@@ -235,6 +292,78 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const redact = field(node, 'ASCII rakamları * ile değiştir', { type: 'checkbox', required: false, name: 'recipeRedactDigits' }); redact.checked = false;
     const column = select('İşlenecek sütun', 'column', []);
     const preview = el('div', null, 'stack'); node.append(preview); let dataset = null;
+    let draftRevision = 0, agentApproval = null;
+    const agentPanel = el('div', null, 'stack'); node.append(agentPanel); agentPanel.hidden = true;
+    paragraph('Yerel model yalnızca herkese açık hedefi, C1…C16 takma adlarını ve seçtiğiniz türleri görür (en fazla 4 seçili sütun). Dosya adı, gerçek başlıklar ve hücreler modele verilmez. İlk kullanımda yaklaşık 412,5 MB model ağırlığı indirilip tarayıcıda önbelleğe alınır. Çıkarım bu tarayıcıda çalışır; çıkarım API’sine veri gönderilmez.', agentPanel);
+    const goal = field(agentPanel, 'Herkese açık ajan hedefi — yalnızca C1, C2 gibi takma adları kullanın; gizli veri yazmayın', { type: 'textarea', required: false, maxLength: 1800, name: 'agentGoal' });
+    const schemaPanel = el('div', null, 'stack'); agentPanel.append(schemaPanel);
+    const schemaInputs = [];
+    const planView = el('div', null, 'stack');
+    const generate = button('Yerel ajanla plan üret', async () => {
+      if (!dataset || mode.value !== 'agent') fail('Önce CSV seçip ajan modunu açın.');
+      invalidateAgent(); const revision = draftRevision, source = dataset;
+      paragraph('Model hazırlanıyor…', planView);
+      try {
+        const task = currentTask();
+        const proposal = await generateAgentPlan(task, { workerFactory: agentWorkerFactory, onProgress: value => {
+          if (revision === draftRevision) planView.textContent = typeof value.message === 'string' ? value.message : 'Yerel model çalışıyor…';
+        } });
+        if (revision !== draftRevision || source !== dataset || mode.value !== 'agent') fail('Taslak değişti; eski model planı kullanılmadı.');
+        const values = privatePlanInputs(source, proposal.plan);
+        estimatePlan(proposal.plan, source.rows.length);
+        const fingerprint = await datasetHash(source);
+        if (revision !== draftRevision || source !== dataset || mode.value !== 'agent') fail('Taslak değişti; eski model planı kullanılmadı.');
+        agentApproval = freezePlanData({ ...proposal, datasetSha256: fingerprint });
+        planView.replaceChildren();
+        paragraph(`Onaylanacak herkese açık hedef: ${proposal.task.goal}`, planView);
+        paragraph(`Model: ${proposal.model.id} · revizyon ${proposal.model.revision}`, planView);
+        paragraph(`İş SHA-256: ${proposal.taskHash}`, planView);
+        paragraph(`Plan SHA-256: ${proposal.planSha256}`, planView);
+        for (const step of proposal.plan.steps) {
+          paragraph(`${step.column}: ${recipeText(step.recipe)}`, planView);
+          const input = values[step.column], expected = referenceApply(input, step.recipe);
+          table(['Satır', `${step.column} · ÖNCE (yerel)`, 'Beklenen SONRA (yerel)'], input.map((v, i) => [i + 1, displayCell(v, step.recipe), displayCell(expected[i], step.recipe)]), planView);
+        }
+        enabled(approve, true); message('Plan doğrulandı. Adımları ve yerel önizlemeyi inceleyip onaylayın.');
+      } catch (error) { invalidateAgent(); fail(error.message); }
+    }, agentPanel);
+    agentPanel.append(planView);
+    const approve = field(agentPanel, 'Bu hedefe ait yukarıdaki planı ve tüm yerel önce/sonra sonuçlarını inceledim; şifreli yürütme için onaylıyorum.', { type: 'checkbox', required: false, name: 'agentApprove' }); approve.checked = false; approve.disabled = true;
+    function displayCell(value, recipe) { return value === '' || recipe.type === 'number' && value === 255 ? '(boş)' : value; }
+    function enabled(input, active) {
+      if (state.busy) { input.dataset.wasDisabled = String(!active); input.disabled = true; }
+      else input.disabled = !active;
+    }
+    function currentTask() {
+      return publicTask({ version: 1, goal: goal.value, columns: schemaInputs.filter(input => input.value !== 'ignore').map(input => ({ id: input.dataset.alias, type: input.value })) });
+    }
+    function invalidateAgent() {
+      draftRevision++; agentApproval = null; approve.checked = false; enabled(approve, false);
+      planView.replaceChildren(); if (mode.value === 'agent') enabled(submit, false);
+    }
+    function rebuildSchema() {
+      schemaPanel.replaceChildren(); schemaInputs.length = 0;
+      dataset?.headers.forEach((header, i) => {
+        const input = select(`C${i + 1} ↔ ${header} (eşleme yalnızca bu cihazda)`, `agentColumn${i + 1}`, [['ignore', 'Yoksay'], ['number', 'Sayı'], ['text', 'Metin (ASCII)']], schemaPanel);
+        input.dataset.alias = `C${i + 1}`; schemaInputs.push(input);
+        input.addEventListener('change', () => { invalidateAgent();
+          if (schemaInputs.filter(s => s.value !== 'ignore').length > 4) { input.value = 'ignore'; message('En fazla dört sütun seçebilirsiniz.', true); }
+        });
+      });
+    }
+    function updateMode() {
+      invalidateAgent(); const agent = mode.value === 'agent'; agentPanel.hidden = !agent; preview.hidden = agent;
+      updateRecipeFields();
+      for (const input of [recipeType,fill,fillValue,clamp,minValue,maxValue,trim,letterCase,redact,column]) {
+        if (agent) { input.parentElement.hidden = true; input.required = false; enabled(input, false); }
+      }
+      if (!agent) { recipeType.parentElement.hidden = false; column.parentElement.hidden = false; enabled(recipeType, true); enabled(column, true); showPreview(); }
+      enabled(goal, agent); goal.required = agent; enabled(generate, agent);
+      schemaInputs.forEach(input => enabled(input, agent));
+    }
+    mode.addEventListener('change', updateMode);
+    goal.addEventListener('input', invalidateAgent); goal.addEventListener('change', invalidateAgent);
+    approve.addEventListener('change', () => enabled(submit, !!agentApproval && approve.checked && mode.value === 'agent'));
     function selectedRecipe() {
       const integer = input => { if (!/^(0|[1-9]\d{0,2})$/.test(input.value) || Number(input.value) > 254) throw Error('Tarif sayıları 0–254 tam sayı olmalı.'); return Number(input.value); };
       const steps = recipeType.value === 'number' ? [fill.checked && {op:'fill',value:integer(fillValue)}, clamp.checked && {op:'clamp',min:integer(minValue),max:integer(maxValue)}].filter(Boolean) :
@@ -266,6 +395,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       column.value = valid.has(previous) ? previous : String(first < 0 ? 0 : first);
     }
     const showPreview = () => {
+      if (mode.value === 'agent') return;
       preview.replaceChildren(); submit.disabled = true;
       if (state.busy) submit.dataset.wasDisabled = 'true';
       updateRecipeFields(); if (!dataset) return;
@@ -282,16 +412,17 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       const update = () => { refreshColumns(); showPreview(); };
       input.addEventListener('change', update); if (input.type === 'number') input.addEventListener('input', update);
     }
-    file.addEventListener('change', () => run(async () => {
+    file.addEventListener('change', () => { invalidateAgent(); return run(async () => {
       dataset = null; submit.disabled = true; column.replaceChildren(); preview.replaceChildren();
+      rebuildSchema();
       const chosen = file.files[0]; if (!chosen) return;
       if (chosen.size > MAX_BYTES) fail('Dosya en fazla 64 KiB olabilir.');
-      try { dataset = parseCSV(new TextDecoder('utf-8', { fatal: true }).decode(await chosen.arrayBuffer())); }
+      try { dataset = freezePlanData(parseCSV(new TextDecoder('utf-8', { fatal: true }).decode(await chosen.arrayBuffer()))); }
       catch { fail('CSV okunamadı. Başlık, 1–32 satır, UTF-8 ve desteklenen hücre biçimini kontrol edin.'); }
-      refreshColumns(); showPreview(); message('CSV yalnızca bu cihazda okundu. Önizlemeyi kontrol edin.');
-    }));
+      rebuildSchema(); refreshColumns(); showPreview(); message('CSV yalnızca bu cihazda okundu. Önizlemeyi kontrol edin.');
+    }); });
     node.append(submit); submit.disabled = true;
-    updateRecipeFields();
+    updateMode();
     await renderRecovery(panel);
   }
   // Migrate the original single pending pointer without discarding unresolved attempts.
@@ -372,10 +503,17 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       } catch { paragraph('Teklif bu cihazdaki anahtarla açılamadı veya taahhüdü doğrulanamadı. Seçim kapalı.', row, 'danger'); }
     }
   }
+  function publicPlanInfo(job, target) {
+    if (job.profile !== PLAN_PROFILE || !job.plan) return;
+    paragraph(`Herkese açık ajan hedefi: ${job.publicTask?.goal || ''}`, target);
+    paragraph(`Plan SHA-256: ${job.planSha256}`, target);
+    for (const step of job.plan.steps) paragraph(`${step.column}: ${recipeText(step.recipe)}`, target);
+  }
   async function detail(job) {
     title(job.title, statusText[job.status] || job.status);
     const panel = card('İş bilgisi'); paragraph(job.description, panel); paragraph(`İş kimliği: ${job.id}`, panel); paragraph(`${job.rowCount} satır · ${job.profile}`, panel);
     if (job.recipe) paragraph('Herkese açık tarif: ' + recipeText(job.recipe), panel);
+    publicPlanInfo(job, panel);
     paragraph(`Teklif sonu: ${new Date(job.deadlineISO).toLocaleString('tr-TR')}`, panel);
     for (const [key, label] of [['taskHash', 'Şifreli girdi özeti'], ['programHash', 'Program özeti']]) { const hash = job[key] || job.delivery?.[key]; if (hash) paragraph(`${label}: ${hash}`, panel); }
     if (isBuyer(job)) {
@@ -400,6 +538,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     if (!testnetAccount(state.session.paymentAccount)) fail('Geçerli bir testnet ödeme hesabına sahip sağlayıcı oturumu gerekli.');
     const panel = card('Teklifiniz yalnızca müşteriye açılır'); paragraph('Fiyat, teslim süresi ve not tarayıcıda müşterinin RSA anahtarıyla hibrit şifrelenir. Sunucuya açık fiyat gönderilmez. Müşteri kapanıştan sonra teklifleri kendi cihazında karşılaştırır; otomatik MPC seçimi yapılmaz.', panel);
     if (job.recipe) paragraph('Herkese açık tarif: ' + recipeText(job.recipe), panel);
+    publicPlanInfo(job, panel);
     const { node, submit } = form(panel, 'Şifrele ve teklif gönder', async () => {
       let amountYocto; try { amountYocto = parseNearAmount(amount.value).toString(); } catch { fail('Geçerli bir testNEAR tutarı girin (en fazla 24 ondalık).'); }
       if (BigInt(amountYocto) <= 0n) fail('Teklif tutarı sıfırdan büyük olmalı.');
@@ -424,6 +563,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     if (isSelected(job)) {
       const panel = card('Şifreli yürütme'); paragraph('Yalnızca seçilen sağlayıcı bu işi yürütebilir. Sunucu şifreli devreyi işler; sağlayıcıya CSV veya çözülmüş değer gösterilmez.', panel);
       if (job.recipe) paragraph('Yürütülecek tarif: ' + recipeText(job.recipe), panel);
+      publicPlanInfo(job, panel);
       if (['AWARDED', 'REVISION'].includes(job.status)) button(job.status === 'REVISION' ? 'Düzeltmeyi yeniden yürüt' : 'Şifreli işi yürüt ve teslim et', async () => {
         await api('/jobs/' + encodeURIComponent(job.id) + '/execute', 'POST', {}); await render(); message('Şifreli teslim oluşturuldu. Müşteri kendi cihazında doğrulayacak.');
       }, panel);
@@ -435,15 +575,24 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     const panel = card('Bu cihazda doğrulama');
     paragraph('Sonuç etiketleri bu işin yerel çözücüsüyle açılır ve orijinal değerlerle karşılaştırılır. Bu kontrol yürütme kaynağı veya bağımsız operatör kanıtı değildir.', panel);
     let local, outputs;
-    const isRecipe = job.profile === RECIPE_PROFILE;
-    try { local = await state.vault.loadJob(job.id); if (!local?.dataset || !Array.isArray(local.values)) throw Error(); outputs = await state.vault.decodeDelivery(job.id, isRecipe ? job.delivery : job.delivery.outputs); }
+    const isRecipe = job.profile === RECIPE_PROFILE, isPlan = job.profile === PLAN_PROFILE;
+    publicPlanInfo(job, panel);
+    try { local = await state.vault.loadJob(job.id); if (!local?.dataset || (isPlan ? !local.agentApproval || !local.values : !Array.isArray(local.values))) throw Error(); outputs = await state.vault.decodeDelivery(job.id, isRecipe || isPlan ? job.delivery : job.delivery.outputs); }
     catch { paragraph('Bu cihazda orijinal CSV veya çözme anahtarı yok ya da teslim açılamıyor. Aynı tarayıcı ve cihazdaki kasayla yeniden açın. Oturum açmak anahtarları başka cihaza taşımaz; sonuç veya kabul oluşturulmadı.', panel, 'danger'); return; }
     const verified = { correct: false, version: job.delivery.version, outputSha256: job.delivery.outputSha256 };
     let recipeCSV;
     try {
       const task = local.payload?.task;
-      if (!task || task.profile !== job.profile || task.rowCount !== job.rowCount || outputs.length !== local.values.length) throw Error();
-      if (isRecipe) {
+      if (!task || task.profile !== job.profile || task.rowCount !== job.rowCount || (!isPlan && outputs.length !== local.values.length)) throw Error();
+      if (isPlan) {
+        const approval = local.agentApproval, checked = await acceptAgentProposal(job.publicTask, task.plan);
+        if (checked.taskHash !== approval.taskHash || checked.planSha256 !== approval.planSha256 || checked.planSha256 !== job.planSha256 ||
+            await hashPlan(job.plan) !== checked.planSha256 || task.planSha256 !== checked.planSha256 ||
+            JSON.stringify(checked.task) !== JSON.stringify(approval.task) || await datasetHash(local.dataset) !== approval.datasetSha256 ||
+            JSON.stringify(privatePlanInputs(local.dataset, task.plan)) !== JSON.stringify(local.values)) throw Error();
+        recipeCSV = applyAgentOutput(local.dataset, task.plan, outputs).csv;
+        if (job.delivery.profile !== job.profile || job.delivery.nonce !== task.nonce || job.delivery.rowCount !== task.rowCount) throw Error();
+      } else if (isRecipe) {
         // Re-extract the encrypted local dataset and check every value against
         // the bound public program, rather than trusting a cached preview.
         const values = parseRecipeColumn(local.dataset, local.column, task.recipe);
@@ -451,13 +600,27 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
         recipeCSV = applyRecipeOutput(local.dataset, local.column, outputs, task.recipe).csv;
         if (job.delivery.profile !== job.profile || job.delivery.nonce !== task.nonce || job.delivery.rowCount !== task.rowCount) throw Error();
       } else if (job.profile !== PROFILE || !verifyValues(local.values, outputs)) throw Error();
-      if (await taskInputHash(task) !== job.delivery.inputSha256 || (isRecipe ? await hashRecipeOutput(job.delivery.outputs) : await hashOutput(job.delivery.outputs)) !== job.delivery.outputSha256 || await taskProgramHash(task) !== job.delivery.programSha256) throw Error();
+      if (await taskInputHash(task) !== job.delivery.inputSha256 || (isPlan ? await hashPlanOutput(job.delivery.outputs) : isRecipe ? await hashRecipeOutput(job.delivery.outputs) : await hashOutput(job.delivery.outputs)) !== job.delivery.outputSha256 || await taskProgramHash(task) !== job.delivery.programSha256) throw Error();
       verified.correct = true;
     } catch { verified.correct = false; }
     paragraph(verified.correct ? 'Yerel kontrol başarılı: sonuç desteklenen temizleme kuralıyla eşleşiyor.' : 'Yerel kontrol başarısız. Teslim kabul edilemez.', panel, verified.correct ? 'badge' : 'danger');
     let changedOnly = false; const summary = el('p', null, 'muted'); panel.append(summary); const results = el('div'); panel.append(results);
     const show = () => {
-      results.replaceChildren(); const rows = outputs.map((v, i) => [i + 1, local.dataset.rows[i][local.column] === '' ? '(boş)' : local.dataset.rows[i][local.column], ((isRecipe && local.payload.task.recipe.type === 'number' && v === 255) || v === '') ? '(boş)' : v]);
+      results.replaceChildren();
+      if (isPlan) {
+        let total = 0, changed = 0;
+        for (const step of local.payload.task.plan.steps) {
+          const column = Number(step.column.slice(1)) - 1;
+          const rows = outputs[step.column].map((v, i) => [i + 1, local.dataset.rows[i][column] || '(boş)', step.recipe.type === 'number' && v === 255 || v === '' ? '(boş)' : v]);
+          const different = rows.filter((_, i) => local.values[step.column][i] !== outputs[step.column][i]);
+          total += rows.length; changed += different.length;
+          paragraph(`${step.column} ↔ ${local.dataset.headers[column]} (yerel)`, results);
+          table(['Satır', 'ÖNCE', 'SONRA'], changedOnly ? different : rows, results);
+        }
+        summary.textContent = `${job.rowCount} satır · ${total} işlenen hücre · ${changed} değişen`;
+        return;
+      }
+      const rows = outputs.map((v, i) => [i + 1, local.dataset.rows[i][local.column] === '' ? '(boş)' : local.dataset.rows[i][local.column], ((isRecipe && local.payload.task.recipe.type === 'number' && v === 255) || v === '') ? '(boş)' : v]);
       const changed = rows.filter((row, i) => isRecipe ? local.values[i] !== outputs[i] : local.values[i] === 255 || local.values[i] !== outputs[i]);
       summary.textContent = `${rows.length} satır · ${changed.length} değişen · ${rows.length - changed.length} değişmeyen`;
       table(['Satır', 'ÖNCE', 'SONRA'], changedOnly ? changed : rows, results);
@@ -465,7 +628,7 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
     button('Değişen / tüm satırlar', () => { changedOnly = !changedOnly; show(); message('Tablo görünümü değişti.'); }, panel, 'btn secondary');
     if (verified.correct) {
       button('CSV olarak indir (isteğe bağlı)', () => {
-        const blob = new Blob([isRecipe ? recipeCSV : exportCSV(local.dataset, local.column, outputs)], { type: 'text/csv;charset=utf-8' }), url = win.URL.createObjectURL(blob);
+        const blob = new Blob([isRecipe || isPlan ? recipeCSV : exportCSV(local.dataset, local.column, outputs)], { type: 'text/csv;charset=utf-8' }), url = win.URL.createObjectURL(blob);
         const a = el('a'); a.href = url; a.download = 'temizlenmis.csv'; a.click(); win.setTimeout(() => win.URL.revokeObjectURL(url), 1000); message('CSV indirme hazırlandı.');
       }, panel, 'btn secondary');
     }

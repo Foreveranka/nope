@@ -9,8 +9,10 @@
  */
 import { cryptoProvider, fromBase64, sha256 } from './gc-core.mjs';
 import { restoreGarbledJob } from './gc-client.mjs';
-import { PROFILE as RECIPE_PROFILE, validateRecipeRequest, hashRecipeRequest, hashRecipeProgram } from './recipe-core.mjs';
+import { PROFILE as RECIPE_PROFILE, validateRecipeRequest, hashRecipeRequest, hashRecipeProgram, exactKeys, denseArray } from './recipe-core.mjs';
 import { decodeRecipe } from './recipe-client.mjs';
+import { PROFILE as PLAN_PROFILE, validatePlanRequest, hashPlan, hashPlanRequest, hashPlanProgram } from './plan-core.mjs';
+import { decodePlan } from './plan-client.mjs';
 
 const utf8 = new TextEncoder();
 const text = new TextDecoder('utf-8',{fatal:true});
@@ -205,6 +207,26 @@ export function createVault(sessionId,{storage}={}) {
     async loadJob(jobId) { return load('job',jobId); },
     async saveDecoder(jobId,job) {
       id(jobId);
+      if (job?.request?.profile === PLAN_PROFILE) {
+        validatePlanRequest(job.request);
+        const decoder = object(job.decoder);
+        if (decoder.profile !== PLAN_PROFILE || decoder.nonce !== job.request.nonce || decoder.rowCount !== job.request.rowCount ||
+            decoder.inputSha256 !== await hashPlanRequest(job.request) || decoder.programSha256 !== await hashPlanProgram(job.request.plan) ||
+            decoder.planSha256 !== await hashPlan(job.request.plan) || job.request.planSha256 !== decoder.planSha256 ||
+            JSON.stringify(decoder.plan) !== JSON.stringify(job.request.plan)) fail('Plan decoder does not match the prepared request.');
+        denseArray(decoder.tasks,job.request.tasks.length);
+        for (let i=0;i<job.request.tasks.length;i++) {
+          const mapped=decoder.tasks[i],task=job.request.tasks[i]; exactKeys(mapped,['column','decoder']);
+          const d=object(mapped.decoder),request=task.request;
+          if (mapped.column !== task.column || d.profile !== RECIPE_PROFILE || d.nonce !== request.nonce || d.rowCount !== request.rowCount ||
+              d.inputSha256 !== await hashRecipeRequest(request) || d.programSha256 !== await hashRecipeProgram(request.recipe) ||
+              request.programSha256 !== d.programSha256 || JSON.stringify(d.recipe) !== JSON.stringify(request.recipe)) fail('Mapped plan decoder does not match the prepared request.');
+        }
+        await save('decoder',jobId,{kind:'plan-v3',decoder});
+        const restored = await load('decoder',jobId);
+        if (JSON.stringify(restored?.decoder) !== JSON.stringify(decoder)) fail('Plan decoder storage verification failed.');
+        return;
+      }
       if (job?.request?.profile === RECIPE_PROFILE) {
         validateRecipeRequest(job.request);
         const decoder = object(job.decoder);
@@ -224,9 +246,9 @@ export function createVault(sessionId,{storage}={}) {
     async decodeDelivery(jobId,outputs) {
       const sealed=await load('decoder',jobId);
       if (!sealed) fail('No local decoder for this job. Restore requires the original browser storage.');
-      if (sealed.kind === 'recipe-v2') {
+      if (sealed.kind === 'recipe-v2' || sealed.kind === 'plan-v3') {
         const {profile,nonce,rowCount,inputSha256,programSha256,outputSha256,outputs:labels} = object(outputs);
-        return decodeRecipe({profile,nonce,rowCount,inputSha256,programSha256,outputSha256,outputs:labels},sealed.decoder);
+        return (sealed.kind === 'plan-v3' ? decodePlan : decodeRecipe)({profile,nonce,rowCount,inputSha256,programSha256,outputSha256,outputs:labels},sealed.decoder);
       }
       const job=await restoreGarbledJob(sealed,(await keys()).aes);
       return job.decode(Array.isArray(outputs) ? outputs : outputs.outputs);
