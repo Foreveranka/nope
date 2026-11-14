@@ -173,7 +173,7 @@ See [RELATION-REVIEW.md](RELATION-REVIEW.md) for the soundness argument and conc
 const binding = {
   jobId,         // actual 32-hex authenticated job.id
   version,       // actual delivery.version, positive u32
-  contractId,    // actual sponsored-testnet contract account
+  contractId,    // actual pinned escrow contract account (current wallet or historical sponsor)
   bindingHash,   // actual immutable escrow bindingHash
   provider,      // actual selectedOffer.paymentAccount
   amountYocto    // actual selected public price, exact decimal string
@@ -183,7 +183,7 @@ await makeProofStatements(request, delivery, binding);
 // -> {finalContext, rows:[{column:'C1',row:0,statement:runtimePublicStatement}, ...]}
 ```
 
-Both functions validate the entire v4 request's cryptographic bindings and the actual delivery's outer input/program/output hashes and dimensions. `delivery` may be the seven-field evaluation result or that exact result plus actual `version`/`deliveredAt`; any present version must match `binding.version`. Metadata is never inferred from a SNARK bundle. Supplied setup contract/job context must match the final binding. An amount is an exact decimal string in the existing sponsored pilot range; provider must be a testnet named/implicit account and differ from contract.
+Both functions validate the entire v4 request's cryptographic bindings and the actual delivery's outer input/program/output hashes and dimensions. `delivery` may be the seven-field evaluation result or that exact result plus actual `version`/`deliveredAt`; any present version must match `binding.version`. Metadata is never inferred from a SNARK bundle. Supplied setup contract/job context must match the final binding. An amount is an exact decimal string between 10^18 and 10^22 yoctoNEAR (0.000001–0.01 testNEAR), the current proof adapter range retained from the earlier sponsor pilot; this is narrower than the current wallet contract's 1 testNEAR hold cap. The end-to-end proof workflow must use the narrower range; provider must be a testnet named/implicit account and differ from contract.
 
 The digest is SHA-256 of `JSON.stringify` in this exact key order:
 

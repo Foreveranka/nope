@@ -14,7 +14,8 @@ npm --prefix proof-runtime run test:browser-package
 
 From the repository root. Test fixtures use actual local AES-GCM GC evaluation
 and synthetic values only. The browser bundle harness runs in Node with HTTP;
-it is not a real browser/CSP test. MAIN owns that test and deployment.
+it is not a real browser/CSP test. Separate actual Chrome public proof/chain
+verification is recorded in [release checks](../docs/verification/wallet-release-checks.json).
 
 Public metadata: `policy.mjs` (no WASM imports). Main SDK: `sdk.mjs`.
 Browser entry: `dist/proof-sdk.js`; external worker: `dist/proof-worker.js`.
@@ -39,3 +40,21 @@ Read `../docs/execution-proof/IMPLEMENTATION.md` for exact ABI, measured costs,
 API/envelope, approved hashes and trust limits. This proves result semantics
 relative to authenticated prepublished mappings. It does not prove honest
 garbling, original-file provenance, provider execution or computation origin.
+
+## Current application integration
+
+The current customer-funded wallet application and its exact proof statement are
+documented in [the root README](../README.md) and [v4 integration](../docs/execution-proof/INTEGRATION.md).
+The application final-context adapter in `web/proof-plan-core.mjs` currently
+accepts selected prices from 10^18 through 10^22 yoctoNEAR
+(**0.000001–0.01 testNEAR**), narrower than the wallet contract's 1 testNEAR
+hold cap. Direct runtime arithmetic support does not remove that application
+binding constraint. Use the smaller interval for complete proof-backed jobs.
+
+The current [public test job](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf)
+passed actual production HTTP execution, proof verification and native testnet
+payout. A separate unauthenticated process and live Chrome verified its public
+SNARK and FINAL chain binding. That one-row HTTP test used an authored plan,
+not a fresh model inference; external wallet-popup signing remains a separate
+unverified browser acceptance check. No on-chain SNARK verification, original
+CSV provenance or physical execution proof is claimed.

@@ -1,114 +1,170 @@
-# Guest workspace backend
+# Wallet-funded workspace backend
 
-Assigned implementation only: `workspace/**`, `api/workspace.mjs`. No deployment,
-environment modification, wallet keys, signing, transfer broadcast or new service.
+New jobs use `WALLET_TESTNET_ESCROW` on **NEAR testnet**, with wallet ownership,
+sealed offers, encrypted typed execution and v4 result-correctness proofs. The
+buyer funds the selected amount from their own wallet; the backend prepares
+immutable transaction intents and observes the chain. It does not sign or
+broadcast wallet transactions. Legacy sponsor/direct-transfer jobs are historical
+**read-only** records while the wallet policy is active.
 
-## Integration
+## Deployment and trust boundary
+
+The shared public policy in [wallet-config.mjs](wallet-config.mjs) must match
+[the browser pin](../web/wallet-pins.mjs) exactly:
 
 ```js
-import {createWorkspaceHandler} from '../api/workspace.mjs';
-const handler = createWorkspaceHandler({env: process.env});
+{
+ network:'testnet',
+ contractId:'nope-wallet-44384e2f.testnet',
+ codeHash:'6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy',
+ domain:'NOPE:WALLET-ESCROW:V1:testnet',
+ requireKeyless:true
+}
 ```
 
-Default export uses private Vercel Blob with the existing `BLOB_READ_WRITE_TOKEN`.
-`NOPE_WORKSPACE_ORIGIN` is the exact allowed origin, default
-`https://veil-procurement.vercel.app`. For local preview explicitly configure an
-`http://localhost:PORT` or `http://127.0.0.1:PORT` origin on the server. There is no
-forwarded-host authorization and no client-selected RPC endpoint. POST requires
-an exact Origin. Authenticated GET may omit Origin, as native same-origin browser
-GET requests do, but a supplied foreign Origin or cross-site fetch is rejected.
+The observer checks code hash, empty contract access-key list and hold at the
+same FINAL block. The keyless contract has no upgrade/admin withdrawal method.
+Its separately funded storage/gas balance does not fund customer payments.
+Holds are indexed by `(buyer_account, job_id)`, limited to **1 testNEAR per hold**
+and **50 permanent holds** across the deployment; paid/refunded entries still
+consume capacity. The v4 proof-binding adapter separately requires a selected
+price from **0.000001 to 0.01 testNEAR** (10^18 through 10^22 yoctoNEAR); a complete
+proof-backed application job must stay in that narrower range. See [contract source](../payments/wallet_escrow/src/lib.rs).
 
-Adapter accepts direct `/api/workspace/jobs/ID` paths or
-`/api/workspace?route=jobs/ID`. The hosted browser uses the canonical `/api/workspace?route=...` entry so Vercel original-path rewrite semantics cannot change routing. Direct nested paths remain supported by the local adapter. A Web Request core is exported
-as `createWorkspace({store,env,now,verifyPayment})` for integration/tests; injected
-memory stores and RPC fixtures are explicitly test-only, never production fallback.
+The application verifies SNARKs before accepting/releasing a v4 delivery. The
+contract itself checks wallet authority, immutable terms and latest delivery,
+not SNARKs. An independently submitted buyer wallet transaction can bypass the
+application decision gate; on-chain `Paid` alone is not a computation proof.
+Result proofs establish typed correctness relative to the buyer's precommitted
+ordered label mappings. They do not establish original CSV provenance, honest
+garbling, AES execution provenance, provider execution origin or correct LLM
+intent. The public verifier uses RPC-backed chain checks, not a light client.
 
-Every response is JSON, no-store; errors are `{error,code}` with no secret details.
-Only GET and POST; max 1 MiB request, bounded raw/parsed/streaming bodies, duplicate
-JSON keys rejected. All routes except session creation require a 32-byte bearer.
-Only its SHA-256 hash is persisted. The client quota cookie is random, HttpOnly,
-SameSite=Strict, Secure in HTTPS, hashed in Blob; no IP addresses are collected.
+## HTTP and authentication
 
-## REST contract
+[api/workspace.mjs](../api/workspace.mjs) exports
+`createWorkspaceHandler({env,store?,handle?})`; production uses private Vercel Blob
+with `BLOB_READ_WRITE_TOKEN`. `NOPE_WORKSPACE_ORIGIN` is an exact origin, default
+`https://veil-procurement.vercel.app`. Local origins must be explicitly configured.
+There is no forwarded-host authorization, caller-selected RPC or in-memory
+production fallback. The Web Request core is `createWorkspace(...)` in
+[core.mjs](core.mjs); injected stores/RPC are test seams.
 
-- `POST /session {role,displayName,paymentAccount?}` → 201 `{token,session}`;
-  role buyer/provider, name 1–40 chars, optional account `.testnet` or lowercase
-  64-hex implicit address. Session `{id,role,displayName,paymentAccount}`.
-- `GET /session` → `{session}`.
-- `GET /jobs[?cursor=...]` → `{jobs,nextCursor}`; buyer own jobs, providers published
-  summaries; up to 20 indexed entries per page. Advance nextCursor even for empty
-  buyer pages. No offers in summaries.
-- `POST /jobs {jobId,title,description,deadlineISO,profile,rowCount,task,buyerPublicKey}`
-  → 201 `{job}`. Client-chosen jobId is 32 lowercase hex; persist local decoder
-  **before** publishing. Exact same buyer + canonical JSON retries return 200
-  existing job, including after later state changes. Conflicting creation returns
-  409. Title 1–100, description 0–1000; UTC ISO deadline in next 30 days. Profile
-  `nope-csv-gc-v1`, 1–32 rows, exact existing GC request schema; public RSA-2048
-  OAEP-SHA256 JWK only. No filenames, headers, budgets, decoder or unknown fields.
-- `GET /jobs/:id` → `{job}`.
-- `POST /jobs/:id/offers {envelope:{wrappedKey,iv,ciphertext},commitment}` → `{job}`;
-  provider only, payout account required. Canonical base64 RSA key 256 bytes, IV12,
-  GCM ciphertext >=17 bytes; entire envelope <=8 KiB. One immutable offer/provider;
-  intake before deadline, at most64/job. Offer
-  `{id,providerId,providerName,paymentAccount,envelope,commitment,createdAt}`.
-  Commitment SHA256 of exact `JSON.stringify([jobId,providerId,amountYocto,salt])`.
-- `POST /jobs/:id/close {}` → `{job}`; owning buyer may close early.
-- `POST /jobs/:id/award {offerId,amountYocto,salt}` → `{job}`; owning buyer, CLOSED.
-  Salt exactly64 lowercase hex (32 bytes). Amount canonical positive integer string
-  1e18 through100e24 yocto, test NEAR only. Exact commitment verified; only winner's
-  amount becomes public through this explicit buyer action. Salt is not persisted.
-- `GET /jobs/:id/task` → `{task}`; owning buyer or awarded selected provider only.
-- `POST /jobs/:id/execute {}` → `{job}`; selected provider only. In-process adapts
-  actual `api/csv-gc.mjs`, no decoder, fake results or alternate circuit. Repeats
-  return existing delivery. A buyer-requested revision reexecutes the same task
-  and increments delivery version (maximum20 decisions).
-- `POST /jobs/:id/decision {decision:'accept'|'revise',version,outputSha256}` → `{job}`;
-  owning buyer, exactly latest delivery version/hash. Accept → ACCEPTED/payment DUE;
-  revise → REVISION. No automatic buyer acceptance.
-- `POST /jobs/:id/payment/verify {transactionHash,buyerAccount}` → `{job}`;
-  owning buyer only after acceptance. Read-only fixed FastNear testnet RPC, FINAL
-  success, all receipt success, exactly one Transfer of exact award amount to exact
-  selected account, matching transaction hash and signer. Fetches transaction and
-  receipt blocks and checks timestamps >=job creation. Global immutable transaction
-  claim prevents reuse across jobs. Failures/pending never produce PAID.
+Hosted requests use `/api/workspace?route=jobs/ID/...`; paths below are logical
+routes. Direct `/api/workspace/jobs/ID/...` is also supported by the adapter.
+Responses are JSON with `Cache-Control:no-store`; errors are `{error,code}`.
+POST requires matching Origin and application/json. Authenticated GET may omit
+Origin; a supplied foreign Origin or cross-site fetch is rejected. Bodies reject
+duplicate JSON keys and are capped at 1 MiB, with a 3 MiB task-creation allowance.
 
-Job public fields: `id,buyerId,buyerName,title,description,deadlineISO,status,profile,
-rowCount,createdAt,updatedAt,buyerPublicKey,offerCount,selectedOffer,delivery,payment,
-revision,events`. `events` are actual committed operations only:
-`{stage,status,at,actorId}`. Competing provider actorId redacted to null in public
-views. Older pre-events records read as empty event lists; no synthetic history or
-migration. Public selectedOffer `{offerId,providerId,paymentAccount,amountYocto}`.
-Delivery `{outputs,inputSha256,outputSha256,programSha256,version,deliveredAt}` only
-buyer/selected provider; unrelated providers get null. No CSV plaintext on server.
-Owning buyer sees `offers` only after CLOSED; provider sees only `ownOffer` in
-job detail. No history endpoint. Losing plaintext prices never reach the server.
+Create a buyer/provider session, then authenticate its wallet:
 
-## Durability and limits
+| Route | Request | Response / boundary |
+| --- | --- | --- |
+| `POST /session` | `{role,displayName,paymentAccount?}` | `{token,session,proof,wallet}`; role buyer/provider |
+| `GET /session` | Bearer token | `{session,proof,wallet}` capabilities |
+| `GET /wallet` | Bearer token | `{wallet:null\|linkedWallet}` |
+| `POST /wallet/challenge` | `{accountId}` | `{challenge}`; five-minute NEP-413 challenge |
+| `POST /wallet/verify` | `{challengeId,accountId,publicKey,signature}` | `{wallet,session}` after cryptographic and FINAL key checks |
 
-Private `nope-workspace-v1/` Blob namespace. Separate task record, token-hash session
-record, discoverability index, sequential immutable job revisions with preceding
-record hashes. `allowOverwrite:false` reserves each version atomically, following
-the existing procurement store pattern. Occupied/uncertain writes are read back;
-unknown outcomes fail closed. Concurrent edits may return409; retrieve current job
-before retry. Quota slots reserve at most5 created jobs and20 offer operations per
-client, shared across role sessions, at most10 sessions per client and50 global
-sessions per UTC day. Clearing cookies creates a new client; global daily cap still
-bounds public session creation. Immutable failed reservations can conservatively
-consume quota. Maximum256 job revisions and bounded events. Listing/history uses
-sequential reads, suitable for this limited pilot; no performance claim.
+All routes except session creation and public proof evidence require the session
+bearer. Only the token hash is persisted. Wallet challenges bind account, role,
+session, origin, nonce, timestamps and callback URL `/settings`; the exact signed
+message/nonce/recipient/callback must be preserved. Public keys are ed25519
+base58; signatures are canonical base64 of 64 bytes. A current FINAL FullAccess
+key must verify the signature. Nonces are one-use, and a session cannot switch
+accounts after linking. Provider payout account is derived from the linked wallet.
+Role/account identities are stable across fresh verified sessions, allowing the
+original buyer to recover escrow access without their old browser session. This
+does not recover the local CSV, decoder or proof witness.
 
-Payments are labeled `DIRECT_TESTNET_TRANSFER`, **not escrow**. A transfer has no
-job memo or cryptographic job binding: the buyer associates an eligible observed
-transfer with one job, protected by a global application-ledger claim. No custody,
-private wallet, signing, automatic spending or mainnet. Test RPC fixtures do not
-establish that an actual payment occurred. GC transcript hashes are not execution
-proofs; evaluator and garbler retain the existing prototype trust model.
+## Job and payment API
 
-## Verification
+New jobs require profile `nope-csv-proof-plan-gc-v4` and a linked testnet wallet.
+Save the encrypted local vault records before publication. Only public brief,
+anonymous schema/plan, encrypted task and commitments are sent; original CSV,
+headers, private label pairs, salts and decoder remain local. Offers contain
+RSA-OAEP/AES-GCM encrypted quotes; only the selected price/provider become public.
 
-`node --test workspace/workspace.test.mjs` exercises roles/isolation, native GET
-Origin behavior, schema/envelope/body bounds, real GC decode, actual browser-vault
-RSA/AES compatibility, exact delivery decisions, job replay/concurrency/unknown
-writes, private immutable Blob options, daily/session/job/offer quotas and
-read-only synthetic RPC negative/success/reuse cases. Test stores are explicitly
-synthetic; no live service writes or funds sent by these tests.
+| Route | Body / behavior |
+| --- | --- |
+| `GET /jobs`, `GET /jobs/:id` | Paginated summaries/detail; buyer owns by wallet, provider sees own offer |
+| `POST /jobs` | `{jobId,title,description,deadlineISO,profile,rowCount,task,buyerPublicKey,publicTask}`; exact creation retries are idempotent |
+| `POST /jobs/:id/offers` | `{envelope:{wrappedKey,iv,ciphertext},commitment}`; one offer per provider wallet |
+| `POST /jobs/:id/close` | `{}`; owning buyer closes bidding |
+| `POST /jobs/:id/award` | `{offerId,amountYocto,salt}`; verifies quote commitment and publishes selected terms |
+| `GET /jobs/:id/task` | Owning buyer or selected provider only |
+| `POST /jobs/:id/execute` | `{}`; selected provider, FINAL funding, before execution deadline; real GC evaluation |
+| `POST /jobs/:id/proof` | `{version,outputSha256,bundle}`; buyer, exact latest delivery, all actual proofs verified |
+| `POST /jobs/:id/decision` | `{decision:'accept'\|'revise',version,outputSha256}`; recorded latest delivery required; accept additionally requires current proof |
+| `POST /jobs/:id/payment/prepare` | `{action:'fund'\|'record'\|'release'\|'refund'}` → `{job,intent}`; intent may be null when no new signature is allowed |
+| `POST /jobs/:id/payment/confirm` | `{action,transactionHash}` → `{job}` after read-only observation; hash is not finality by itself |
+| `POST /jobs/:id/payment/refresh` | `{}` → `{job}`; observation only, never signs/rebroadcasts |
+| `GET /jobs/:id/proof/evidence` | Public, no bearer; current ciphertext transcript, binding, delivery and verified proof bundle |
+
+Quote commitment is SHA-256 of `JSON.stringify([jobId,providerId,amountYocto,salt])`.
+The wallet award API accepts decimal strings from **1 yoctoNEAR through 1 testNEAR** (the proof workflow has the narrower range above); salt is
+64 lowercase hex. Execution/review deadlines are fixed at award time +24/+48 hours.
+The quote-intake `deadlineISO` is separate. Accept produces `ACCEPTED` with payment
+`RELEASE_READY`; it does not spend funds. Revision invalidates prior proof metadata.
+
+Intent actions contain exactly one FunctionCall at 150 Tgas, pinned receiver,
+exact signer, method, JSON args and deposit. Preserve `JSON.stringify(args)` bytes
+and key order through the wallet. `fund({terms})` attaches exactly `terms.amount`;
+record/release/refund attach zero. Buyer funds/releases/refunds; provider normally
+records, with exact-buyer recording permitted for recovery. Terms include ordered
+job ID, buyer commitment/account, provider, amount, input/program/plan hashes and
+string U64 deadlines. The binding hashes the all-string tuple beginning with
+domain and contract ID; see [wallet-escrow.mjs](wallet-escrow.mjs).
+
+## State, receipts and recovery
+
+Job states: `OPEN → CLOSED → AWARDED → DELIVERED → ACCEPTED → PAID`, with
+`REVISION` looping to execution and eligible expiry ending in `REFUNDED`.
+Payment states include `NOT_FUNDED`, `FUNDING_PENDING`, `HELD`, `RECORD_PENDING`,
+`RELEASE_READY`, `PAYOUT_PENDING`, `REFUND_PENDING`, `PAID`, `REFUNDED`, `ERROR`
+and `UNKNOWN`. These differ from operation statuses `PREPARED`, `PENDING`,
+`UNKNOWN`, `FINAL`, `ERROR` and `EXPIRED`.
+
+A wallet result never authorizes local PAID. Confirmation checks the exact
+transaction bytes, FINAL connected receipt tree, native recipient/amount and
+nonce-bound private callback. `stateVerified` and `receiptVerified` are separate:
+a lost hash can reconcile matching FINAL state without inventing a receipt/hash.
+A pending native transfer is never treated as paid or permission to resend.
+
+After review expiry the original buyer signs `refund`; money returns to that
+buyer's wallet, not a sponsor pool. Silence never accepts or pays a delivery.
+Only an unresolved **record** operation can be retired once the same pinned FINAL
+block is past the review deadline and the hold has no pending transfer. Its
+immutable retirement marker prevents late record confirmation from replacing the
+new refund. Unknown fund/release/refund operations retain their stricter guards.
+
+## Storage, bounds and checks
+
+Private Blob uses immutable `nope-workspace-v1/` task, session, index, revision,
+proof and wallet records. Wallet records cover sessions, challenges, one-use
+claims, intents/retirement markers and transaction claims. Writes use
+`allowOverwrite:false`; races may return 409 and require reading current state.
+Quotas are 5 jobs/20 offer operations/10 sessions per client and 50 global sessions
+per UTC day; at most 64 offers/job and 256 job revisions. The random quota cookie
+is HttpOnly/SameSite=Strict; no IP addresses are collected.
+
+Typed execution supports up to 4 selected columns, 32 numeric or 8 text rows,
+16 tagged ASCII bytes/text cell, 10,000 total gates and 40 processed-cell proofs.
+The proof bundle limit is 1 MiB minus 1 KiB. These are bounded pilot limits.
+
+Recorded 14 November 2026 validation: **486 root tests passed**, including
+**19 wallet-client tests**; [release checks](../docs/verification/wallet-release-checks.json)
+record counts and scope. `npm test` runs the root suite. Fixtures are not chain
+evidence; no test/build rerun is implied by this documentation update.
+
+Actual production Node signing through HTTP/private Blob completed synthetic
+one-row job `10b21c73ed75bfd8c47418524932d2bf`: test-wallet NEP-413 authentication,
+funding, encrypted execution, delivery recording, real SNARK, buyer acceptance and
+FINAL payout. See [production evidence](../docs/verification/wallet-funded-http-production.json)
+and [verification guide](../docs/verification/wallet-funded-flow.md).
+Live Chrome separately passed wallet picker/cancel and opaque transport checks,
+plus the [independent public SNARK/chain verifier](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf).
+These checks do **not** establish third-party wallet popup login/signing; that
+interactive acceptance check remains uncompleted. Historical sponsor evidence is
+not reclassified as wallet-funded evidence.

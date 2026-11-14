@@ -1,12 +1,13 @@
-# NOPE testnet wallet runtime — frozen handoff
+# Testnet wallet runtime
 
-Production uses the official NEAR-recommended `@hot-labs/near-connect`, pinned
-**0.12.0**, with esbuild **0.25.12**. See the [official NEAR Connect docs](https://docs.near.org/tools/near-connect)
-and [wallet login guide](https://docs.near.org/web3-apps/tutorials/wallet-login).
-The adapter supports testnet only. Signatures and transactions require an explicit
-frontend button action; constructing the client performs neither.
+`web/wallet-client.mjs` adapts pinned `@hot-labs/near-connect` **0.12.0** to NOPE's
+wallet-funded escrow. esbuild **0.25.12** packages the real SDK and reviewed Intear
+executor into same-origin assets. See [NEAR Connect docs](https://docs.near.org/tools/near-connect)
+and the [wallet login guide](https://docs.near.org/web3-apps/tutorials/wallet-login).
+The client supports testnet only. Connect/sign/send are invoked by explicit UI
+actions; constructing the adapter performs none of them.
 
-## Build and published assets
+## Build and policy
 
 From the repository root:
 
@@ -16,10 +17,11 @@ node wallet-runtime/package-browser.mjs
 node --test tests/wallet-client.test.mjs
 ```
 
-The build is offline after installation. MAIN copies exactly these five files
-from `wallet-runtime/dist/` to `/wallet-runtime/`, checking each SHA against
-`dist/asset-manifest.json`. Do not publish node_modules, review sources or the
-manifest as executable code. Dependencies occupy 10 MiB locally.
+Packaging is offline after installation. The main build copies exactly five
+assets from `dist/` into `/wallet-runtime/`, checking bytes and SHA-256 against
+`dist/asset-manifest.json`. It also publishes that manifest as metadata. Do not
+publish node_modules or review sources. Executable assets total **71,243 bytes**;
+local dependencies occupy about 10 MiB.
 
 | Asset | Bytes | SHA-256 |
 | --- | ---: | --- |
@@ -29,14 +31,20 @@ manifest as executable code. Dependencies occupy 10 MiB locally.
 | intear-executor.js | 13817 | 6decc283352af197feff4988628899d19e05f4168a4277fe699bd8a0d6178e34 |
 | wallet.css | 718 | dd054bfdfa9940fac1e97556b758602715a279704d1826f14837fab56b9c96c9 |
 
-Total **71,243 bytes**. The only change from MAIN's earlier successful Chrome
-smoke bundle is the SDK result-listener hardening: explicit success/failed status
-and close-listener cleanup. Bridge/executor/CSS/HTML hashes are unchanged.
+Browser [wallet-pins.mjs](../web/wallet-pins.mjs) and server
+[wallet-config.mjs](../workspace/wallet-config.mjs) contain exactly the same five
+keys: network, contractId, codeHash, domain and requireKeyless. Current contract is
+`nope-wallet-44384e2f.testnet`, code hash
+`6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy`, domain
+`NOPE:WALLET-ESCROW:V1:testnet`, with `requireKeyless:true`. The server verifies
+matching FINAL code and an empty contract key list. Limits are **1 testNEAR per
+job** and **50 permanent holds**. The application result-proof adapter separately restricts complete proof-backed jobs to **0.000001–0.01 testNEAR**; the wallet adapter's ability to sign a larger deposit does not establish that the proof workflow supports it. New payments come from the buyer's own wallet;
+legacy sponsor/direct-transfer jobs are historical read-only records.
 
 ## Adapter API
 
 ```js
-import {createWalletClient} from './wallet-client.mjs';
+import {createWalletClient} from './wallet-client.mjs'; // from web/
 const wallet = createWalletClient({window, network:'testnet'});
 await wallet.connect({walletId:'intear-wallet', accountId});
 await wallet.currentAccount();
@@ -46,134 +54,126 @@ await wallet.completeRedirect();
 await wallet.disconnect();
 ```
 
-`connect()` presents wallet selection if omitted. Multiple accounts require an
-explicit accountId or `selectAccount` callback; it never silently picks the first.
-Account results contain `{accountId, walletId, network:'testnet', publicKey?}`.
-`currentAccount()` returns null until connected. Selection callbacks and the
-`connectorFactory` constructor option are unit seams, never production signers.
+`connect()` presents a picker when walletId is omitted. Multiple accounts require
+an explicit accountId or selectAccount callback. It returns
+`{accountId,walletId,network:'testnet',publicKey?}`; currentAccount returns null until
+connected. The underlying SDK connect method returns the wallet object. Injected
+connectorFactory is a unit seam, never a fake production signer.
 
-`signChallenge()` accepts the backend's exact challenge object: challengeId,
-network, accountId, sessionId, role, origin, nonce, issuedAt, expiresAt, message,
-recipient and callbackUrl. It validates the canonical server message and origin,
-passes nonce as 32 bytes, and preserves the signed callbackUrl. Result is exactly
+`signChallenge()` accepts the exact backend challenge: challengeId, network,
+accountId, sessionId, role, origin, nonce, issuedAt, expiresAt, message, recipient
+and callbackUrl. It validates the canonical context, preserves the signed callback
+and passes a 32-byte nonce. Result is
 `{challengeId,accountId,publicKey,signature}`: ed25519 base58 public key, canonical
 base64 64-byte signature. A redirect returns `{redirected:true,challengeId}`.
-No local result establishes chain key ownership; the backend checks it.
+The server independently checks the signature, single-use challenge and FINAL
+FullAccess key. Challenge lifetime is five minutes.
 
-`sendTransaction(intent,bounds)` accepts exactly:
+`sendTransaction(intent,bounds)` accepts these shapes:
 
 ```js
-// Intent from backend; action is fund | record | release | refund.
-{
- id, action, network:'testnet', bindingHash,
- transaction:{signerId,receiverId,actions:[{
+// Backend intent; action is fund | record | release | refund.
+{id, action, network:'testnet', bindingHash,
+ transaction:{signerId, receiverId, actions:[{
   type:'FunctionCall', params:{methodName,args,gas,deposit}
- }]}
-}
-// Frontend bounds from the immutable displayed job.
-{
- action, jobId, bindingHash, accountId, contractId, buyerAccount,
- provider, amountYocto, version, outputHash
-}
+ }]}}
+// Bounds derived from the immutable displayed job.
+{action,jobId,bindingHash,accountId,contractId,buyerAccount,
+ provider,amountYocto,version,outputHash}
 ```
 
-Bounds also optionally accept network, buyerCommitment, inputHash, programHash,
-planHash, executionDeadlineNs, reviewDeadlineNs, expectedArgs, gas and deposit.
-Fund requires provider/amount; record requires provider; record/release require
-version/outputHash. Supplying expectedArgs enforces JSON byte order too.
-The exact five-key shared pin `{network,contractId,codeHash,domain,requireKeyless}`
-must match the production import, and requireKeyless must be true. The current
-public deployment is `nope-wallet-44384e2f.testnet`; the pin file is authoritative.
-The adapter permits one FunctionCall, fixed 150 Tgas, and only fund,
-record_delivery, accept_and_release or refund. Fund deposit equals its terms
-amount, at most 1 testNEAR. Other deposits are zero. Fund recomputes the complete
-ordered binding hash. Buyer/provider signers, namespace, hashes, deadlines and
-immutable job bounds are checked before calling the SDK. Caller objects and SDK
-arguments are separate snapshots; returned transaction method/args bytes, gas,
-deposit, signer and receiver must match the approved snapshot.
+Optional bounds: network, buyerCommitment, inputHash, programHash, planHash,
+executionDeadlineNs, reviewDeadlineNs, expectedArgs, gas and deposit. Fund requires
+provider/amount; record requires provider; record/release require version/output.
+Record signer must be exactly the bounded provider **or buyer** for recovery.
+Fund/release/refund remain buyer-only. Standard UI recording uses the provider.
 
-Successful submission returns `{transactionHash}`; redirect returns
-`{redirected:true,intentId}`. Neither means finality or escrow success. Backend
-observation remains separate. Any error after invoking the wallet transaction
-method is `WALLET_TRANSACTION_UNKNOWN`, even if the wallet says rejected/closed.
-Never automatically retry it or discard the frontend recovery capsule.
-`WALLET_REJECTED` applies to connection/message cancellation, not transaction
-broadcast certainty. Validation errors occur before SDK invocation.
+Only one FunctionCall at 150 Tgas to the pinned contract is accepted:
+`fund`, `record_delivery`, `accept_and_release` or `refund`. Fund deposit equals
+terms.amount, from 1 yoctoNEAR through 1 testNEAR; other deposits are zero. The
+client recomputes fund's ordered all-string binding tuple and checks namespace,
+recipient, hashes, deadlines and immutable bounds. JSON snapshots preserve args
+order and isolate caller/SDK mutations; returned transaction args must match the
+approved `JSON.stringify(args)` bytes. expectedArgs additionally checks caller
+supplied exact args order. The wallet must preserve these bytes too.
 
-`completeRedirect()` returns null, `{kind:'challenge',result}`, or
-`{kind:'transaction',intentId,transactionHash}`. It validates local pending state,
-origin, /settings path, public state ID and callback fields, then scrubs wallet
-callback query/hash parameters. It never signs. Wrong-state callbacks cannot
-clear pending; transaction error callbacks retain unknown pending. Expired login
-challenges clear and can restart; transaction pending never expires away.
-Disconnect is an explicit reset of adapter connection/pending metadata; callers
-must retain their separate backend-observation recovery capsule for unknown sends.
+Submission returns `{transactionHash}` or `{redirected:true,intentId}`. Neither
+means FINAL, PAID or a valid proof. Backend observation checks transaction,
+receipts and contract state separately. Every SDK transaction error becomes
+`WALLET_TRANSACTION_UNKNOWN`, including rejected/closed messages; do not retry
+automatically. `WALLET_REJECTED` is connection/message cancellation, not proof
+that a transaction was never broadcast. Validation fails before SDK invocation.
 
-Only `nope.wallet.client.v1.account` and `.pending` are written to sessionStorage;
-no bearer token, session ID, customer CSV, nonce, signature or wallet key is stored
-there or put in callback URLs. Existing workspace session storage is untouched.
-NEAR Connect selected-wallet and Intear transport state are memory-only. Intear's
-published executor generates an ephemeral Ed25519 **transport-authentication** key
-for wallet popup requests. It is not a NEAR account signing key, is not registered
-as a FunctionCall key, and disappears on reload. Real account signing remains in
-the wallet. No browser wallet store is extracted.
+`completeRedirect()` returns null, `{kind:'challenge',result}` or
+`{kind:'transaction',intentId,transactionHash}`. It checks pending metadata,
+origin, /settings path, state ID and callback fields, scrubs callback parameters
+and never signs. Wrong-state or transaction-error callbacks cannot clear unknown
+transactions. Expired login challenges can restart; transaction metadata never
+expires away. Disconnect resets adapter metadata; the frontend must retain its
+separate backend-observation recovery capsule for unknown sends.
 
-## Opaque bridge and CSP
+Refund is an explicit buyer transaction after review expiry, returning that
+job's deposit to the original buyer's wallet. The backend may retire an expired
+record intent using matching FINAL time/state so it cannot block refund; it does
+not relax unknown fund/release/refund guards. See [backend state/API docs](../workspace/README.md).
 
-The published SDK uses inline/srcdoc sandbox packaging. Our build replaces that
-transport with static external modules and a random 256-bit capability, keeping
-the reviewed official Intear signing implementation. `sdk-patches.mjs` checks
-exact pinned SDK source patterns and fails the build if they drift. It also
-checks popup source/origin and wallet-result source, null origin, capability,
-protocol, method, request ID and result status. The child checks parent source,
-pinned parent origin, capability and message type/method. Executable code uses
-no eval, new Function, blob worker or runtime CDN.
+## Storage and opaque transport
 
-The frame sandbox is exactly:
+Only `nope.wallet.client.v1.account` and `.pending` use sessionStorage. They contain
+public account/operation metadata, not workspace tokens, CSV, nonce, signature or
+wallet secrets. Workspace session storage is untouched. SDK selected-wallet and
+Intear transport state are memory-only. Intear generates an ephemeral Ed25519
+**transport-authentication** key for popup requests; it is not a NEAR account
+signing key or registered FunctionCall key and disappears on reload. Real account
+signing stays in the wallet; the adapter does not extract browser wallet stores.
 
-```
-allow-scripts allow-popups allow-popups-to-escape-sandbox
-```
+`sdk-patches.mjs` replaces published inline/srcdoc packaging with static modules
+and checks exact version-pinned source patterns. The parent validates iframe
+source, null origin, random 256-bit capability, protocol, request ID, method and
+response status; the child validates parent source/origin/capability and methods.
+The sandbox is exactly `allow-scripts allow-popups allow-popups-to-escape-sandbox`.
+Never combine it with allow-same-origin. There is no eval, new Function, blob
+worker or runtime CDN executor download.
 
-Never add allow-same-origin. MAIN owns these route/header requirements:
+Deployment requirements in [vercel.json](../vercel.json):
 
-- Global frame-src self; scripts remain self, no inline/eval relaxation.
-- bridge.html: X-Frame-Options SAMEORIGIN and frame-ancestors self override the
-  global DENY/none only on this route.
-- Static wallet-sdk.js, bridge.js, intear-executor.js and wallet.css: public
-  Access-Control-Allow-Origin:* for opaque Origin:null imports, no credentials.
-- Only official popup origin https://wallet.intear.tech is allowed. Public Intear
-  configuration forces its supported web-popup path. No remote frame-src,
-  extra connect-src, native bridge or form-action exception is required by this
-  path. Actual external wallet operation still needs a user wallet test.
+- Global frame-src self; script-src self/wasm-unsafe-eval, no inline/eval exception.
+- Only the bridge route overrides X-Frame-Options to SAMEORIGIN and frame-ancestors
+  to self; other pages retain DENY/none.
+- Public static wallet-runtime assets use Access-Control-Allow-Origin:* and
+  Cross-Origin-Resource-Policy:cross-origin for opaque Origin:null module loads.
+  No credentialed CORS is needed.
+- The wallet popup is restricted to https://wallet.intear.tech. The reviewed web
+  popup path needs no additional remote frame/connect/form origins or native bridge.
 
-The original Intear executor is copied byte-for-byte from the URL listed in the
-[official manifest](https://raw.githubusercontent.com/hot-dao/near-selector/refs/heads/main/repository/manifest.json):
-https://wallet.intear.tech/near-selector.js . Its SHA is enforced before packaging.
-The outer published signMessage drops callbackUrl; bridge uses the real public
-inner connectedAccount.signMessage with the full exact server payload. No
-signInAndSignMessage fallback signs a different challenge. No dynamic manifest
-or executor download occurs at runtime. Localized labels come from the existing
-app i18n instance: title, cancel, frameTitle, open and prompt.
+The official [manifest](https://raw.githubusercontent.com/hot-dao/near-selector/refs/heads/main/repository/manifest.json)
+identifies https://wallet.intear.tech/near-selector.js; its immutable local copy's
+SHA is enforced before packaging. The outer executor drops callbackUrl, so the
+bridge invokes its real public inner connectedAccount.signMessage with the full
+server payload. This is not a synthetic signing fallback. All five labels come
+from the existing app i18n instance and are converted with `String(msg(...))`
+before the SDK's strict primitive-string guard. No second i18n instance is bundled.
 
-## Evidence and limits
+## Verification evidence
 
-**16/16 targeted tests passed** with `node --test tests/wallet-client.test.mjs`
-on 2026-11-14 (~210 ms). They cover strict policy/intent boundaries, exact four
-methods, immutable argument snapshots, callback binding/recovery, unknown
-transaction retention and spoof rejection in all three real transport receivers.
-The SDK result test executes the actual transformed published SDK source used by
-the bundler; the iframe and child bridge tests execute their actual source.
-Those tests use explicitly marked window/connector/executor fixtures. NEP-413
-signing and independent verification use genuine local crypto with a newly
-generated synthetic key and a fixture FullAccess RPC response. They are not
-wallet or chain evidence.
+Recorded 14 November 2026: **19/19 client tests passed** and **486 root tests
+passed**, as recorded in [release checks](../docs/verification/wallet-release-checks.json).
+Client tests cover the real i18n objects against a strict connector label guard,
+buyer recovery recording, immutable intent bounds, redirects, unknown outcomes
+and all three actual transport receiver sources. NEP-413 uses genuine local
+crypto with synthetic keys; window/connector/FullAccess RPC fixtures remain unit
+evidence, not a wallet or chain test.
 
-MAIN reports actual Chrome passed using the built SDK with the production opaque
-headers: createConnector -> wallet('intear-wallet') -> getAccounts() -> READY,
-accounts0, no localhost errors or external popup, iframe disposed afterward.
-This proves the transport loaded under that CSP. It does not prove real Intear
-login, message signing, transaction signing or chain finality. No actual user
-wallet was available; those popup interactions remain untested. No project funds
-were moved by this implementation task. Planck's backend/chain harness is
-separate evidence and must be reported separately.
+The [production Node HTTP lifecycle](../docs/verification/wallet-funded-http-production.json)
+used generated test-wallet keys locally to authenticate, fund, record and release
+real testnet funds through the deployed API, with encrypted execution and an actual
+SNARK. Job `10b21c73ed75bfd8c47418524932d2bf` reached PAID. This tests signing and
+backend/chain integration, not the third-party popup transport.
+
+Actual Chrome separately passed the built opaque bridge, live wallet picker/cancel
+and the [public SNARK/FINAL chain verifier](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf)
+without the buyer's CSV/private mappings. No actual third-party wallet popup
+login, NEP-413 signing or transaction-signing session has been completed. Those
+interactive checks remain open. The SNARK proves typed result correctness under
+precommitted buyer mappings, not execution origin or an AES trace; the contract
+has no on-chain SNARK verifier. See [evidence and trust limits](../docs/verification/wallet-funded-flow.md).

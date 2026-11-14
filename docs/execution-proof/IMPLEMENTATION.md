@@ -1,8 +1,10 @@
 # Typed result-correctness proof — implementation
 
-14 November 2026. Real numeric/text proofs implemented and independently verified;
-browser UI/CSP and application integration remain MAIN-owned.
-RISC Zero is frozen. Only `proof-runtime/**` and this file are owned here.
+14 November 2026. Real numeric/text proofs implemented and independently verified.
+This file documents the underlying proof runtime; current wallet-funded application
+integration, browser evidence, exact price bounds and remaining checks are in
+[INTEGRATION.md](INTEGRATION.md) and the [current README](../../README.md).
+Historical alternative-proof experiments are separate from the shipped Noir/UltraHonk path.
 
 Verified backend: Noir 1.0.0 + Barretenberg UltraHonk 6.0.0 WASM. Official
 browser/runtime pattern: https://docs.aztec.network/developers/docs/tutorials/contract_tutorials/note_hash_proof
