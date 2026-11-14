@@ -807,7 +807,7 @@
   "Testnet kaydı bağımsız olarak sorgulanamadı.": "Testnet kaydı bağımsız olarak sorgulanamadı.",
   "Testnet makbuzunu doğrula": "Testnet makbuzunu doğrula",
   "Testnet ödeme hesabı": "Testnet ödeme hesabı",
-  "TESTNET PİLOTU / CÜZDAN GEREKİR / GERÇEK PARA YOK": "TESTNET PİLOTU / CÜZDAN GEREKİR / GERÇEK PARA YOK",
+  "TESTNET PİLOTU / CÜZDAN GEREKİR": "TESTNET PİLOTU / CÜZDAN GEREKİR",
   "Testnet sözleşmesi ön taahhüdü ve teslim özetini kaydeder; SNARK doğrulaması bu tarayıcıda yapılır. Zincir sorguları güvenilen RPC üzerinden kontrol edilir. Ödeme makbuzu ayrı bir kontroldür.": "Testnet sözleşmesi ön taahhüdü ve teslim özetini kaydeder; SNARK doğrulaması bu tarayıcıda yapılır. Zincir sorguları güvenilen RPC üzerinden kontrol edilir. Ödeme makbuzu ayrı bir kontroldür.",
   "Testnet sözleşmesi: {0} · bağ SHA-256: {1}": "Testnet sözleşmesi: {0} · bağ SHA-256: {1}",
   "Testnet tokenları gerçek para değildir.": "Testnet tokenları gerçek para değildir.",

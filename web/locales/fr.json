@@ -403,7 +403,6 @@
   "Kimliğiniz korunuyor. Yeni kimlik oluşturmadan bağlantıyı yeniden deneyin.": "Votre identité est conservée. Réessayez la connexion sans créer de nouvelle identité.",
   "Kimlik ve kasa": "Identité et coffre",
   "Kimlik ve yerel kasa": "Identité et coffre local",
-  "TESTNET PİLOTU / CÜZDAN GEREKİR / GERÇEK PARA YOK": "PILOTE SUR TESTNET / PORTEFEUILLE REQUIS / SANS ARGENT RÉEL",
   "KÜÇÜK BİR CSV.": "UN PETIT CSV.",
   "küçük harf": "minuscules",
   "Küçük harf": "Minuscules",
@@ -906,5 +905,6 @@
   "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Votre navigateur ouvre le résultat et vérifie sa preuve. Les colonnes de texte et de nombres sélectionnées suivent le plan approuvé ; les autres sont conservées.",
   "Cüzdan fonlama toplamı: {0} testNEAR + ağ işlem ücreti.": "Dépôt total du portefeuille : {0} testNEAR + frais de réseau.",
   "Hizmet bedeli kabul veya uygun iadeyle aktarılır. Depolama bedeli zincirdeki kayıtların saklanmasını karşılar.": "Le montant du service est transféré lors de l’acceptation ou d’un remboursement admissible. Les frais de stockage couvrent la conservation des registres sur la chaîne.",
-  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Stockage permanent du registre de transaction : {0} testNEAR (non remboursable)."
+  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Stockage permanent du registre de transaction : {0} testNEAR (non remboursable).",
+  "TESTNET PİLOTU / CÜZDAN GEREKİR": "PILOTE SUR TESTNET / PORTEFEUILLE REQUIS"
 }

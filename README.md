@@ -137,7 +137,7 @@ npm test
 npm run build
 ```
 
-The post-remediation root suite passed **507 tests, zero failures and zero skips** in **95.245 seconds** on 14 November 2026. The application build and all five locale catalogs also passed. [Current release checks](docs/verification/public-release-checks.json) record scope and remaining deployment checks; the earlier 494/492-test snapshots remain historical. Tests include genuine local cryptography and explicitly synthetic transport/RPC fixtures; they do not broadcast transactions. The build packages the wallet/planner/proof runtimes and generates `dist/`; it neither deploys nor downloads the planner's model weights.
+The post-remediation root suite passed **507 tests, zero failures and zero skips** in **95.245 seconds** on 14 November 2026. The application build and all five locale catalogs also passed. [Current release checks](docs/verification/public-release-checks.json) record scope and the completed hosted HTTP deployment check; the earlier 494/492-test snapshots remain historical. Tests include genuine local cryptography and explicitly synthetic transport/RPC fixtures; they do not broadcast transactions. The build packages the wallet/planner/proof runtimes and generates `dist/`; it neither deploys nor downloads the planner's model weights.
 
 Additional proof checks:
 
@@ -197,6 +197,8 @@ Full chain transaction hashes and proof-scope qualifications are in the [complet
 The pre-public review identified and addressed three availability paths: direct unauthorised consumption of contract slots, anonymous consumption of a shared session allowance, and provider refreshes consuming customer revisions. The admission service is not Sybil-proof; independently keyed records prepay their storage instead of consuming a fixed shared allowance. A separate clock regression fixes intermittent NEP-413 challenge rejection. See the [release security notes](docs/RELEASE-SECURITY.md), source and executable regressions; this is not an exhaustive third-party audit or a guarantee of security.
 
 The recorded C775 browser/video run predates the V2 storage charge and keeps its original proof/contract binding. New jobs show the separate retained-storage charge before funding. The [V2 maximum-price HTTP run](docs/verification/wallet-funded-http-local-storage-v2-price-max.json) independently verifies the new total and payout on real testnet; it uses a local HTTP server and authored plan, not the production browser/model.
+
+The [current hosted HTTP run](docs/verification/wallet-funded-http-production-production-v2-1411.json) also completed against **nope-workspace.vercel.app** with real NEP-413, a **0.04196 testNEAR** deposit (0.001 service +0.04096 storage), actual result proof, explicit acceptance and FINAL **0.001 testNEAR** payout. It uses synthetic input and an authored plan; it is not a new wallet-popup or neural-planning test. Actual Chrome also verified its result proof, Paid state and separate storage/total binding without local private data. [Verify this V2 job](https://nope-workspace.vercel.app/verify?id=665b2a8ba7d720ff25c170ea724bfa3d).
 
 ## Languages
 

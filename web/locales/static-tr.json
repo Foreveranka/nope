@@ -64,7 +64,6 @@
   "KARARI SEN VER.": "KARARI SEN VER.",
   "KENDİ CSV’NLE DENE": "KENDİ CSV’NLE DENE",
   "KENDİN DENE": "KENDİN DENE",
-  "TESTNET PİLOTU / CÜZDAN GEREKİR / GERÇEK PARA YOK": "TESTNET PİLOTU / CÜZDAN GEREKİR / GERÇEK PARA YOK",
   "Kanıt iş veya sözleşme bağlamıyla eşleşmiyor.": "Kanıt iş veya sözleşme bağlamıyla eşleşmiyor.",
   "Kanıt kaydı boyut sınırını aştı.": "Kanıt kaydı boyut sınırını aştı.",
   "Kanıt, teslim edilen etiketlerin önceden sabitlenen eşleme altında onaylı işlemin doğru sonucunu temsil ettiğini doğrular. Başlangıçtaki şifreleme ve eşlemenin dürüst hazırlanması varsayılır. Sağlayıcının fiziksel makinesini, AI planının hedefe uygunluğunu veya özgün dosyanın kaynağını kanıtlamaz.": "Kanıt, teslim edilen etiketlerin önceden sabitlenen eşleme altında onaylı işlemin doğru sonucunu temsil ettiğini doğrular. Başlangıçtaki şifreleme ve eşlemenin dürüst hazırlanması varsayılır. Sağlayıcının fiziksel makinesini, AI planının hedefe uygunluğunu veya özgün dosyanın kaynağını kanıtlamaz.",
@@ -199,5 +198,6 @@
   "Sağlayıcı şifreli hesabı başlatır. Teslimi kendi cihazında aç, önce/sonra tablosunda incele ve sonuç kanıtını doğrula. Ödemeyi serbest bırakmak senin onayını gerektirir.": "Sağlayıcı şifreli hesabı başlatır. Teslimi kendi cihazında aç, önce/sonra tablosunda incele ve sonuç kanıtını doğrula. Ödemeyi serbest bırakmak senin onayını gerektirir.",
   "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗": "TAMAMLANMIŞ İŞİN KANITINI İNCELE ↗",
   "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ": "EN FAZLA 4 SÜTUN · 40 HÜCRE · METİN İÇİN ASCII VE DEVRE SINIRLARI GEÇERLİ",
-  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur."
+  "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.",
+  "TESTNET PİLOTU / CÜZDAN GEREKİR": "TESTNET PİLOTU / CÜZDAN GEREKİR"
 }

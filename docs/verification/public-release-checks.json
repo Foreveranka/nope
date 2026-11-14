@@ -56,5 +56,35 @@
     "Browser/API result proofs are not verified by the contract.",
     "Persistent record storage0.04096testNEAR is separate from price and non-refundable."
   ],
-  "publicAppRelease": "Pending combined deployment and hosted HTTP check at time of this artifact"
+  "publicAppRelease": {
+    "status": "READY_AND_HOSTED_HTTP_VERIFIED",
+    "sourceCommit": "bb7dac8f43e08abd3498e023ea8ec8b1633a634b",
+    "deploymentId": "dpl_2CeBzK3JgmnAjo3ModFgP6X5R1ty",
+    "origin": "https://nope-workspace.vercel.app",
+    "jobId": "665b2a8ba7d720ff25c170ea724bfa3d",
+    "statusOnChain": "Paid",
+    "evidence": "wallet-funded-http-production-production-v2-1411.json",
+    "actualBrowserPopupRun": false,
+    "authoredPlan": true,
+    "scope": "Hosted actual HTTP + real NEP413 + real testnet + actual SNARK; browser popup history is separate C775 evidence.",
+    "actualBrowserVerifier": {
+      "passed": true,
+      "checkedAt": "2026-11-14T14:38:44.289241+00:00",
+      "proofRows": 1,
+      "escrowState": "Paid",
+      "contractId": "nope-wallet-5144c7d4.testnet",
+      "blockHash": "2RqCyMgXK6WLBTHAkYKcZzpgQtDcLmG2uXDXTUwQKmxh",
+      "totalFundingYocto": "41960000000000000000000",
+      "storageDepositRefundable": false,
+      "method": "Actual Chrome public verifier UI; no wallet/customer CSV/private mapping required."
+    }
+  },
+  "finalCopyChecks": {
+    "testsPassed": 12,
+    "failed": 0,
+    "buildPassed": true,
+    "locales": 5,
+    "keysPerCatalog": 908,
+    "scope": "Documentation and landing text follow the507case code regression."
+  }
 }

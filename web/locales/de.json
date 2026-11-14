@@ -457,7 +457,6 @@
   "KARARI SEN VER.": "DU ENTSCHEIDEST.",
   "KENDİ CSV’NLE DENE": "MIT DEINER CSV TESTEN",
   "KENDİN DENE": "SELBST AUSPROBIEREN",
-  "TESTNET PİLOTU / CÜZDAN GEREKİR / GERÇEK PARA YOK": "TESTNET-PILOT / WALLET ERFORDERLICH / KEIN ECHTES GELD",
   "Kanıt kaydı boyut sınırını aştı.": "Der Nachweisdatensatz überschreitet die Größenbegrenzung.",
   "Kanıt, teslim edilen etiketlerin önceden sabitlenen eşleme altında onaylı işlemin doğru sonucunu temsil ettiğini doğrular. Başlangıçtaki şifreleme ve eşlemenin dürüst hazırlanması varsayılır. Sağlayıcının fiziksel makinesini, AI planının hedefe uygunluğunu veya özgün dosyanın kaynağını kanıtlamaz.": "Der Nachweis verifiziert, dass die gelieferten Labels unter der vorab festgelegten Zuordnung das korrekte Ergebnis der freigegebenen Operation darstellen. Dabei wird vorausgesetzt, dass die anfängliche Verschlüsselung und Zuordnung ehrlich vorbereitet wurden. Er belegt nicht, auf welcher physischen Maschine der Anbieter gearbeitet hat, ob der AI-Plan zum Ziel passt oder woher die ursprüngliche Datei stammt.",
   "Kanıtı doğrula": "Nachweis prüfen",
@@ -906,5 +905,6 @@
   "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Dein Browser öffnet das Ergebnis und verifiziert den Ergebnisbeweis. Ausgewählte Text- und Zahlenspalten werden nach deinem freigegebenen Plan umgewandelt; andere Spalten bleiben erhalten.",
   "Cüzdan fonlama toplamı: {0} testNEAR + ağ işlem ücreti.": "Gesamte Wallet-Einzahlung: {0} testNEAR + Netzwerkgebühr.",
   "Hizmet bedeli kabul veya uygun iadeyle aktarılır. Depolama bedeli zincirdeki kayıtların saklanmasını karşılar.": "Der Servicebetrag wird bei Annahme oder berechtigter Rückerstattung übertragen. Die Speichergebühr finanziert die Aufbewahrung der On-Chain-Datensätze.",
-  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Dauerhafte Speicherung des Transaktionsdatensatzes: {0} testNEAR (nicht erstattbar)."
+  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Dauerhafte Speicherung des Transaktionsdatensatzes: {0} testNEAR (nicht erstattbar).",
+  "TESTNET PİLOTU / CÜZDAN GEREKİR": "TESTNET-PILOT / WALLET ERFORDERLICH"
 }

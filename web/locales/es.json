@@ -403,7 +403,6 @@
   "Kimliğiniz korunuyor. Yeni kimlik oluşturmadan bağlantıyı yeniden deneyin.": "Se conserva tu identidad. Vuelve a intentar la conexión sin crear una identidad nueva.",
   "Kimlik ve kasa": "Identidad y bóveda",
   "Kimlik ve yerel kasa": "Identidad y bóveda local",
-  "TESTNET PİLOTU / CÜZDAN GEREKİR / GERÇEK PARA YOK": "PILOTO EN TESTNET / CARTERA NECESARIA / SIN DINERO REAL",
   "KÜÇÜK BİR CSV.": "UN CSV PEQUEÑO.",
   "küçük harf": "minúsculas",
   "Küçük harf": "Minúsculas",
@@ -906,5 +905,6 @@
   "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Tu navegador abre el resultado y verifica su prueba. Las columnas de texto y números seleccionadas se transforman según el plan aprobado; las demás se conservan.",
   "Cüzdan fonlama toplamı: {0} testNEAR + ağ işlem ücreti.": "Depósito total de la cartera: {0} testNEAR + comisión de red.",
   "Hizmet bedeli kabul veya uygun iadeyle aktarılır. Depolama bedeli zincirdeki kayıtların saklanmasını karşılar.": "El importe del servicio se transfiere al aceptar o mediante un reembolso válido. El cargo de almacenamiento cubre la conservación de los registros en cadena.",
-  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Almacenamiento permanente del registro de la transacción: {0} testNEAR (no reembolsable)."
+  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Almacenamiento permanente del registro de la transacción: {0} testNEAR (no reembolsable).",
+  "TESTNET PİLOTU / CÜZDAN GEREKİR": "PILOTO EN TESTNET / CARTERA NECESARIA"
 }

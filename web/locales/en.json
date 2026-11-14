@@ -457,7 +457,6 @@
   "KARARI SEN VER.": "YOU MAKE THE DECISION.",
   "KENDİ CSV’NLE DENE": "TRY YOUR OWN CSV",
   "KENDİN DENE": "TRY IT YOURSELF",
-  "TESTNET PİLOTU / CÜZDAN GEREKİR / GERÇEK PARA YOK": "TESTNET PILOT / WALLET REQUIRED / NO REAL MONEY",
   "Kanıt kaydı boyut sınırını aştı.": "The proof record exceeds the size limit.",
   "Kanıt, teslim edilen etiketlerin önceden sabitlenen eşleme altında onaylı işlemin doğru sonucunu temsil ettiğini doğrular. Başlangıçtaki şifreleme ve eşlemenin dürüst hazırlanması varsayılır. Sağlayıcının fiziksel makinesini, AI planının hedefe uygunluğunu veya özgün dosyanın kaynağını kanıtlamaz.": "The proof verifies that the delivered labels represent the correct result of the approved operation under the mapping fixed in advance. It assumes honest preparation of the initial encryption and mapping. It does not establish which physical machine the provider used, whether the AI plan meets the goal or where the original file came from.",
   "Kanıtı doğrula": "Verify proof",
@@ -906,5 +905,6 @@
   "Tarayıcı sonucu açar ve sonuç kanıtını doğrular. Seçilen metin ve sayı sütunları onayladığın plana göre dönüşür; diğer sütunlar korunur.": "Your browser opens the result and verifies the result proof. Selected text and number columns follow your approved plan; other columns are preserved.",
   "Cüzdan fonlama toplamı: {0} testNEAR + ağ işlem ücreti.": "Total wallet funding: {0} testNEAR + network transaction fee.",
   "Hizmet bedeli kabul veya uygun iadeyle aktarılır. Depolama bedeli zincirdeki kayıtların saklanmasını karşılar.": "The service amount is transferred on acceptance or eligible refund. The storage charge pays to retain the on-chain records.",
-  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Persistent transaction-record storage: {0} testNEAR (non-refundable)."
+  "Kalıcı işlem kaydı depolaması: {0} testNEAR (iade edilmez).": "Persistent transaction-record storage: {0} testNEAR (non-refundable).",
+  "TESTNET PİLOTU / CÜZDAN GEREKİR": "TESTNET PILOT / WALLET REQUIRED"
 }
