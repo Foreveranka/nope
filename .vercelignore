@@ -70,3 +70,5 @@
 !planner-runtime/package-lock.json
 !planner-runtime/model-pack.json
 !scripts/package-agent-model.mjs
+
+!planner-runtime/onnxruntime-LICENSE.txt
