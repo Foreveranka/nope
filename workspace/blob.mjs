@@ -1,6 +1,6 @@
 import {put,get,list} from '@vercel/blob';
 export const ROOT='nope-workspace-v1/';
-const valid=p=>typeof p==='string'&&/^nope-workspace-v1\/(?:sessions\/[a-f0-9]{64}\.json|clients\/[a-f0-9]{64}\/[0-9]{4}\.json|jobs\/[a-f0-9]{32}\/(?:task|[0-9]{4})\.json|index\/[a-f0-9]{32}\.json|transactions\/[a-f0-9]{64}\.json|escrow\/(?:ops\/[a-f0-9]{64}\/[0-9]{4}\.json|nonces\/[a-f0-9]{64}\/(?:0|[1-9][0-9]{0,19})\.json))$/.test(p);
+const valid=p=>typeof p==='string'&&/^nope-workspace-v1\/(?:sessions\/[a-f0-9]{64}\.json|clients\/[a-f0-9]{64}\/[0-9]{4}\.json|jobs\/[a-f0-9]{32}\/(?:task|[0-9]{4}|proof-[a-f0-9]{64})\.json|index\/[a-f0-9]{32}\.json|transactions\/[a-f0-9]{64}\.json|escrow\/(?:ops\/[a-f0-9]{64}\/[0-9]{4}\.json|nonces\/[a-f0-9]{64}\/(?:0|[1-9][0-9]{0,19})\.json))$/.test(p);
 const MAX=1024*1024;
 const bound=path=>path.endsWith('/task.json')?3*MAX:MAX;
 export function blobWorkspaceStore(env=process.env,client={put,get,list}){

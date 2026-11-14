@@ -1,0 +1,11 @@
+✔ approved SRS is public source assets with frozen byte hashes and policy paths (26.774958ms)
+✔ browser allowlist copies the same SRS under assets without stale cache files (24.674042ms)
+✔ Node independently verifies both proofs with network and cache reads forbidden (756.852458ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 902.496625

@@ -26,7 +26,7 @@ export function createWorkspaceHandler({env=process.env,store,handle}={}){
   try{
    const base=env.NOPE_WORKSPACE_ORIGIN||'https://veil-procurement.vercel.app',url=new URL(req.url,base);
    if(url.pathname==='/api/workspace'){
-    const routes=url.searchParams.getAll('route');if(routes.length!==1||!/^(?:session|jobs(?:\/[a-f0-9]{32}(?:\/(?:offers|close|award|task|execute|decision|payment\/(?:verify|fund|record|release|refund|refresh)))?)?)$/.test(routes[0]))reject(404,'ROUTE_NOT_FOUND');url.pathname='/api/workspace/'+routes[0];url.searchParams.delete('route');
+    const routes=url.searchParams.getAll('route');if(routes.length!==1||!/^(?:session|jobs(?:\/[a-f0-9]{32}(?:\/(?:offers|close|award|task|execute|decision|proof(?:\/evidence)?|payment\/(?:verify|fund|record|release|refund|refresh)))?)?)$/.test(routes[0]))reject(404,'ROUTE_NOT_FOUND');url.pathname='/api/workspace/'+routes[0];url.searchParams.delete('route');
    }
    const MAX=url.pathname==='/api/workspace/jobs'?3*1024*1024:1024*1024;
    if(req.headers?.['content-encoding']&&req.headers['content-encoding']!=='identity')reject(415,'INVALID_ENCODING');

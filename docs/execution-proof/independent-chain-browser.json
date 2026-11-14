@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "network": "testnet",
+  "actualExternalChain": true,
+  "independentReadOnlyObserver": "Python standard library; public inputs only",
+  "contractId": "nope-work-da4cbb1e.testnet",
+  "codeHash": "94XLBcytUKaL19QBzQqKFKsDvNZipcn5yvEUFEuumsPm",
+  "jobId": "227afab8c4d9837fd8525be76cf59a8b",
+  "releaseTransactionHash": "Ex9F2ZaVX6MpFSEFbCVc3PPeHABqYmDD5Q8bhMtiJEeP",
+  "nativeTransferReceiptId": "aNDk5tSKJ8DVVV6HwnUSxtGa17RFFNjt3YqCq6TPBLk",
+  "callbackReceiptId": "H7oGcT5nDwBA7fWtYBSSwYbPJMNnHKAjaXZFvnh6cbE2",
+  "provider": "p2.veil-reg-e138f5c88250f821.testnet",
+  "amountYocto": "1000000000000000000000",
+  "bindingHash": "3e78ea89e551938c2c91771680513e23571d21bea6c74ba988dfa219fedafa01",
+  "delivery": {
+    "version": 1,
+    "output_hash": "a7ba57c941b76509ecb60fb31e0d9b053f650ca3d29c4d1bf5717f58456afea7"
+  },
+  "rawFinalRpcSha256": "b288233a3cfd85d37cf7b046c5fd8de535374f7206df462bf8382289431a1de5",
+  "checks": {
+    "finalReceiptTreeConnected": true,
+    "exactlyOneNativeTransfer": true,
+    "exactAmountRecipient": true,
+    "successfulMatchingCallback": true,
+    "finalPaidState": true,
+    "taskPlanInputOutputBound": true
+  },
+  "computationProof": false
+}

@@ -1,0 +1,36 @@
+{
+  "harness": "Node HTTP executing actual browser bundle; no CSP/browser claim",
+  "timings": [
+    {
+      "type": "number",
+      "proveAndVerifyMs": 1085
+    },
+    {
+      "type": "text",
+      "proveAndVerifyMs": 2842
+    }
+  ],
+  "profile": {
+    "threads": 1,
+    "backend": "Wasm",
+    "maximumWasmBytes": 2147483648,
+    "srsReady": true,
+    "disposed": false,
+    "ageMs": 4123,
+    "wasmBytes": 252837888,
+    "jsHeapBytes": null
+  },
+  "sameOriginRequests": 10,
+  "assets": [
+    "/assets/abi.wasm",
+    "/assets/acvm.wasm",
+    "/assets/barretenberg.wasm.gz",
+    "/artifacts/number.json",
+    "/.cache/crs/bn254_g1.dat",
+    "/.cache/crs/bn254_g2.dat",
+    "/.cache/crs/grumpkin_g1_v2.flat.dat",
+    "/artifacts/number.vk",
+    "/artifacts/text.json",
+    "/artifacts/text.vk"
+  ]
+}

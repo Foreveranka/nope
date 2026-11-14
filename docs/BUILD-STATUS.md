@@ -1,3 +1,17 @@
+# Güncel ajanlı çalışma alanı — 14 Kasım 2026
+
+Yeni `/workspace` akışı, önceki `/market` ve dört kayıtlı FHE pilotundan ayrıdır. Tarayıcıdaki gerçek yerel LLM yalnız herkese açık hedefi ve anonim sütun türlerini alır; müşteri planı ve yerel önce/sonra görünümünü onaylar. Şifreli GC işi seçilen sağlayıcı tarafından tetiklenir; sağlayıcıya açık CSV/çözücü verilmez. Desteklenen işlemler sınırlı sayı ve ASCII metin işlemleridir; genel amaçlı gizli AI iddiası yoktur. Modelin geniş doğal dil doğruluğu garanti değildir.
+
+Çalışma alanının kendi `nope-work-da4cbb1e.testnet` escrow sözleşmesi, sınırlı sponsor testNEAR havuzu, kesinleşmiş fon/son teslim kaydı, açık müşteri kabulü ve gerçek native ödeme ile yerel Chrome ve canlı HTTP ortamında doğrulandı. Gerçek para kullanılmaz. v4 kanıtlı işin gerçek Chrome koşumu da altı hücre için yerel SNARK üretimi → bağımsız tarayıcı/sunucu doğrulaması → kesinleşmiş testnet ödemesi adımlarını geçti. Ayrı genel doğrulama sayfası CSV veya gizli eşleme almadan gerçek SNARK ve RPC zincir bağını doğruladı. `execution-proof/browser-local.json`, `browser-independent-node.json` ve `independent-chain-browser.json` gerçek kanıtlardır. v4 kaynak yayını ve canlı doğrulaması ayrıca teslim kayıtlarında izlenir; yerel başarı otomatik olarak canlı başarı sayılmaz.
+
+Bu yeni SNARK, önceden sabitlenen dürüst müşteri eşlemeleri altında teslim sonucunun onaylı işlemin doğru karşılığı olduğunu ispatlar. AES yürütme izini, dosya kaynağını, sağlayıcının fiziksel hesabını veya LLM hedef yorumunu ispatlamaz. SNARK tarayıcı/sunucuda doğrulanır; sözleşme yalnız ön taahhüt ve teslimi bağlar. Bağımsız operatörler ve otomatik uyuşmazlık çözümü henüz yoktur. Ayrıntı: `execution-proof/INTEGRATION.md`, `agent-workflow/BUILD-STATUS.md`, `workspace-escrow/`.
+
+409 testlik ana koşum ve son değişikliklerde 12 odaklı kanıt-UI testi ile 3 genel doğrulayıcı testi geçti. SDK bağımsız gerçek kanıt testleri ayrıca kayıtlıdır. Bu sayıların fixture ödeme/RPC kullanan kısımları gerçek zincir kanıtı değildir; gerçek akış JSON kayıtları ayrı tutulur.
+
+Aşağıdaki tarihlenmiş metinler önceki sürümleri anlatır; yeni çalışma alanı için üstteki kapsam esas alınır.
+
+---
+
 # Güncel bulut/testnet durumu — 12 Kasım 2026
 
 **Yeni doğrulama:** İş pazarı `/market` GitHub üzerinden Vercel'e yayımlandı; gerçek HTTPS/Blob giriş, taslak gizliliği, kalıcılık ve tekrar-istek denetimleri geçti. Gerçek NEAR testnet iş #3, üç ayrı sağlayıcı hesabıyla FHE/MPC → seçilen sağlayıcı → makbuz → müşteri kabulü akışını tamamladı. Ardından ayrı escrow sözleşmesi p2'ye **0,001 test NEAR** ödedi; ana ajan gerçek Transfer makbuzunu ve aynı işlem sorgulamasıyla ikinci ödeme oluşmadığını doğruladı. İşlem kanıtları `/testnet` sayfasında. Ayrıntılı güncel kayıt: `PROCUREMENT-IMPLEMENTATION-STATUS.md`.

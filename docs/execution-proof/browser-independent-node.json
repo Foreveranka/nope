@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-11-14T03:55:11.240Z",
+  "syntheticOnly": true,
+  "actualFreshProcessSNARKVerification": true,
+  "actualExternalTestnetRPC": true,
+  "buyerWitnessUsed": false,
+  "rows": 6,
+  "chain": {
+    "network": "testnet",
+    "contractId": "nope-work-da4cbb1e.testnet",
+    "codeHash": "94XLBcytUKaL19QBzQqKFKsDvNZipcn5yvEUFEuumsPm",
+    "blockHash": "2zVNJ5Hg4E4rfixxrRmCtp3EG4jnKDELaVz3e1L5LkN7",
+    "inputSha256": "e526079979cd6604add29329183825b632d1dd43cd22e5f52a7b1bc4fcc7be79",
+    "programSha256": "cdd0f9b5df1a4fdbd15c1829535d75f8d69aa752bd68fb2b2963ef13abc46278",
+    "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+    "outputSha256": "a7ba57c941b76509ecb60fb31e0d9b053f650ca3d29c4d1bf5717f58456afea7",
+    "version": 1,
+    "bindingHash": "3e78ea89e551938c2c91771680513e23571d21bea6c74ba988dfa219fedafa01",
+    "escrowState": "Delivered"
+  }
+}

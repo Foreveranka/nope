@@ -1,0 +1,38 @@
+{
+  "origin": "https://veil-procurement.vercel.app",
+  "commit": "cfbcf841739095075ee7d1ef792ca5b889b24e8e",
+  "recordedAt": "2026-11-14T03:20:51.439409+00:00",
+  "actualChrome": true,
+  "actualBrowserNeuralInference": true,
+  "syntheticOnly": true,
+  "publishedNewJob": false,
+  "model": {
+    "id": "onnx-community/Qwen3-0.6B-ONNX-OPT",
+    "revision": "4799e655597b49210adb5c1ebe5b9d3bd04005a0"
+  },
+  "publicGoal": "Trim C2 then uppercase C2. Fill missing C3 with 7 and clamp C3 between 10 and 80.",
+  "planSha256": "5a4c046b1e656da4d63c5a7ecb0366027220b61663e74a541fd9feeaf9bc9941",
+  "checks": {
+    "initialCustomerSession": true,
+    "navigationToNewJob": true,
+    "sameOriginModelAssetsLoaded": true,
+    "syntheticFileReadLocally": true,
+    "anonymousC2C3TypesSelected": true,
+    "validPlanAndBeforeAfterDisplayed": true,
+    "noFakeModelFallback": true
+  },
+  "observedExpectedOutputs": {
+    "C2": [
+      "ACME",
+      "BETA42",
+      "GAMMA7"
+    ],
+    "C3": [
+      10,
+      80,
+      42
+    ]
+  },
+  "generalSemanticAccuracyEstablished": false,
+  "executionProof": false
+}

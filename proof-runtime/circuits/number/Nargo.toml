@@ -1,0 +1,6 @@
+[package]
+name = "number"
+type = "bin"
+authors = ["NOPE"]
+compiler_version = ">=1.0.0"
+[dependencies]

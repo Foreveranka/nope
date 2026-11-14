@@ -72,3 +72,12 @@
 !scripts/package-agent-model.mjs
 
 !planner-runtime/onnxruntime-LICENSE.txt
+
+!proof-runtime
+!proof-runtime/*.mjs
+!proof-runtime/package.json
+!proof-runtime/package-lock.json
+!proof-runtime/assets
+!proof-runtime/assets/**
+!proof-runtime/artifacts
+!proof-runtime/artifacts/**

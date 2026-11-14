@@ -11,10 +11,18 @@ function freeze(v) {if(v&&typeof v==='object'){Object.values(v).forEach(freeze);
  * stay in the browser (or authenticated encrypted local storage), never a worker.
  */
 export async function prepareRecipe(values,recipe) {
+  return prepareRecipeInternal(values,recipe,false);
+}
+/** Private browser-only capture for authenticated proof precommitments. Only
+ * request may leave the client; witness/decoder are never evaluator inputs. */
+export async function prepareRecipeProof(values,recipe) {
+  return prepareRecipeInternal(values,recipe,true);
+}
+async function prepareRecipeInternal(values,recipe,capture) {
   const compiled=compileRecipe(recipe),encoded=encodeRecipeValues(values,compiled.recipe);
   estimateRecipe(compiled.recipe,encoded.length);
   const crypto=cryptoProvider(),nonce=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');
-  const programSha256=await hashRecipeProgram(compiled.recipe),rows=[],outputPairs=[];
+  const programSha256=await hashRecipeProgram(compiled.recipe),rows=[],outputPairs=[],inputPairs=[],inputBits=[];
   for(let r=0;r<encoded.length;r++) {
     const pairs=Array.from({length:compiled.circuit.wireCount},()=>pair(crypto)),tables=[];
     for(const [g,gate] of compiled.circuit.gates.entries()) {
@@ -30,12 +38,13 @@ export async function prepareRecipe(values,recipe) {
     }
     const bits=encoded[r].flatMap(n=>Array.from({length:8},(_,i)=>(n>>>i)&1));
     bits.push(0,1);
+    if(capture){inputPairs.push(compiled.circuit.inputs.map(w=>pairs[w].map(toBase64)));inputBits.push([...bits]);}
     rows.push({inputs:compiled.circuit.inputs.map((w,i)=>toBase64(pairs[w][bits[i]])),tables});
     outputPairs.push(compiled.circuit.outputs.map(w=>pairs[w].map(toBase64)));
   }
   const request=freeze({profile:PROFILE,recipe:compiled.recipe,programSha256,nonce,rowCount:encoded.length,rows});
   const decoder=freeze({profile:PROFILE,recipe:compiled.recipe,nonce,rowCount:encoded.length,inputSha256:await hashRecipeRequest(request),programSha256,outputPairs});
-  return {request,decoder};
+  return capture ? {request,decoder,witness:freeze({inputPairs,outputPairs,inputBits})} : {request,decoder};
 }
 /** Transcript commitments and per-wire membership checks are not execution
  * proofs. The caller can additionally compare against referenceApply locally.

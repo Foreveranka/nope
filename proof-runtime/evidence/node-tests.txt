@@ -1,0 +1,17 @@
+✔ approved policy is canonical, actual and immutable (172.091584ms)
+✔ independent process verifies both actual evaluator proofs without a witness (1254.2875ms)
+✔ proof bit flip, prover VK, malformed fields and changed public roots fail (429.082041ms)
+✔ actual public label/context/recipe tamper fails even after prover rewrites all claimed public inputs (71.8345ms)
+✔ numeric constraints preserve missing sentinel, bounds and ordered operations (278.15625ms)
+✔ text constraints preserve NUL, trim spaces only, all spaces and full width (813.567334ms)
+✔ noncanonical padding, constant wires and committed mappings cannot be replaced (145.769209ms)
+✔ backend reused, disposed explicitly, calls rejected after disposal (153.775958ms)
+✔ raw Noir ABI/constraints reject nonboolean, u128 overflow, invalid op/parameter/padding (27.377291ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3489.001625

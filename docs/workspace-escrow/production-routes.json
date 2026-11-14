@@ -1,0 +1,78 @@
+{
+  "commit": "cfbcf841739095075ee7d1ef792ca5b889b24e8e",
+  "actualHTTP": true,
+  "paths": [
+    {
+      "path": "/",
+      "status": 200,
+      "workspace": false,
+      "landing": true
+    },
+    {
+      "path": "/workspace",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/customer",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/provider",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/jobs",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/jobs/new",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/job",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/offer",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/delivery",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/payments",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/activity",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    },
+    {
+      "path": "/settings",
+      "status": 200,
+      "workspace": true,
+      "landing": false
+    }
+  ]
+}

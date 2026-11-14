@@ -1,0 +1,21 @@
+{
+  "name": "nope-typed-result-proof",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compile": "node compile.mjs",
+    "test": "node package-browser.mjs && node measure.mjs && node --test tests/*.test.mjs",
+    "measure": "node measure.mjs",
+    "package:browser": "node package-browser.mjs",
+    "test:browser-package": "node test-browser-package.mjs"
+  },
+  "dependencies": {
+    "@aztec-foundation/bb.js": "6.0.0",
+    "@noir-lang/noir_js": "1.0.0",
+    "@noir-lang/noir_wasm": "1.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

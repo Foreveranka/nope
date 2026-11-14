@@ -1,0 +1,22 @@
+
+> nope-typed-result-proof@0.1.0 test
+> node measure.mjs && node --test tests/*.test.mjs
+
+{"type":"number","decoded":[19],"proveMs":1075,"verifyMs":19,"verified":true,"proofBytes":14656,"profile":{"threads":1,"backend":"Wasm","maximumWasmBytes":2147483648,"srsReady":true,"disposed":false,"ageMs":1307,"wasmBytes":218169344,"rss":687390720,"heapTotal":26738688,"heapUsed":16932104,"external":110859566,"arrayBuffers":105255876},"artifact":{"circuitPath":"./artifacts/number.json","circuitSha256":"621238b1b0c3677ae111cbb4b2cd22bbdc2d9f3a32c8db44c820fee961d1b7e6","vkPath":"./artifacts/number.vk","vkSha256":"516d848ddeb80503f2a7fe4fd9f5dbce205fd10ab20f8051a086af05688e2f19","vkBytes":3680,"proofBytes":14656,"gates":13593,"dyadic":16384}}
+{"type":"text","decoded":["AB* \u0000"],"proveMs":2857,"verifyMs":23,"verified":true,"proofBytes":14656,"profile":{"threads":1,"backend":"Wasm","maximumWasmBytes":2147483648,"srsReady":true,"disposed":false,"ageMs":4901,"wasmBytes":252837888,"rss":630800384,"heapTotal":53362688,"heapUsed":22872688,"external":91502518,"arrayBuffers":72016302},"artifact":{"circuitPath":"./artifacts/text.json","circuitSha256":"da5989f1fc84dbcc3dd386a49bcc58aa960a3e654dc3ec5ff1a0e54f2c6e79c9","vkPath":"./artifacts/text.vk","vkSha256":"8a7addb2df6638e10e1ce5985c3038d7303da3e739e1af34612d02fc12711a1f","vkBytes":3680,"proofBytes":14656,"gates":73138,"dyadic":131072}}
+✔ approved policy is canonical, actual and immutable (183.791083ms)
+✔ independent process verifies both actual evaluator proofs without a witness (1246.7365ms)
+✔ proof bit flip, prover VK, malformed fields and changed public roots fail (430.307292ms)
+✔ actual public label/context/recipe tamper fails even after prover rewrites all claimed public inputs (72.575708ms)
+✔ numeric constraints preserve missing sentinel, bounds and ordered operations (286.171584ms)
+✔ text constraints preserve NUL, trim spaces only, all spaces and full width (822.44675ms)
+✔ noncanonical padding, constant wires and committed mappings cannot be replaced (147.955916ms)
+✔ backend reused, disposed explicitly, calls rejected after disposal (152.258459ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3485.624166
