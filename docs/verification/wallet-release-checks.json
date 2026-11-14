@@ -1,11 +1,11 @@
 {
-  "verifiedAt": "2026-11-14T06:21:18.136172+00:00",
+  "verifiedAt": "2026-11-14T07:21:03.669322+00:00",
   "rootTests": {
     "command": "npm test",
-    "passed": 486,
+    "passed": 489,
     "failed": 0,
     "skipped": 0,
-    "logSha256": "7e910f5e98e72f9059007f4c1f55638e9ce16edd37accea3f940f8b246f4fb64"
+    "logSha256": "80939d867bbbcd0d3128dd3a44fe6638dfc69b0fe4e5d8f11aa0015736b0fd3d"
   },
   "contractUnitTests": 13,
   "actualLocalWasmSandbox": true,
@@ -36,6 +36,22 @@
   "actualProductionHttpEncryptedAndSNARKLifecycle": true,
   "actualProductionBrowserIndependentSNARKAndChainVerification": true,
   "productionProofJob": "10b21c73ed75bfd8c47418524932d2bf",
-  "walletClientTests": 19,
-  "productionBlobRegressionTests": 3
+  "walletClientTests": 20,
+  "productionBlobRegressionTests": 3,
+  "actualProofSelectedPriceBoundaryTests": {
+    "rangeYocto": [
+      "1",
+      "1000000000000000000000000"
+    ],
+    "generatedAndIndependentlyVerified": true,
+    "otherLegalPriceRejected": true,
+    "circuitVKAndSRSUnchanged": true
+  },
+  "walletCallbackWireRegression": {
+    "targetedTests": 25,
+    "upstreamPinned": true,
+    "patchedCallbackField": "callbackUrl",
+    "backendVerificationRelaxed": false,
+    "actualPopupSuccess": false
+  }
 }

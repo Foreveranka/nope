@@ -27,9 +27,9 @@ same FINAL block. The keyless contract has no upgrade/admin withdrawal method.
 Its separately funded storage/gas balance does not fund customer payments.
 Holds are indexed by `(buyer_account, job_id)`, limited to **1 testNEAR per hold**
 and **50 permanent holds** across the deployment; paid/refunded entries still
-consume capacity. The v4 proof-binding adapter separately requires a selected
-price from **0.000001 to 0.01 testNEAR** (10^18 through 10^22 yoctoNEAR); a complete
-proof-backed application job must stay in that narrower range. See [contract source](../payments/wallet_escrow/src/lib.rs).
+consume capacity. The v4 proof-binding adapter accepts the same selected-price range, **1 yoctoNEAR
+through 1 testNEAR** (1 through 10^24 yoctoNEAR), as an exact canonical decimal
+string committed into the final proof context. See [contract source](../payments/wallet_escrow/src/lib.rs).
 
 The application verifies SNARKs before accepting/releasing a v4 delivery. The
 contract itself checks wallet authority, immutable terms and latest delivery,

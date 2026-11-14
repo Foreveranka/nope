@@ -46,10 +46,11 @@ garbling, original-file provenance, provider execution or computation origin.
 The current customer-funded wallet application and its exact proof statement are
 documented in [the root README](../README.md) and [v4 integration](../docs/execution-proof/INTEGRATION.md).
 The application final-context adapter in `web/proof-plan-core.mjs` currently
-accepts selected prices from 10^18 through 10^22 yoctoNEAR
-(**0.000001–0.01 testNEAR**), narrower than the wallet contract's 1 testNEAR
-hold cap. Direct runtime arithmetic support does not remove that application
-binding constraint. Use the smaller interval for complete proof-backed jobs.
+accepts selected prices from 1 through 10^24 yoctoNEAR
+(**1 yoctoNEAR–1 testNEAR**), matching the wallet contract's hold range.
+The canonical decimal string is committed into the final proof context,
+not interpreted as a circuit field. Real endpoint proofs cover both boundaries
+and independently reject a different otherwise legal selected price.
 
 The current [public test job](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf)
 passed actual production HTTP execution, proof verification and native testnet

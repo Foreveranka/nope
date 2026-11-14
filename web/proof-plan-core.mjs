@@ -206,7 +206,9 @@ function bindingObject(binding,request){
  check(hex(binding.jobId,32)&&binding.jobId===request.proofManifest.context.jobId,'Final proof job mismatch.');
  check(Number.isInteger(binding.version)&&binding.version>0&&binding.version<=0xffffffff,'Invalid delivery version.');
  check(namedAccount(binding.contractId)&&validHash(binding.bindingHash)&&providerAccount(binding.provider)&&binding.provider!==binding.contractId,'Invalid final escrow context.');
- check(typeof binding.amountYocto==='string'&&/^[1-9][0-9]{0,22}$/.test(binding.amountYocto)&&BigInt(binding.amountYocto)>=10n**18n&&BigInt(binding.amountYocto)<=10n**22n,'Invalid selected proof price.');
+ // The canonical decimal price is committed by finalContext, not interpreted as
+ // a circuit field. Match the wallet escrow's exact 1 yocto..1 testNEAR range.
+ check(typeof binding.amountYocto==='string'&&/^[1-9][0-9]{0,24}$/.exec(binding.amountYocto)?.[0]===binding.amountYocto&&BigInt(binding.amountYocto)>=1n&&BigInt(binding.amountYocto)<=10n**24n,'Invalid selected proof price.');
  const c=request.proofManifest.context;if(c.contractId!==null)check(c.contractId===binding.contractId,'Final contract mismatch.');
  return{...binding};
 }

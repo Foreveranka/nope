@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {KeyPair,KeyPairSigner} from 'near-api-js';
 import {signMessage} from 'near-api-js/nep413';
 import {createWalletAuth,WALLET_ROOT} from './wallet-auth.mjs';
+import fs from 'node:fs/promises';
+import vm from 'node:vm';
+import {patchIntearExecutor} from '../wallet-runtime/sdk-patches.mjs';
 // Real NEP-413 signatures and SDK verification; immutable store and FINAL RPC
 // are explicit offline fixtures, not evidence of live wallet ownership.
 class Store{records=new Map();async read(p){return structuredClone(this.records.get(p)??null);}async create(p,v){if(this.records.has(p))return false;this.records.set(p,structuredClone(v));return true;}}
@@ -18,6 +21,26 @@ test('NEP-413 actual SDK signature links exact session/account/testnet/origin wi
  const input=await f.proof(c),wallet=await f.verify(input);assert.deepEqual(await f.auth.get(SESSION),wallet);assert.equal(wallet.accountId,'buyer.testnet');assert.equal(wallet.publicKey,f.key.getPublicKey().toString());
  assert.deepEqual(f.rpcCalls.at(-1).params,{request_type:'view_access_key',account_id:'buyer.testnet',public_key:input.publicKey,finality:'final'});
  const disk=JSON.stringify([...f.store.records]);assert.ok(!disk.includes(f.key.toString()));assert.ok(!disk.includes(input.signature));assert.equal(wallet.network,'testnet');
+});
+test('actual pinned Intear callback wire mismatch fails auth; camelCase wire preserves required callback with genuine synthetic NEP413 crypto',async()=>{
+ const f=fixture(),c=await f.request();
+ const source=await fs.readFile(new URL('../wallet-runtime/intear-executor.upstream.js',import.meta.url),'utf8');
+ function walletPayload(executor){
+  // Evaluate the actual published encoder expression, then project the official
+  // wallet MessageToSign schema (serde rename_all="camelCase"). Unknown snake
+  // callback_url is ignored by serde, leaving its optional callback empty.
+  const start=executor.indexOf('i=JSON.stringify({message:t.message'),end=executor.indexOf('),c=Date.now()',start);
+  assert.ok(start>=0&&end>start);
+  const wire=vm.runInNewContext(executor.slice(start+2,end+1),{t:{message:c.message,nonce:Uint8Array.from(Buffer.from(c.nonce,'base64')),recipient:c.recipient,callbackUrl:c.callbackUrl,state:c.challengeId},Uint8Array});
+  const decoded=JSON.parse(wire);
+  return {message:decoded.message,nonce:Uint8Array.from(decoded.nonce),recipient:decoded.recipient,callbackUrl:decoded.callbackUrl};
+ }
+ const broken=walletPayload(source);assert.equal(broken.callbackUrl,undefined);
+ await assert.rejects(f.verify(await f.proof(c,broken)),{code:'WALLET_SIGNATURE_NOT_VERIFIED'});assert.equal(await f.auth.get(SESSION),null);
+ const fixed=walletPayload(patchIntearExecutor(source));assert.equal(fixed.callbackUrl,c.callbackUrl);
+ const linked=await f.verify(await f.proof(c,fixed));assert.equal(linked.accountId,c.accountId);
+ assert.equal(f.rpcCalls.at(-1).params.finality,'final');
+ assert.throws(()=>patchIntearExecutor(patchIntearExecutor(source)),/callback shape changed/);
 });
 test('challenge claims are single-use under concurrent verification and account binding is immutable',async()=>{
  const f=fixture(),c=await f.request(),p=await f.proof(c),results=await Promise.allSettled([f.verify(p),f.verify(p)]);assert.equal(results.filter(r=>r.status==='fulfilled').length,1);assert.equal(results.find(r=>r.status==='rejected').reason.code,'WALLET_CHALLENGE_USED');

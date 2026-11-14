@@ -20,7 +20,7 @@ node --test tests/wallet-client.test.mjs
 Packaging is offline after installation. The main build copies exactly five
 assets from `dist/` into `/wallet-runtime/`, checking bytes and SHA-256 against
 `dist/asset-manifest.json`. It also publishes that manifest as metadata. Do not
-publish node_modules or review sources. Executable assets total **71,243 bytes**;
+publish node_modules or review sources. Executable assets total **71,241 bytes**;
 local dependencies occupy about 10 MiB.
 
 | Asset | Bytes | SHA-256 |
@@ -28,7 +28,7 @@ local dependencies occupy about 10 MiB.
 | wallet-sdk.js | 51975 | 409454b636d0e96143bf383ce1a2eca134d6bd1ab519ed633f2689adebc2a3fd |
 | bridge.js | 4420 | 51a2f08323a1b4dba6b06fc891aa4f1031768b67483344412d4d9841c014f432 |
 | bridge.html | 313 | 0651471c9dfc8ad1c4ded6d309261b4f9028e24e843490a497efd1f81edacec4 |
-| intear-executor.js | 13817 | 6decc283352af197feff4988628899d19e05f4168a4277fe699bd8a0d6178e34 |
+| intear-executor.js | 13815 | 7a9d13b3bb3066bd70370c715a04ef98209f16cb743a5573959bd808ad08d41f |
 | wallet.css | 718 | dd054bfdfa9940fac1e97556b758602715a279704d1826f14837fab56b9c96c9 |
 
 Browser [wallet-pins.mjs](../web/wallet-pins.mjs) and server
@@ -38,7 +38,7 @@ keys: network, contractId, codeHash, domain and requireKeyless. Current contract
 `6qzVqhNyk7KKvjzC6g8iPtJmHffTgb6YBh8Fp9xerXHy`, domain
 `NOPE:WALLET-ESCROW:V1:testnet`, with `requireKeyless:true`. The server verifies
 matching FINAL code and an empty contract key list. Limits are **1 testNEAR per
-job** and **50 permanent holds**. The application result-proof adapter separately restricts complete proof-backed jobs to **0.000001–0.01 testNEAR**; the wallet adapter's ability to sign a larger deposit does not establish that the proof workflow supports it. New payments come from the buyer's own wallet;
+job** and **50 permanent holds**. The application result-proof adapter accepts the same **1 yoctoNEAR–1 testNEAR** range, committing the exact canonical decimal price into the final proof context. Real endpoint proofs cover both boundaries and reject price substitution. New payments come from the buyer's own wallet;
 legacy sponsor/direct-transfer jobs are historical read-only records.
 
 ## Adapter API
@@ -148,11 +148,42 @@ Deployment requirements in [vercel.json](../vercel.json):
 
 The official [manifest](https://raw.githubusercontent.com/hot-dao/near-selector/refs/heads/main/repository/manifest.json)
 identifies https://wallet.intear.tech/near-selector.js; its immutable local copy's
-SHA is enforced before packaging. The outer executor drops callbackUrl, so the
+upstream SHA `6decc283352af197feff4988628899d19e05f4168a4277fe699bd8a0d6178e34`
+is enforced before packaging. The packaged copy applies only two checked field
+renames, `callback_url` to `callbackUrl`, before transport hashing/signing. The
+official wallet's [MessageToSign deserializer](https://github.com/INTEARnear/wallet/blob/main/web/src/pages/sign_message.rs#L75)
+uses serde camelCase; the old snake_case field was ignored, so the wallet signed
+an absent callback while NOPE correctly required `/settings`. Packaging records
+both upstream and executed hashes plus `nep413-callback-camelcase-v1` in the asset
+manifest. Backend authentication is not relaxed. The outer executor drops callbackUrl, so the
 bridge invokes its real public inner connectedAccount.signMessage with the full
 server payload. This is not a synthetic signing fallback. All five labels come
 from the existing app i18n instance and are converted with `String(msg(...))`
 before the SDK's strict primitive-string guard. No second i18n instance is bundled.
+
+### Exact pinned Intear popup protocol
+
+The executor opens `https://wallet.intear.tech/connect`, `/sign-message` and
+`/send-transactions`. These URLs have no network/state query parameters. After
+the exact popup sends `type:'ready'`, the bridge forwards the appropriate request:
+
+- Login: `type:'signIn'`, with `data.networkId:'testnet'` and version `V3`.
+  It requests no FunctionCall key. Success is `type:'connected'` with accountId
+  and walletUrl; a returned origin other than the official web wallet is rejected.
+- NEP-413: `type:'signMessage'`; `data.message` is JSON containing the exact server
+  message, nonce byte array, recipient, `callbackUrl` and challenge-ID `state`.
+  Success is `type:'signed'` carrying the signature object. The signed callback
+  URL stays `/settings`; state is a separate payload field.
+- Transaction: `type:'signAndSendTransactions'`, JSON `data.transactions` and
+  `mode:'Send'`; success is `type:'sent'` carrying outcomes. The outer executor
+  returns the first outcome for a single transaction. This web path uses popup
+  messages, not a callback-URL redirect; the adapter's redirect support is separate.
+
+If opening the popup is blocked, the pinned executor displays the localized
+bridge prompt and retries after its Open button. A wallet error/closed popup can
+return no result; a transaction still remains unknown rather than being retried.
+Network is selected by login, not by inventing a `?network=testnet` URL. The
+supported web path does not use the native logout-bridge WebSocket service.
 
 ## Verification evidence
 
@@ -163,6 +194,20 @@ buyer recovery recording, immutable intent bounds, redirects, unknown outcomes
 and all three actual transport receiver sources. NEP-413 uses genuine local
 crypto with synthetic keys; window/connector/FullAccess RPC fixtures remain unit
 evidence, not a wallet or chain test.
+
+A subsequent focused protocol regression brings the client suite to **20/20**.
+It executes the actual hash-pinned official executor plus bridge across separate
+VM frames, checking the three popup URLs, login network/key restrictions, exact
+NEP-413 callback/state and transaction bytes. Transport crypto and remote popup
+responses are explicitly stubbed; this is not an external wallet signing test.
+The earlier recorded 486-test root result was not rerun by this sidecar check.
+
+The callback-wire fix passed **25/25 targeted tests** (20 client + 5 auth).
+The auth regression evaluates the original pinned encoder, models the official
+camelCase deserialization, and uses genuine synthetic NEP-413 signatures to
+reproduce the old rejection and verify the corrected wire against the unchanged
+FINAL FullAccess backend. This is local evidence; the actual Intear popup retry
+must confirm the deployed fix separately.
 
 The [production Node HTTP lifecycle](../docs/verification/wallet-funded-http-production.json)
 used generated test-wallet keys locally to authenticate, fund, record and release

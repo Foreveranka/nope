@@ -36,7 +36,7 @@ The root suite passed409 tests, including an actual mixed numeric/text SNARK wor
 
 [Current evidence](../verification/wallet-funded-http-production.json) records actual production HTTP job `10b21c73ed75bfd8c47418524932d2bf`: generated test-wallet NEP-413 signatures, sealed bid, exact buyer funding, encrypted execution, one actual result proof, explicit acceptance and native provider payout. A separate unauthenticated process and live Chrome independently verified its public proof and FINAL Paid binding. This run used a deliberately authored plan; it is not a neural-planning or external wallet-popup signing test. The real Chrome wallet picker/cancel was checked separately; signing inside Intear remains unverified end to end.
 
-The contract caps an individual hold at 1 testNEAR and 50 permanently retained jobs. The current proof-binding adapter separately accepts selected prices from 10^18 through 10^22 yoctoNEAR (0.000001–0.01 testNEAR). The complete application proof workflow must stay in that narrower range. See [wallet-funded integration](../verification/wallet-funded-flow.md) and [contract protocol](../../payments/wallet_escrow/README.md).
+The contract caps an individual hold at 1 testNEAR and 50 permanently retained jobs. The proof-binding adapter accepts the same exact range of 1 through 10^24 yoctoNEAR (1 yoctoNEAR–1 testNEAR). It commits the canonical decimal price into the final proof context; real endpoint proofs cover both boundaries and reject price substitution. See [wallet-funded integration](../verification/wallet-funded-flow.md) and [contract protocol](../../payments/wallet_escrow/README.md).
 
 ## Historical sponsor-funded deployment checks
 

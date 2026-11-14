@@ -10,7 +10,7 @@ import {KeyPair,KeyPairSigner,baseEncode} from 'near-api-js';
 import {verifyMessage} from 'near-api-js/nep413';
 import {createWalletClient} from '../web/wallet-client.mjs';
 import {msg} from '../web/i18n.mjs';
-import {patchExecutor} from '../wallet-runtime/sdk-patches.mjs';
+import {patchExecutor,patchIntearExecutor} from '../wallet-runtime/sdk-patches.mjs';
 const ORIGIN='https://wallet-unit.invalid',DOMAIN='NOPE:WALLET-ESCROW:V1:testnet';
 const HASH='b'.repeat(64),JOB='a'.repeat(32),GAS='150000000000000';
 const policy={network:'testnet',contractId:'unit-escrow.testnet',codeHash:baseEncode(new Uint8Array(32).fill(9)),domain:DOMAIN,requireKeyless:true};
@@ -190,4 +190,62 @@ test('UNIT actual static child bridge: parent source+origin+cap, expected method
  let resolved=false;const pending=child.selector.storage.get('UNIT').then(()=>{resolved=true;});const request=parent.posts.at(-1).data;
  child.emit('message',{source:parent,origin:ORIGIN,data:{...request,method:'storage.set',status:'success',result:'wrong'}});await new Promise(r=>setImmediate(r));assert.equal(resolved,false);
  child.emit('message',{source:parent,origin:ORIGIN,data:{...request,status:'success',result:null}});await pending;assert.equal(resolved,true);
+});
+test('UNIT pinned official Intear executor + actual bridge: popup URL/network/NEP413 state/transaction bytes survive separate frames', {timeout:5000},async()=>{
+ // No wallet, network request or signing. Pinned source uses the packaging patch;
+ // transport-key crypto and remote popup responses are explicitly UNIT stubs.
+ const upstream=await fs.readFile(new URL('../wallet-runtime/intear-executor.upstream.js',import.meta.url),'utf8');
+ assert.equal(sha(upstream),'6decc283352af197feff4988628899d19e05f4168a4277fe699bd8a0d6178e34');
+ const bridge=(await fs.readFile(new URL('../wallet-runtime/bridge.mjs',import.meta.url),'utf8')).replace("await import('./intear-executor.js');","await globalThis.__loadPinnedExecutor();");
+ const storage=new Map(),opened=[],sent=[],timers=new Set();let frameNumber=0;
+ const transportCrypto={getRandomValues:b=>crypto.getRandomValues(b),subtle:{
+  generateKey:async()=>({publicKey:'UNIT-TRANSPORT-PUBLIC',privateKey:'UNIT-TRANSPORT-NOT-A-REAL-KEY'}),
+  exportKey:async format=>format==='raw'?new Uint8Array(32).fill(1).buffer:{x:'AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE',d:'UNIT-NOT-A-REAL-KEY'},
+  importKey:async()=> 'UNIT-TRANSPORT-NOT-A-REAL-KEY',digest:async()=>new Uint8Array(32).buffer,sign:async()=>new Uint8Array(64).buffer
+ }};
+ async function frame(){
+  const child={...emitter(),location:new URL(ORIGIN+'/wallet-runtime/bridge.html')},cap=String(++frameNumber).padStart(64,'a');let context,ready;
+  const loaded=new Promise(resolve=>{ready=resolve;});
+  const deliver=data=>setImmediate(()=>child.emit('message',{source:parent,origin:ORIGIN,data:{...data,protocol:'NOPE:WALLET:FRAME:V1',origin:cap}}));
+  const parent={postMessage(data,target){assert.equal(target,ORIGIN);
+   if(data.method==='wallet-ready'){ready();return;}
+   let result=null;
+   if(data.method==='storage.get')result=storage.get(data.params.key)??null;
+   else if(data.method==='storage.set')storage.set(data.params.key,data.params.value);
+   else if(data.method==='storage.remove')storage.delete(data.params.key);
+   else if(data.method==='storage.keys')result=[...storage.keys()];
+   else if(data.method==='open'){opened.push(data.params.url);result='UNIT-POPUP-'+opened.length;setImmediate(()=>deliver({type:'ready'}));}
+   else if(data.method==='panel.postMessage'){
+    const message=clone(data.params.data);sent.push(message);
+    if(message.type==='signIn')deliver({type:'connected',accountId:'buyer.testnet',walletUrl:'https://wallet.intear.tech',useBridge:false});
+    else if(message.type==='signMessage')deliver({type:'signed',signature:{accountId:'buyer.testnet',publicKey:'ed25519:UNIT',signature:'UNIT-NOT-A-SIGNATURE',state:JSON.parse(message.data.message).state}});
+    else if(message.type==='signAndSendTransactions')deliver({type:'sent',outcomes:[{unitOutcome:true}]});
+    else assert.fail('Unexpected popup message '+message.type);
+   }else assert.ok(['panel.close','panel.focus','ui.showIframe','ui.hideIframe'].includes(data.method),data.method);
+   deliver({...data,status:'success',result});
+  }};
+  child.parent=parent;
+  context=vm.createContext({window:child,document:{title:''},URL,crypto:transportCrypto,Uint8Array,TextEncoder,atob,btoa,console:{error(){}},
+   setInterval(fn,ms){const id=setInterval(fn,ms);timers.add(id);return id;},clearInterval(id){clearInterval(id);timers.delete(id);},
+   __loadPinnedExecutor:async()=>vm.runInContext(patchIntearExecutor(upstream),context)});
+  vm.runInContext(bridge,context);
+  child.emit('message',{source:parent,origin:ORIGIN,data:{protocol:'NOPE:WALLET:FRAME:V1',type:'initialize',origin:cap,parentOrigin:ORIGIN,manifest:{id:'intear-wallet'},labels:{title:'UNIT',cancel:'UNIT',frameTitle:'UNIT',open:'UNIT',prompt:'UNIT'}}});
+  await loaded;return child.selector.wallet;
+ }
+ try{
+  const login=await frame();assert.deepEqual(JSON.parse(JSON.stringify(await login.signIn({network:'testnet'}))),[{accountId:'buyer.testnet'}]);
+  assert.equal(opened[0],'https://wallet.intear.tech/connect');assert.equal(sent[0].data.networkId,'testnet');assert.equal(sent[0].data.version,'V3');
+  assert.deepEqual(JSON.parse(sent[0].data.message),{});for(const key of ['contractId','methodNames','gasAllowance'])assert.equal(sent[0].data[key],undefined);
+  const sign=await frame(),state='a'.repeat(64),nonce=new Uint8Array(32).fill(3);
+  const signed=await sign.signMessage({network:'testnet',signerId:'buyer.testnet',message:'UNIT exact server challenge',nonce,recipient:ORIGIN,callbackUrl:ORIGIN+'/settings',state});
+  assert.equal(signed.state,state);assert.equal(opened[1],'https://wallet.intear.tech/sign-message');
+  assert.deepEqual(JSON.parse(sent[1].data.message),{message:'UNIT exact server challenge',nonce:[...nonce],recipient:ORIGIN,callbackUrl:ORIGIN+'/settings',state});
+  const tx=await frame(),x=prepared('fund'),approved=JSON.stringify(x.intent.transaction.actions);
+  assert.equal((await tx.signAndSendTransaction({...x.intent.transaction,network:'testnet'})).unitOutcome,true);
+  assert.equal(opened[2],'https://wallet.intear.tech/send-transactions');assert.equal(sent[2].data.mode,'Send');
+  const transactions=JSON.parse(sent[2].data.transactions);assert.equal(transactions.length,1);assert.equal(JSON.stringify(transactions[0].actions),approved);
+  assert.equal(transactions[0].signerId,'buyer.testnet');assert.equal(transactions[0].receiverId,policy.contractId);
+  const count=opened.length,closed=await frame();assert.deepEqual(JSON.parse(JSON.stringify(await closed.signIn({network:'mainnet'}))),[]);assert.equal(opened.length,count);
+  await assert.rejects(sign.signMessage({network:'mainnet',signerId:'buyer.testnet'}),/Wallet account changed/);assert.equal(opened.length,count);
+ }finally{for(const id of timers)clearInterval(id);}
 });

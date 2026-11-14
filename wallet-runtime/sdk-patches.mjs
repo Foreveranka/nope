@@ -13,3 +13,14 @@ export function patchExecutor(source){
  if(start<0||end<0)throw Error('Pinned SDK loadCode shape changed');
  return source.slice(0,start)+'    async loadCode() { return "pinned-static-executor"; }\n'+source.slice(end);
 }
+/** The pinned executor spells callback_url, but the official wallet's Rust
+ * MessageToSign uses serde(rename_all="camelCase") and expects callbackUrl.
+ * Correct BEFORE JSON hashing/transport signing; never edit a signed envelope. */
+export function patchIntearExecutor(source){
+ for(const name of ['t','r']){
+  const from=`callback_url:${name}.callbackUrl??null`,to=`callbackUrl:${name}.callbackUrl??null`;
+  if(source.split(from).length!==2)throw Error('Pinned Intear callback shape changed');
+  source=source.replace(from,to);
+ }
+ return source;
+}

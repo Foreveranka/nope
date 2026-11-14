@@ -80,7 +80,7 @@ storage/gas reserve is not a sponsor source for customer payments.
   separate uncompleted acceptance check.
 
 The bounded immutable contract accepts at most **1 testNEAR per job** and retains
-at most **50 jobs permanently**. The current application proof-binding adapter separately requires a selected price of **0.000001–0.01 testNEAR**; the completed proof-backed workflow uses this narrower range, despite the contract accepting larger holds. It has no upgrade/admin withdrawal method and
+at most **50 jobs permanently**. The application proof-binding adapter accepts the same exact **1 yoctoNEAR–1 testNEAR** selected-price range, with actual endpoint proofs and changed-price rejection tests. It has no upgrade/admin withdrawal method and
 does not verify SNARKs on-chain. The application proof gate and an independent
 public verifier validate the typed result relative to precommitted buyer
 mappings; they do not prove original CSV provenance or AES execution provenance.

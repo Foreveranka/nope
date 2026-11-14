@@ -157,6 +157,21 @@ test('actual public verifier rejects partial/reordered/stale/tampered bundles an
  assert.equal(await verifyProofPlanBundle({request:p.request,delivery:p.result,binding:{...binding,version:2},bundle}),false);
 });
 
+test('ACTUAL wallet-price endpoint proofs cover 1 yocto and 1 NEAR without weakening price binding',async()=>{
+ const p=await fixture();
+ // Use the existing real mixed numeric/text ciphertext and private witness.
+ // Each endpoint gets new actual proofs, not a caller-reported valid flag.
+ for(const amountYocto of ['1','1000000000000000000000000']){
+  const selected={...binding,amountYocto};
+  const bundle=await proveProofPlan({request:p.request,delivery:p.result,binding:selected,witness:p.witness});
+  assert.equal(await verifyProofPlanBundle({request:p.request,delivery:p.result,binding:selected,bundle}),true);
+  const substituted={...selected,amountYocto:amountYocto==='1'?'2':'999999999999999999999999'};
+  assert.equal(await verifyProofPlanBundle({request:p.request,delivery:p.result,binding:substituted,bundle}),false,'a different legal price cannot reuse the endpoint proof');
+ }
+ for(const amountYocto of ['0','01','-1','1.0','1e24','1\n','1\r','1000000000000000000000000\n','1000000000000000000000001','9999999999999999999999999',1])
+  await assert.rejects(finalProofContext(p.request,p.result,{...binding,amountYocto}),/selected proof price/);
+});
+
 test('private row witness changes cannot be silently recommitted or uploaded in a proof bundle',async()=>{
  const p=await fixture(),w=clone(p.witness);[w.rows[0].outputPairs[0][0],w.rows[0].outputPairs[0][1]]=[w.rows[0].outputPairs[0][1],w.rows[0].outputPairs[0][0]];
  const progress=[];await assert.rejects(proveProofPlan({request:p.request,delivery:p.result,binding,witness:w,onProgress:x=>progress.push(x)}),/anchored commitments/);assert.deepEqual(progress,[]);

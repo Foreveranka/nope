@@ -1,6 +1,9 @@
 /** Explicit actual TESTNET QA. Synthetic inputs only, never customer inputs.
  * run [--origin=http://127.0.0.1:8789] [--keys=<ignored identities.json>]
  * run --origin=https://veil-procurement.vercel.app --production-testnet=yes
+ * Add --case=price-min --amount-yocto=1 for an isolated boundary case.
+ * Case labels: 1–48 lowercase ASCII letters/digits/hyphens, no separators.
+ * Nondefault amounts require a case; existing journals never change amount.
  * The API runs in a separate process and never reads wallet keys. Recovery
  * material stays under ignored runtime/ with mode0600. NO automatic re-sign or
  * re-broadcast. A previously attempted transaction is only observed by its hash.
@@ -27,15 +30,30 @@ import {parseCSV} from '../web/csv-input.mjs';
 import {createVault} from '../web/workspace-vault.mjs';
 
 const ROOT=fileURLToPath(new URL('../',import.meta.url)),SELF=fileURLToPath(import.meta.url);
-const mode=process.argv[2],options=Object.fromEntries(process.argv.slice(3).map(arg=>{assert.match(arg,/^--[a-z-]+=/,'Named options required');const i=arg.indexOf('=');return[arg.slice(2,i),arg.slice(i+1)];}));
+const mode=process.argv[2],options=Object.create(null);
+const allowedOptions=new Set(['origin','keys','production-testnet','case','amount-yocto','job','buyer']);
+for(const arg of process.argv.slice(3)){
+ assert.match(arg,/^--[a-z-]+=/,'Named options required');const i=arg.indexOf('='),name=arg.slice(2,i);
+ assert.ok(allowedOptions.has(name),'Unknown CLI option');assert.ok(!Object.hasOwn(options,name),'Duplicate CLI option');options[name]=arg.slice(i+1);
+}
+const caseName=Object.hasOwn(options,'case')?options.case:null;
+if(caseName!==null)assert.ok(caseName.length>=1&&caseName.length<=48&&/^[a-z0-9][a-z0-9-]*$/.exec(caseName)?.[0]===caseName,'Invalid ASCII case label');
+const DEFAULT_AMOUNT='1000000000000000000000';
+function validateAmount(value){assert.ok(typeof value==='string'&&/^[1-9][0-9]{0,24}$/.exec(value)?.[0]===value&&BigInt(value)<=10n**24n,'Amount must be canonical 1..1e24 yoctoNEAR');return value;}
+const requestedAmount=validateAmount(options['amount-yocto']??DEFAULT_AMOUNT);
+assert.ok(requestedAmount===DEFAULT_AMOUNT||caseName!==null,'Nondefault amounts require an isolated --case');
+const caseArgs=caseName===null?[]:['--case='+caseName,'--amount-yocto='+requestedAmount];
 const origin=options.origin||'http://127.0.0.1:8789',url=new URL(origin);
 const production=options['production-testnet']==='yes';
 assert.equal(url.origin,origin);assert.ok(['run','serve','verify-public'].includes(mode),'Explicit run required');
 if(production){assert.equal(origin,'https://veil-procurement.vercel.app');assert.notEqual(mode,'serve');}
 else{assert.equal(url.protocol,'http:');assert.equal(url.hostname,'127.0.0.1');assert.ok(Number(url.port)>=1024);}
 assert.equal(POLICY?.network,'testnet','Reviewed deployment pin required');assert.equal(POLICY.requireKeyless,true);assert.notEqual(POLICY.contractId,undefined);
-const DIR=path.join(ROOT,production?'runtime/wallet-workspace-production':'runtime/wallet-workspace-http'),STATE=path.join(DIR,'client-state.json'),LEDGER=path.join(DIR,'ledger');
-const EVIDENCE=path.join(ROOT,'docs/verification',production?'wallet-funded-http-production.json':'wallet-funded-http-local.json');
+const DIR=path.join(ROOT,(production?'runtime/wallet-workspace-production':'runtime/wallet-workspace-http')+(caseName===null?'':'-'+caseName)),STATE=path.join(DIR,'client-state.json'),LEDGER=path.join(DIR,'ledger');
+const EVIDENCE=path.join(ROOT,'docs/verification','wallet-funded-http-'+(production?'production':'local')+(caseName===null?'':'-'+caseName)+'.json');
+// Every case/origin shares a nonce lease. Separate journals do not imply that
+// the same buyer/provider signing keys can be used concurrently.
+const LEASE_DIR=path.join(ROOT,'runtime/wallet-workspace-signing'),LEASE=path.join(LEASE_DIR,'nonce.lock');
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let stage=mode,state,serverChild;
@@ -50,6 +68,9 @@ function privateWrite(file,value,exclusive=false){
  const d=fs.openSync(path.dirname(file),fs.constants.O_RDONLY);try{fs.fsyncSync(d);}finally{fs.closeSync(d);}
 }
 function save(){privateWrite(STATE,state);}
+function checkCaseEvidence(){
+ if(caseName!==null&&fs.existsSync(EVIDENCE)){const previous=JSON.parse(fs.readFileSync(EVIDENCE,'utf8'));assert.equal(previous.jobId,state.jobId,'Case evidence belongs to another job');assert.equal(previous.amountYocto,state.amountYocto);}
+}
 function ledgerStore(){
  privateDir(LEDGER);
  const target=p=>{assert.match(p,/^nope-workspace-v1\/[a-z0-9/-]+\.json$/);return path.join(LEDGER,p);};
@@ -74,7 +95,7 @@ async function api(route,who,body){
  const data=await response.json();if(!response.ok)throw Object.assign(Error('API_'+response.status+'_'+(data.code||'UNKNOWN')),{code:'API_'+response.status+'_'+(data.code||'UNKNOWN'),status:response.status});return data;
 }
 async function startServer(){
- const child=fork(SELF,['serve','--origin='+origin],{cwd:ROOT,env:{PATH:process.env.PATH,HOME:process.env.HOME},stdio:['ignore','pipe','pipe','ipc']});
+ const child=fork(SELF,['serve','--origin='+origin,...caseArgs],{cwd:ROOT,env:{PATH:process.env.PATH,HOME:process.env.HOME},stdio:['ignore','pipe','pipe','ipc']});
  let diagnostic='';child.stderr.on('data',chunk=>{diagnostic=(diagnostic+chunk.toString()).slice(-10000);});
  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('LOCAL_API_START_TIMEOUT')),20000);child.once('error',reject);child.once('exit',()=>{clearTimeout(timer);reject(Error('LOCAL_API_EXITED'));});child.on('message',message=>{if(message?.ready===origin){clearTimeout(timer);resolve();}});});return child;
 }
@@ -89,15 +110,19 @@ async function provePublic(){
 }
 async function run(){
  privateDir(DIR);assert.equal(execFileSync('git',['check-ignore','--quiet',path.relative(ROOT,DIR)],{cwd:ROOT}).length,0,'Recovery directory must be ignored');
- const lock=path.join(DIR,'qa.lock'),fd=fs.openSync(lock,fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);fs.writeSync(fd,String(process.pid));
+ if(caseName!==null&&fs.existsSync(EVIDENCE)&&!fs.existsSync(STATE))throw Error('CASE_EVIDENCE_EXISTS_WITHOUT_PRIVATE_STATE');
+ privateDir(LEASE_DIR);const leaseFd=fs.openSync(LEASE,fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);fs.writeSync(leaseFd,String(process.pid));
+ const lock=path.join(DIR,'qa.lock');let fd;
  try{
+  fd=fs.openSync(lock,fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);fs.writeSync(fd,String(process.pid));
   stage='read-local-test-wallets';const keyPath=path.resolve(ROOT,options.keys||'payments/wallet_escrow/runtime/identities.json');assert.ok(keyPath.startsWith(ROOT));execFileSync('git',['check-ignore','--quiet',path.relative(ROOT,keyPath)],{cwd:ROOT});
   const identities=privateRead(keyPath);assert.equal(identities.network,'testnet');
   const ids=Object.fromEntries(['buyer','provider'].map(role=>{const id=identities[role];assert.equal(id.network,'testnet');assert.ok(id.account_id.endsWith('.testnet'));assert.notEqual(id.account_id,POLICY.contractId);assert.equal(KeyPair.fromString(id.private_key).getPublicKey().toString(),id.public_key);return[role,id];}));
   delete identities.contract;assert.notEqual(ids.buyer.account_id,ids.provider.account_id);
   const rpc=createWalletRPC(POLICY),started=performance.now();stage='verify-keyless-pins';const initialPin=await pin(rpc);
-  if(fs.existsSync(STATE)){state=privateRead(STATE);assert.equal(state.origin,origin);assert.equal(state.contractId,POLICY.contractId);assert.equal(state.buyerAccount,ids.buyer.account_id);assert.equal(state.providerAccount,ids.provider.account_id);}
-  else{state={version:1,origin,contractId:POLICY.contractId,buyerAccount:ids.buyer.account_id,providerAccount:ids.provider.account_id,jobId:randomBytes(16).toString('hex'),amountYocto:'1000000000000000000000',salt:randomBytes(32).toString('hex'),checks:{},transactions:{},startedAt:new Date().toISOString()};save();}
+  if(fs.existsSync(STATE)){state=privateRead(STATE);assert.equal(state.origin,origin);assert.equal(state.contractId,POLICY.contractId);assert.equal(state.buyerAccount,ids.buyer.account_id);assert.equal(state.providerAccount,ids.provider.account_id);assert.equal(state.caseName??null,caseName);validateAmount(state.amountYocto);if(Object.hasOwn(options,'amount-yocto'))assert.equal(state.amountYocto,requestedAmount,'Existing journal amount is immutable');}
+  else{state={version:1,origin,contractId:POLICY.contractId,buyerAccount:ids.buyer.account_id,providerAccount:ids.provider.account_id,jobId:randomBytes(16).toString('hex'),amountYocto:requestedAmount,...(caseName===null?{}:{caseName}),salt:randomBytes(32).toString('hex'),checks:{},transactions:{},startedAt:new Date().toISOString()};save();}
+  checkCaseEvidence();
   if(!production)serverChild=await startServer();note(production?'actual-production-HTTP-ready':'actual-local-HTTP-ready',{origin,jobId:state.jobId});
   for(const role of ['buyer','provider']){
    stage='NEP413-'+role;
@@ -181,12 +206,13 @@ async function run(){
   if(job.status==='ACCEPTED')await walletAction('release','buyer',j=>j.status==='PAID'&&j.payment.status==='PAID'&&j.payment.verified===true);
   assert.equal(job.status,'PAID');state.final=job;save();await(await proofRuntime()).dispose();
   stage='independent-public-verification';
-  const publicCheck=await new Promise((resolve,reject)=>{const child=fork(SELF,['verify-public','--origin='+origin,'--job='+state.jobId,'--buyer='+ids.buyer.account_id,...(production?['--production-testnet=yes']:[])],{cwd:ROOT,env:{PATH:process.env.PATH,HOME:process.env.HOME},stdio:['ignore','pipe','pipe','ipc']});const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('PUBLIC_VERIFIER_TIMEOUT'));},180000);child.on('message',m=>{if(m?.publicVerification){clearTimeout(timer);resolve(m.publicVerification);}});child.once('error',reject);child.once('exit',code=>{clearTimeout(timer);if(code)reject(Error('PUBLIC_VERIFIER_FAILED'));});});
+  const publicCheck=await new Promise((resolve,reject)=>{const child=fork(SELF,['verify-public','--origin='+origin,'--job='+state.jobId,'--buyer='+ids.buyer.account_id,...caseArgs,...(production?['--production-testnet=yes']:[])],{cwd:ROOT,env:{PATH:process.env.PATH,HOME:process.env.HOME},stdio:['ignore','pipe','pipe','ipc']});const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('PUBLIC_VERIFIER_TIMEOUT'));},180000);child.on('message',m=>{if(m?.publicVerification){clearTimeout(timer);resolve(m.publicVerification);}});child.once('error',reject);child.once('exit',code=>{clearTimeout(timer);if(code)reject(Error('PUBLIC_VERIFIER_FAILED'));});});
   state.checks.independentPublicSNARKAndChainVerified=true;save();
   for(const key of ['buyerNEP413Verified','providerNEP413Verified','sealedQuoteLocallyDecrypted','unfundedExecutionRejected','fundReceiptVerified','recordReceiptVerified','localReferenceMatched','acceptanceRequiresActualProof','actualSNARKLocallyVerified','actualSNARKServerVerified','explicitBuyerAcceptance','releaseReceiptVerified','independentPublicSNARKAndChainVerified'])assert.equal(state.checks[key],true,key);
-  const finalPin=await pin(rpc),evidence={recordedAt:new Date().toISOString(),origin,network:'testnet',syntheticOnly:true,actualHTTP:true,actualExternalTestnet:true,browserTest:false,authoredPlan:true,neuralPlanning:false,contractId:POLICY.contractId,codeHash:POLICY.codeHash,requireKeyless:true,initialPin,finalPin,buyerAccount:ids.buyer.account_id,providerAccount:ids.provider.account_id,jobId:job.id,profile:job.profile,rowCount:job.rowCount,processedCells:1,status:job.status,amountYocto:state.amountYocto,payment:job.payment,proof:job.proof,publicVerification:publicCheck,checks:state.checks,transactionHashes:Object.fromEntries(Object.entries(state.transactions).map(([action,j])=>[action,j.transactionHash])),proofClaim:'Typed result correctness relative to precommitted buyer mappings; not AES execution provenance, original CSV provenance, or on-chain SNARK verification.',elapsedMs:Math.round(performance.now()-started)};
+  const finalPin=await pin(rpc),evidence={...(caseName===null?{}:{caseName}),recordedAt:new Date().toISOString(),origin,network:'testnet',syntheticOnly:true,actualHTTP:true,actualExternalTestnet:true,browserTest:false,authoredPlan:true,neuralPlanning:false,contractId:POLICY.contractId,codeHash:POLICY.codeHash,requireKeyless:true,initialPin,finalPin,buyerAccount:ids.buyer.account_id,providerAccount:ids.provider.account_id,jobId:job.id,profile:job.profile,rowCount:job.rowCount,processedCells:1,status:job.status,amountYocto:state.amountYocto,payment:job.payment,proof:job.proof,publicVerification:publicCheck,checks:state.checks,transactionHashes:Object.fromEntries(Object.entries(state.transactions).map(([action,j])=>[action,j.transactionHash])),proofClaim:'Typed result correctness relative to precommitted buyer mappings; not AES execution provenance, original CSV provenance, or on-chain SNARK verification.',elapsedMs:Math.round(performance.now()-started)};
+  checkCaseEvidence();
   fs.mkdirSync(path.dirname(EVIDENCE),{recursive:true});fs.writeFileSync(EVIDENCE,JSON.stringify(evidence,null,2)+'\n');note('verified-actual-wallet-HTTP-cycle',{jobId:state.jobId,status:job.status,evidence:path.relative(ROOT,EVIDENCE)});
- }finally{serverChild?.kill('SIGTERM');await(await proofRuntime()).dispose().catch(()=>{});fs.closeSync(fd);fs.unlinkSync(lock);}
+ }finally{serverChild?.kill('SIGTERM');try{await(await proofRuntime()).dispose().catch(()=>{});}finally{if(fd!==undefined){fs.closeSync(fd);fs.unlinkSync(lock);}fs.closeSync(leaseFd);fs.unlinkSync(LEASE);}}
 }
 try{
  if(mode==='serve'){
