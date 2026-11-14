@@ -44,6 +44,17 @@ export async function acceptAgentProposal(task,proposal){
  else {exactKeys(proposal,['steps']);candidate={version:1,taskHash,steps:proposal.steps};}
  const plan=normalizePlan(candidate);
  for(const step of plan.steps){const column=task.columns.find(c=>c.id===step.column);if(!column||column.type!==step.recipe.type)fail('Model onaylı sütun/tür dışında işlem istedi.');}
+ // Selected columns are the explicit processing scope. Ignore unneeded columns
+ // before planning; a model must not silently return a supported subset. This
+ // checks coverage only, never whether the operations satisfy natural language.
+ const covered=new Set(plan.steps.map(step=>step.column));
+ const missingColumns=task.columns.filter(column=>!covered.has(column.id)).map(column=>column.id);
+ if(missingColumns.length){
+  // Reuse an existing localized task-mismatch message. Public alias diagnostics
+  // remain structured; no new UI/catalog string or private header is introduced.
+  const error=new Error('Plan bu iş tanımına ait değil.');
+  error.code='INCOMPLETE_COLUMN_COVERAGE';error.missingColumns=Object.freeze(missingColumns);throw error;
+ }
  return {task,taskHash,plan,planSha256:await hashPlan(plan)};
 }
 /** This helper is buyer-local only. Its result must not enter a model request. */

@@ -102,7 +102,7 @@ This does **not** prove original CSV provenance, honest initial garbling/mapping
 - At most **4 selected columns**, **32 numeric rows**, **8 rows when text is processed**, and **40 processed cells**; circuit/request-size limits also apply.
 - Unselected columns are preserved locally. Rows are not silently truncated.
 - Arbitrary document understanding, translation, summarization, sorting, deduplication and general-purpose encrypted LLM inference are not implemented.
-- The small local model can misunderstand a goal. Human plan/preview approval is part of the workflow, not a correctness theorem.
+- The small local model can misunderstand a goal, omit an operation or refuse a supported request. A proposal missing any selected column is rejected in full; this coverage check does not prove that every natural-language instruction was understood. Select only columns to process and review the actual before/after preview. Human plan/preview approval remains part of the workflow, not a correctness theorem.
 
 ## Reproduce the checks and build
 
@@ -120,7 +120,7 @@ npm test
 npm run build
 ```
 
-The recorded root suite passed **486 tests, zero failures and zero skips** on 14 November 2026. It includes genuine local cryptography and explicitly synthetic transport/RPC fixtures; it does not broadcast transactions. The build packages the wallet/planner/proof runtimes and generates `dist/`; it neither deploys nor downloads the planner's model weights.
+The recorded root suite passed **492 tests, zero failures and zero skips** on 14 November 2026. It includes genuine local cryptography and explicitly synthetic transport/RPC fixtures; it does not broadcast transactions. The build packages the wallet/planner/proof runtimes and generates `dist/`; it neither deploys nor downloads the planner's model weights.
 
 Additional proof checks:
 

@@ -442,7 +442,13 @@ export function createWorkspace({ document: doc, window: win, fetch: fetcher = g
       const a = link(text, href, nav, ''); if (win.location.pathname === href) a.setAttribute('aria-current', 'page');
     }
   }
-  function title(text, subtitle) { if ($('workspace-heading')) bindText($('workspace-heading'), text); if ($('workspace-subtitle')) bindText($('workspace-subtitle'), subtitle || ''); }
+  const documentTitleBinding = { set textContent(value) { doc.title = String(value) + ' — NOPE'; } };
+  function title(text, subtitle) {
+    const role = state.session ? (state.session.role === 'buyer' ? msg('Müşteri') : msg('Sağlayıcı')) : null;
+    bindText(documentTitleBinding, role ? msg`${text} · ${role}` : text);
+    if ($('workspace-heading')) bindText($('workspace-heading'), text);
+    if ($('workspace-subtitle')) bindText($('workspace-subtitle'), subtitle || '');
+  }
   function jobLink(path, id) { return `${path}?id=${encodeURIComponent(id)}`; }
   function isBuyer(job) { return state.session?.role === 'buyer' && (walletJob(job) ? job.buyerWallet?.network === 'testnet' && linkedWallet(state.session)?.accountId === job.buyerWallet.accountId && Boolean(linkedWallet(state.session)) : job.buyerId === state.session.id); }
   function isSelected(job) { return state.session?.role === 'provider' && (walletJob(job) ? job.selectedOffer?.wallet?.network === 'testnet' && Boolean(linkedWallet(state.session)) && linkedWallet(state.session).accountId === job.selectedOffer.wallet.accountId && linkedWallet(state.session).accountId === job.selectedOffer.paymentAccount : job.selectedOffer?.providerId === state.session.id); }

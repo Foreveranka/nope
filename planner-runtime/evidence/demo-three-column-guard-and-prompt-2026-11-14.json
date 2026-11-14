@@ -1,0 +1,515 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-14T07:35:30.694Z",
+  "baselineFile": "demo-three-column-2026-11-14.json",
+  "actualNeuralInference": true,
+  "syntheticPublicTasksOnly": true,
+  "backend": "onnxruntime-node@1.30.0 CPU; NOT browser WASM/WebGPU",
+  "model": "onnx-community/Qwen3-0.6B-ONNX-OPT",
+  "revision": "4799e655597b49210adb5c1ebe5b9d3bd04005a0",
+  "dtype": "q4",
+  "newWeightDownloadBytes": 0,
+  "weightsVerified": [
+    {
+      "path": "config.json",
+      "bytes": 1770,
+      "sha256": "86c544072c56874ad015eb70647bba4a2df163f66968dfced8ea0ca387fcae16"
+    },
+    {
+      "path": "generation_config.json",
+      "bytes": 249,
+      "sha256": "7dfbda99ac3e2efae82d814cedf73f4a5f63eb46298d486b4ff779bab7ee496d"
+    },
+    {
+      "path": "tokenizer.json",
+      "bytes": 9117036,
+      "sha256": "40ae5d1ee027b985684a3bbeef4ee16b2b5697d1d90658bec5bc5d2a73018bd7"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "bytes": 5051,
+      "sha256": "04984a9d62f1a94b929fca5670c1ab4f66aa330877816038fa88a41a158bd4b6"
+    },
+    {
+      "path": "onnx/model_q4.onnx",
+      "bytes": 369635,
+      "sha256": "be5f0d8d03ac387bdd2d2582e4e114ca3c23a44b70bf03be609844542107745c"
+    },
+    {
+      "path": "onnx/model_q4.onnx_data",
+      "bytes": 403007488,
+      "sha256": "22f7763f31c1be426affc5b14cc37aa9c1c48e29d8ff043551a20606bd105e0f"
+    }
+  ],
+  "sessionOptions": {
+    "intraOpNumThreads": 2,
+    "interOpNumThreads": 1,
+    "executionMode": "sequential",
+    "extra": {
+      "session": {
+        "intra_op.allow_spinning": "0",
+        "inter_op.allow_spinning": "0"
+      }
+    }
+  },
+  "clarification": " Text operation tuples contain exactly two items: column and operation. fill tuples contain exactly three items. clamp tuples contain exactly four items with both minimum and maximum. Every selected column listed in Current column types must appear in the operations. Never add unrequested operations just to cover a column. If any selected column cannot be fully planned, return unsupported for the whole task.",
+  "baselineRevalidated": [
+    {
+      "id": "demo-original",
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"uppercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",100]]}",
+      "accepted": false,
+      "error": "Model requested an unsupported operation; entire proposal rejected."
+    },
+    {
+      "id": "demo-explicit-bounds",
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"uppercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}",
+      "accepted": false,
+      "error": "Plan bu iş tanımına ait değil.",
+      "code": "INCOMPLETE_COLUMN_COVERAGE",
+      "missingColumns": [
+        "C3"
+      ]
+    },
+    {
+      "id": "mixed-unsupported",
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"uppercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}",
+      "accepted": false,
+      "error": "Plan bu iş tanımına ait değil.",
+      "code": "INCOMPLETE_COLUMN_COVERAGE",
+      "missingColumns": [
+        "C3"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "id": "demo-original",
+      "task": {
+        "version": 1,
+        "goal": "Trim and uppercase C1. Fill empty C2 values with 0 and cap C2 at 100. Redact all digits in C3.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          },
+          {
+            "id": "C3",
+            "type": "text"
+          }
+        ]
+      },
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a restricted cleaning planner. Output JSON only. Success: {\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}. Every operation is a separate array. Allowed text ops: trim, lowercase, uppercase, redactDigits. Allowed number ops: fill integer0..254, clamp min max integers0..254. Use ONLY the user column IDs. Include ALL requested operations in order. If ANY action is unsupported or unclear, output {\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}. Translation, sentiment, summarizing, sorting and arbitrary code are unsupported. Never return a partial plan. Understand English and Turkish. No markdown. No explanation.\nCurrent column types: [{\"id\":\"C1\",\"type\":\"text\"},{\"id\":\"C2\",\"type\":\"number\"},{\"id\":\"C3\",\"type\":\"text\"}] Text operation tuples contain exactly two items: column and operation. fill tuples contain exactly three items. clamp tuples contain exactly four items with both minimum and maximum. Every selected column listed in Current column types must appear in the operations. Never add unrequested operations just to cover a column. If any selected column cannot be fully planned, return unsupported for the whole task."
+        },
+        {
+          "role": "user",
+          "content": "Trim C3 and translate it into Turkish."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}"
+        },
+        {
+          "role": "user",
+          "content": "C1 metnini İngilizceye çevir."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}"
+        },
+        {
+          "role": "user",
+          "content": "C3: trim spaces then uppercase and redact digits. C4: fill missing with 9 then clamp between 2 and 90."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"operations\":[[\"C3\",\"trim\"],[\"C3\",\"uppercase\"],[\"C3\",\"redactDigits\"],[\"C4\",\"fill\",9],[\"C4\",\"clamp\",2,90]]}"
+        },
+        {
+          "role": "user",
+          "content": "C1 boşluklarını kırp ve küçük harfe çevir. C2 eksikleri 3 ile doldur ve 0-120 arasına sınırla."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",3],[\"C2\",\"clamp\",0,120]]}"
+        },
+        {
+          "role": "user",
+          "content": "Trim and uppercase C1. Fill empty C2 values with 0 and cap C2 at 100. Redact all digits in C3."
+        }
+      ],
+      "expectedOperations": [
+        [
+          "C1",
+          "trim"
+        ],
+        [
+          "C1",
+          "uppercase"
+        ],
+        [
+          "C2",
+          "fill",
+          0
+        ],
+        [
+          "C2",
+          "clamp",
+          0,
+          100
+        ],
+        [
+          "C3",
+          "redactDigits"
+        ]
+      ],
+      "expectedUnsupported": false,
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"uppercase\"],[\"C3\",\"redactDigits\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",100\"]]}",
+      "accepted": false,
+      "passed": false,
+      "error": "Model geçerli JSON üretmedi; plan çalıştırılmadı.",
+      "elapsedMs": 6891,
+      "rssBytes": 1355300864
+    },
+    {
+      "id": "demo-explicit-bounds",
+      "task": {
+        "version": 1,
+        "goal": "Trim C1 then uppercase C1. Fill missing C2 with 0 and clamp C2 between 0 and 100. Replace every digit in C3 with an asterisk.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          },
+          {
+            "id": "C3",
+            "type": "text"
+          }
+        ]
+      },
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a restricted cleaning planner. Output JSON only. Success: {\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}. Every operation is a separate array. Allowed text ops: trim, lowercase, uppercase, redactDigits. Allowed number ops: fill integer0..254, clamp min max integers0..254. Use ONLY the user column IDs. Include ALL requested operations in order. If ANY action is unsupported or unclear, output {\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}. Translation, sentiment, summarizing, sorting and arbitrary code are unsupported. Never return a partial plan. Understand English and Turkish. No markdown. No explanation.\nCurrent column types: [{\"id\":\"C1\",\"type\":\"text\"},{\"id\":\"C2\",\"type\":\"number\"},{\"id\":\"C3\",\"type\":\"text\"}] Text operation tuples contain exactly two items: column and operation. fill tuples contain exactly three items. clamp tuples contain exactly four items with both minimum and maximum. Every selected column listed in Current column types must appear in the operations. Never add unrequested operations just to cover a column. If any selected column cannot be fully planned, return unsupported for the whole task."
+        },
+        {
+          "role": "user",
+          "content": "Trim C3 and translate it into Turkish."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}"
+        },
+        {
+          "role": "user",
+          "content": "C1 metnini İngilizceye çevir."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}"
+        },
+        {
+          "role": "user",
+          "content": "C3: trim spaces then uppercase and redact digits. C4: fill missing with 9 then clamp between 2 and 90."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"operations\":[[\"C3\",\"trim\"],[\"C3\",\"uppercase\"],[\"C3\",\"redactDigits\"],[\"C4\",\"fill\",9],[\"C4\",\"clamp\",2,90]]}"
+        },
+        {
+          "role": "user",
+          "content": "C1 boşluklarını kırp ve küçük harfe çevir. C2 eksikleri 3 ile doldur ve 0-120 arasına sınırla."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",3],[\"C2\",\"clamp\",0,120]]}"
+        },
+        {
+          "role": "user",
+          "content": "Trim C1 then uppercase C1. Fill missing C2 with 0 and clamp C2 between 0 and 100. Replace every digit in C3 with an asterisk."
+        }
+      ],
+      "expectedOperations": [
+        [
+          "C1",
+          "trim"
+        ],
+        [
+          "C1",
+          "uppercase"
+        ],
+        [
+          "C2",
+          "fill",
+          0
+        ],
+        [
+          "C2",
+          "clamp",
+          0,
+          100
+        ],
+        [
+          "C3",
+          "redactDigits"
+        ]
+      ],
+      "expectedUnsupported": false,
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"uppercase\"],[\"C3\",\"fill\",0],[\"C3\",\"clamp\",0,100]]}",
+      "accepted": false,
+      "passed": false,
+      "error": "Model requested an unsupported operation; entire proposal rejected.",
+      "elapsedMs": 6634,
+      "rssBytes": 1327382528
+    },
+    {
+      "id": "mixed-unsupported",
+      "task": {
+        "version": 1,
+        "goal": "Trim C1 then uppercase C1. Fill missing C2 with 0 and clamp C2 between 0 and 100. Translate C3 into German.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          },
+          {
+            "id": "C3",
+            "type": "text"
+          }
+        ]
+      },
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a restricted cleaning planner. Output JSON only. Success: {\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}. Every operation is a separate array. Allowed text ops: trim, lowercase, uppercase, redactDigits. Allowed number ops: fill integer0..254, clamp min max integers0..254. Use ONLY the user column IDs. Include ALL requested operations in order. If ANY action is unsupported or unclear, output {\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}. Translation, sentiment, summarizing, sorting and arbitrary code are unsupported. Never return a partial plan. Understand English and Turkish. No markdown. No explanation.\nCurrent column types: [{\"id\":\"C1\",\"type\":\"text\"},{\"id\":\"C2\",\"type\":\"number\"},{\"id\":\"C3\",\"type\":\"text\"}] Text operation tuples contain exactly two items: column and operation. fill tuples contain exactly three items. clamp tuples contain exactly four items with both minimum and maximum. Every selected column listed in Current column types must appear in the operations. Never add unrequested operations just to cover a column. If any selected column cannot be fully planned, return unsupported for the whole task."
+        },
+        {
+          "role": "user",
+          "content": "Trim C3 and translate it into Turkish."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}"
+        },
+        {
+          "role": "user",
+          "content": "C1 metnini İngilizceye çevir."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}"
+        },
+        {
+          "role": "user",
+          "content": "C3: trim spaces then uppercase and redact digits. C4: fill missing with 9 then clamp between 2 and 90."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"operations\":[[\"C3\",\"trim\"],[\"C3\",\"uppercase\"],[\"C3\",\"redactDigits\"],[\"C4\",\"fill\",9],[\"C4\",\"clamp\",2,90]]}"
+        },
+        {
+          "role": "user",
+          "content": "C1 boşluklarını kırp ve küçük harfe çevir. C2 eksikleri 3 ile doldur ve 0-120 arasına sınırla."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",3],[\"C2\",\"clamp\",0,120]]}"
+        },
+        {
+          "role": "user",
+          "content": "Trim C1 then uppercase C1. Fill missing C2 with 0 and clamp C2 between 0 and 100. Translate C3 into German."
+        }
+      ],
+      "expectedUnsupported": true,
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"uppercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}",
+      "raw": "{\"steps\":[{\"column\":\"C1\",\"recipe\":{\"type\":\"text\",\"steps\":[{\"op\":\"trim\"},{\"op\":\"uppercase\"}]}},{\"column\":\"C2\",\"recipe\":{\"type\":\"number\",\"steps\":[{\"op\":\"fill\",\"value\":0},{\"op\":\"clamp\",\"min\":0,\"max\":100}]}}]}",
+      "explicitUnsupported": false,
+      "accepted": false,
+      "passed": false,
+      "error": "Plan bu iş tanımına ait değil.",
+      "code": "INCOMPLETE_COLUMN_COVERAGE",
+      "missingColumns": [
+        "C3"
+      ],
+      "elapsedMs": 6199,
+      "rssBytes": 1309147136
+    },
+    {
+      "id": "honest-two-column-scope",
+      "task": {
+        "version": 1,
+        "goal": "Trim C1 then uppercase C1. Fill missing C2 with 0 and clamp C2 between 0 and 100.",
+        "columns": [
+          {
+            "id": "C1",
+            "type": "text"
+          },
+          {
+            "id": "C2",
+            "type": "number"
+          }
+        ]
+      },
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a restricted cleaning planner. Output JSON only. Success: {\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}. Every operation is a separate array. Allowed text ops: trim, lowercase, uppercase, redactDigits. Allowed number ops: fill integer0..254, clamp min max integers0..254. Use ONLY the user column IDs. Include ALL requested operations in order. If ANY action is unsupported or unclear, output {\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}. Translation, sentiment, summarizing, sorting and arbitrary code are unsupported. Never return a partial plan. Understand English and Turkish. No markdown. No explanation.\nCurrent column types: [{\"id\":\"C1\",\"type\":\"text\"},{\"id\":\"C2\",\"type\":\"number\"}] Text operation tuples contain exactly two items: column and operation. fill tuples contain exactly three items. clamp tuples contain exactly four items with both minimum and maximum. Every selected column listed in Current column types must appear in the operations. Never add unrequested operations just to cover a column. If any selected column cannot be fully planned, return unsupported for the whole task."
+        },
+        {
+          "role": "user",
+          "content": "Trim C3 and translate it into Turkish."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}"
+        },
+        {
+          "role": "user",
+          "content": "C1 metnini İngilizceye çevir."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"status\":\"unsupported\",\"reason\":\"Unsupported operation\"}"
+        },
+        {
+          "role": "user",
+          "content": "C3: trim spaces then uppercase and redact digits. C4: fill missing with 9 then clamp between 2 and 90."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"operations\":[[\"C3\",\"trim\"],[\"C3\",\"uppercase\"],[\"C3\",\"redactDigits\"],[\"C4\",\"fill\",9],[\"C4\",\"clamp\",2,90]]}"
+        },
+        {
+          "role": "user",
+          "content": "C1 boşluklarını kırp ve küçük harfe çevir. C2 eksikleri 3 ile doldur ve 0-120 arasına sınırla."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"lowercase\"],[\"C2\",\"fill\",3],[\"C2\",\"clamp\",0,120]]}"
+        },
+        {
+          "role": "user",
+          "content": "Trim C1 then uppercase C1. Fill missing C2 with 0 and clamp C2 between 0 and 100."
+        }
+      ],
+      "expectedOperations": [
+        [
+          "C1",
+          "trim"
+        ],
+        [
+          "C1",
+          "uppercase"
+        ],
+        [
+          "C2",
+          "fill",
+          0
+        ],
+        [
+          "C2",
+          "clamp",
+          0,
+          100
+        ]
+      ],
+      "expectedUnsupported": false,
+      "sourceRaw": "{\"operations\":[[\"C1\",\"trim\"],[\"C1\",\"uppercase\"],[\"C2\",\"fill\",0],[\"C2\",\"clamp\",0,100]]}",
+      "raw": "{\"steps\":[{\"column\":\"C1\",\"recipe\":{\"type\":\"text\",\"steps\":[{\"op\":\"trim\"},{\"op\":\"uppercase\"}]}},{\"column\":\"C2\",\"recipe\":{\"type\":\"number\",\"steps\":[{\"op\":\"fill\",\"value\":0},{\"op\":\"clamp\",\"min\":0,\"max\":100}]}}]}",
+      "explicitUnsupported": false,
+      "plan": {
+        "version": 1,
+        "taskHash": "88c91ce91a230eb97411e7ee1f5c398a27203954856b7b4ffa944705f24eccf5",
+        "steps": [
+          {
+            "column": "C1",
+            "recipe": {
+              "type": "text",
+              "steps": [
+                {
+                  "op": "trim"
+                },
+                {
+                  "op": "uppercase"
+                }
+              ]
+            }
+          },
+          {
+            "column": "C2",
+            "recipe": {
+              "type": "number",
+              "steps": [
+                {
+                  "op": "fill",
+                  "value": 0
+                },
+                {
+                  "op": "clamp",
+                  "min": 0,
+                  "max": 100
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "accepted": true,
+      "exactExpectedPlan": true,
+      "passed": true,
+      "elapsedMs": 6485,
+      "rssBytes": 1254932480
+    }
+  ],
+  "loadMs": 764,
+  "summary": {
+    "correctSupported": 1,
+    "supportedTotal": 3,
+    "explicitUnsupported": 0,
+    "unsupportedTotal": 1,
+    "acceptedIncomplete": 0
+  },
+  "completedAt": "2026-11-14T07:35:57.710Z",
+  "decision": {
+    "activePromptChanged": false,
+    "reason": "The single isolated prompt clarification did not improve the two reported three-column goals. No corpus rewrite, fallback, output repair or new weights.",
+    "guard": "After existing strict validation, require the output column set to equal all explicitly selected task columns. Omitted selected columns reject the whole proposal.",
+    "errorCode": "INCOMPLETE_COLUMN_COVERAGE",
+    "localizedMessage": "Plan bu iş tanımına ait değil.",
+    "userScopeGuidance": "Select only columns to process; set unneeded columns to Ignore. Existing catalog labels: İşlenecek sütun / Yoksay. No UI files or catalog entries changed.",
+    "limitations": "Column coverage is not verification of goal semantics or operation completeness within a column. An output can still use the wrong supported operation, omit an operation within a covered column, or substitute supported operations for an unsupported action. Mandatory preview remains necessary.",
+    "negativeDisposition": "Mixed translation output was rejected for omitted C3, not an explicit neural unsupported refusal. Do not count this as successful semantic recognition.",
+    "backendBoundary": "Actual tests used native onnxruntime-node CPU, two inference threads, one inter-op thread and serial generation. No new browser/WASM validation was performed."
+  },
+  "validation": {
+    "focused": {
+      "command": "node --test web/agent-plan.test.mjs planner-runtime/*.test.mjs",
+      "passed": 13,
+      "failed": 0
+    },
+    "integration": {
+      "command": "node --test workspace/agent-workspace.test.mjs",
+      "passed": 9,
+      "failed": 0
+    },
+    "sourceHashes": {
+      "web/agent-plan.mjs": "121fbd49d30e5932fe884186442b53fd57c73bff5beb2f806272bf74e6317069",
+      "web/agent-plan.test.mjs": "99f6dcdf794977b90652b98a90f85b14245b7200bffb07cdc3758694e8aa05f5",
+      "web/agent-model-worker.mjs": "92e2502b3fe74719ca3b1a697f441c5ace25f3876a36154b0132bd7c4c97ccc6"
+    }
+  }
+}

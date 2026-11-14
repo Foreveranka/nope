@@ -1,17 +1,17 @@
 {
-  "verifiedAt": "2026-11-14T07:21:03.669322+00:00",
+  "verifiedAt": "2026-11-14T07:47:03.074152+00:00",
   "rootTests": {
     "command": "npm test",
-    "passed": 489,
+    "passed": 492,
     "failed": 0,
     "skipped": 0,
-    "logSha256": "80939d867bbbcd0d3128dd3a44fe6638dfc69b0fe4e5d8f11aa0015736b0fd3d"
+    "logSha256": "6e871af5e60aa1f842a7c544a3f9711784fe79a87f21149bfd636c5d5e7742b5"
   },
   "contractUnitTests": 13,
   "actualLocalWasmSandbox": true,
   "actualExternalTestnetPayoutAndRefund": true,
   "actualLocalHttpEncryptedAndSNARKLifecycle": true,
-  "actualBrowserWalletPopupSigning": false,
+  "actualBrowserWalletPopupSigning": true,
   "localCUA": {
     "syntheticWalletPaymentUIFiveLanguages": true,
     "mobile375NoDocumentOverflowAfterFix": true,
@@ -52,6 +52,23 @@
     "upstreamPinned": true,
     "patchedCallbackField": "callbackUrl",
     "backendVerificationRelaxed": false,
-    "actualPopupSuccess": false
-  }
+    "actualPopupSuccess": true
+  },
+  "actualBrowserWalletAccount": "nope-demo-b-141126.testnet",
+  "actualBrowserWalletVerifiedAt": "2026-11-14T07:26:24.442742+00:00",
+  "liveTitleLocaleRegression": {
+    "command": "node --test workspace/i18n-ui.test.mjs",
+    "passed": 3,
+    "failed": 0,
+    "liveNestedPageAndRoleLocaleBindings": true
+  },
+  "actualBrowserWalletMessagePopupSigning": true,
+  "actualBrowserWalletTransactionPopupSigning": false,
+  "actualProductionPriceMaxLifecycle": {
+    "jobId": "39e82e6b469e075d32c5ed019ee924d1",
+    "amountYocto": "1000000000000000000000000",
+    "finalState": "PAID",
+    "freshIndependentPublicProofVerified": true
+  },
+  "selectedPlannerColumnCoverageRequired": true
 }

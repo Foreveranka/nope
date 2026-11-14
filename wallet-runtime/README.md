@@ -187,7 +187,7 @@ supported web path does not use the native logout-bridge WebSocket service.
 
 ## Verification evidence
 
-Recorded 14 November 2026: **19/19 client tests passed** and **486 root tests
+Recorded 14 November 2026: **20/20 client tests passed** and **489 root tests
 passed**, as recorded in [release checks](../docs/verification/wallet-release-checks.json).
 Client tests cover the real i18n objects against a strict connector label guard,
 buyer recovery recording, immutable intent bounds, redirects, unknown outcomes
@@ -195,19 +195,22 @@ and all three actual transport receiver sources. NEP-413 uses genuine local
 crypto with synthetic keys; window/connector/FullAccess RPC fixtures remain unit
 evidence, not a wallet or chain test.
 
-A subsequent focused protocol regression brings the client suite to **20/20**.
-It executes the actual hash-pinned official executor plus bridge across separate
+The focused protocol regression executes the actual hash-pinned official executor plus bridge across separate
 VM frames, checking the three popup URLs, login network/key restrictions, exact
 NEP-413 callback/state and transaction bytes. Transport crypto and remote popup
 responses are explicitly stubbed; this is not an external wallet signing test.
-The earlier recorded 486-test root result was not rerun by this sidecar check.
+These recorded root results are separate from this sidecar's targeted test run.
 
 The callback-wire fix passed **25/25 targeted tests** (20 client + 5 auth).
 The auth regression evaluates the original pinned encoder, models the official
 camelCase deserialization, and uses genuine synthetic NEP-413 signatures to
 reproduce the old rejection and verify the corrected wire against the unchanged
-FINAL FullAccess backend. This is local evidence; the actual Intear popup retry
-must confirm the deployed fix separately.
+FINAL FullAccess backend. Those tests are local evidence. After deployment of
+`35834c2`, the real official Intear `/connect` and `/sign-message` flow also passed
+in Chrome with a fresh challenge: the app displayed verified testnet account
+`nope-demo-b-141126.testnet`. MAIN recorded that successful wallet authentication
+at `2026-11-14T07:26:24.442742Z` in the linked release checks. Backend verification
+remained strict; this confirms the deployed callback-wire fix in the real popup.
 
 The [production Node HTTP lifecycle](../docs/verification/wallet-funded-http-production.json)
 used generated test-wallet keys locally to authenticate, fund, record and release
@@ -217,8 +220,9 @@ backend/chain integration, not the third-party popup transport.
 
 Actual Chrome separately passed the built opaque bridge, live wallet picker/cancel
 and the [public SNARK/FINAL chain verifier](https://veil-procurement.vercel.app/verify?id=10b21c73ed75bfd8c47418524932d2bf)
-without the buyer's CSV/private mappings. No actual third-party wallet popup
-login, NEP-413 signing or transaction-signing session has been completed. Those
-interactive checks remain open. The SNARK proves typed result correctness under
+without the buyer's CSV/private mappings. Real third-party popup login and
+NEP-413 authentication are now verified as described above. External Intear
+transaction-popup signing is **not yet verified**; Node-signed testnet payments
+do not complete that separate interactive check. The SNARK proves typed result correctness under
 precommitted buyer mappings, not execution origin or an AES trace; the contract
 has no on-chain SNARK verifier. See [evidence and trust limits](../docs/verification/wallet-funded-flow.md).

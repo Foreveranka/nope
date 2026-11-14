@@ -28,6 +28,30 @@ test('agent proposal binding rejects unknown operations, wrong columns/types and
   {...proposal,reason:'extra unapproved output'},
  ])await assert.rejects(acceptAgentProposal(task,p));
 });
+test('three selected columns reject a two-column proposal in short and hash-bound envelopes without repair',async()=>{
+ const selected={version:1,goal:'Trim C1 then uppercase C1. Fill missing C2 with 0 and clamp C2 between 0 and 100. Replace every digit in C3 with an asterisk.',columns:[{id:'C1',type:'text'},{id:'C2',type:'number'},{id:'C3',type:'text'}]};
+ // Actual native output from the reported demo goal; C3 is silently absent.
+ const partial={steps:[{column:'C1',recipe:{type:'text',steps:[{op:'trim'},{op:'uppercase'}]}},{column:'C2',recipe:{type:'number',steps:[{op:'fill',value:0},{op:'clamp',min:0,max:100}]}}]};
+ const original=JSON.stringify(partial),taskHash=await publicTaskHash(selected);
+ const check=error=>error.code==='INCOMPLETE_COLUMN_COVERAGE'&&JSON.stringify(error.missingColumns)==='["C3"]';
+ for(const value of [partial,JSON.stringify(partial),{version:1,taskHash,steps:partial.steps}])await assert.rejects(acceptAgentProposal(selected,value),check);
+ assert.equal(JSON.stringify(partial),original,'missing operations must not be synthesized or output rewritten');
+});
+test('coverage is set equality: complete selected scope accepts any column order and explicitly ignored columns are not required',async()=>{
+ const selected={version:1,goal:'Use the selected tools.',columns:[{id:'C1',type:'text'},{id:'C2',type:'number'},{id:'C3',type:'text'}]};
+ const steps=[{column:'C1',recipe:{type:'text',steps:[{op:'trim'},{op:'uppercase'}]}},{column:'C2',recipe:{type:'number',steps:[{op:'fill',value:0},{op:'clamp',min:0,max:100}]}},{column:'C3',recipe:{type:'text',steps:[{op:'redactDigits'}]}}];
+ const accepted=await acceptAgentProposal(selected,{steps:steps.slice().reverse()});
+ assert.deepEqual(accepted.plan.steps.map(s=>s.column),['C3','C2','C1']);
+ const ignored={...selected,columns:selected.columns.slice(0,2)};
+ assert.equal((await acceptAgentProposal(ignored,{steps:steps.slice(0,2)})).plan.steps.length,2);
+ await assert.rejects(acceptAgentProposal(ignored,{steps}),/sütun/);
+});
+test('coverage never bypasses refusal, unsupported operation, type, duplicate or empty-recipe rejection',async()=>{
+ const selected={version:1,goal:'Trim C1; translate C3.',columns:[{id:'C1',type:'text'},{id:'C3',type:'text'}]};
+ await assert.rejects(acceptAgentProposal(selected,{status:'unsupported',reason:'Translation is unavailable.'}),/desteklenen/);
+ for(const last of [{column:'C3',recipe:{type:'text',steps:[{op:'translate'}]}},{column:'C3',recipe:{type:'number',steps:[{op:'fill',value:0}]}},{column:'C3',recipe:{type:'text',steps:[]}}])await assert.rejects(acceptAgentProposal(selected,{steps:[{column:'C1',recipe:{type:'text',steps:[{op:'trim'}]}},last]}));
+ const same={column:'C1',recipe:{type:'text',steps:[{op:'trim'}]}};await assert.rejects(acceptAgentProposal(selected,{steps:[same,same]}));
+});
 test('multi-column private inputs and results stay local; nonselected UTF8 cells and exact semantics preserved',async()=>{
  const {plan}=await acceptAgentProposal(task,proposal);
  const dataset=parseCSV('id;private_supplier;private_score;note\nR1;"  ACME  ";;"İstanbul, keep"\nR2;BETA;200;özel\n');

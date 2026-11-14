@@ -9,7 +9,7 @@ import {initI18n,setLanguage,getLanguage,STORAGE_KEY} from '../web/i18n.mjs';
 const source=JSON.parse(await readFile(new URL('../web/locales/workspace-tr.json',import.meta.url),'utf8'));
 const en={
  'Yeni şifreli iş':'New encrypted job','Şifreli teklif ver':'Submit an encrypted offer',
- 'Sayı':'Number','Metin':'Text','boş → {0}':'empty → {0}','aralık {0}–{1}':'range {0}–{1}',
+ 'Müşteri':'Customer','Sağlayıcı':'Provider','Sayı':'Number','Metin':'Text','boş → {0}':'empty → {0}','aralık {0}–{1}':'range {0}–{1}',
  'Herkese açık tarif: {0}':'Public recipe: {0}','Herkese açık ajan hedefi: {0}':'Public agent goal: {0}',
  'Teklif sonu: {0}':'Offers close: {0}','Tekliflere açık':'Open for offers',
  'CSV yalnızca bu cihazda okundu. Önizlemeyi kontrol edin.':'The CSV was read only on this device. Check the preview.',
@@ -18,7 +18,7 @@ const en={
  'ornek.testnet':'example.testnet','İşlem sürüyor…':'Working…','Şifrele ve işi yayımla':'Encrypt and publish',
 };
 const fr={
- ...en,'Yeni şifreli iş':'Nouvelle tâche chiffrée','Sayı':'Nombre','Metin':'Texte',
+ ...en,'Müşteri':'Client','Sağlayıcı':'Prestataire','Yeni şifreli iş':'Nouvelle tâche chiffrée','Sayı':'Nombre','Metin':'Texte',
  'boş → {0}':'vide → {0}','aralık {0}–{1}':'intervalle {0}–{1}',
  'Herkese açık tarif: {0}':'Recette publique : {0}',
  'Geçerli bir testNEAR tutarı girin (en fazla 24 ondalık).':'Saisissez un montant testNEAR valide.',
@@ -59,7 +59,7 @@ function browser({path='/jobs/new',identity=BUYER}={}){
   return{ok:true,status:200,json:async()=>result};
  }});
  async function settle(){for(let i=0;i<10000&&app.state.busy;i++)await new Promise(resolve=>setTimeout(resolve,1));assert.equal(app.state.busy,false);}
- return{app,all,elements,calls,quotes,records,get:name=>all().find(e=>e.name===name),text:()=>elements.get('workspace-root').textContent,
+ return{app,doc,all,elements,calls,quotes,records,get:name=>all().find(e=>e.name===name),text:()=>elements.get('workspace-root').textContent,
   async upload(){const csv='Sayı,private-score\nMetin,154\nMetin,\n',input=all().find(e=>e.type==='file');input.files=[{size:csv.length,arrayBuffer:async()=>new TextEncoder().encode(csv).buffer}];await input.fire('change');await settle();},
   async change(name,value){const input=this.get(name);if(input.type==='checkbox')input.checked=value;else input.value=value;await input.fire('change');await settle();},
   async click(label){const button=all().find(e=>e.tagName==='BUTTON'&&e.textContent===label);assert.ok(button,label);await button.fire('click');await settle();},
@@ -68,12 +68,12 @@ function browser({path='/jobs/new',identity=BUYER}={}){
 }
 
 test('English workspace live bindings preserve a populated draft, local CSV headers and nested recipe labels through language changes',async()=>{
- setLanguage('en',{persist:false});const h=browser();await h.app.start();assert.equal(h.elements.get('workspace-heading').textContent,'New encrypted job');
- await h.upload();const form=h.all().find(e=>e.tagName==='FORM'),title=h.get('title'),goal=h.get('agentGoal');title.value='Sayı';h.get('description').value='Metin';goal.value='Metin';await h.change('agentColumn1','text');await h.change('agentColumn2','number');await h.click('Yerel ajanla plan üret');await h.change('agentApprove',true);
+ setLanguage('en',{persist:false});const h=browser();await h.app.start();assert.equal(h.elements.get('workspace-heading').textContent,'New encrypted job');assert.equal(h.doc.title,'New encrypted job · Customer — NOPE');
+ await h.upload();const form=h.all().find(e=>e.tagName==='FORM'),title=h.get('title'),goal=h.get('agentGoal');title.value='Sayı';h.get('description').value='Metin';goal.value='Metin';await h.change('agentColumn2','number');await h.click('Yerel ajanla plan üret');await h.change('agentApprove',true);
  assert.ok(h.text().includes('C2: Number: empty → 0 → range 0–100'));
  assert.equal(h.get('column').children[0].textContent,'Sayı — unsupported column / recipe');
  const requests=h.calls.length;setLanguage('fr',{persist:false});
- assert.equal(h.elements.get('workspace-heading').textContent,'Nouvelle tâche chiffrée');assert.ok(h.text().includes('C2: Nombre: vide → 0 → intervalle 0–100'));
+ assert.equal(h.elements.get('workspace-heading').textContent,'Nouvelle tâche chiffrée');assert.equal(h.doc.title,'Nouvelle tâche chiffrée · Client — NOPE');assert.ok(h.text().includes('C2: Nombre: vide → 0 → intervalle 0–100'));
  assert.equal(h.get('title'),title);assert.equal(title.value,'Sayı');assert.equal(goal.value,'Metin');assert.equal(h.all().find(e=>e.tagName==='FORM'),form);assert.equal(h.calls.length,requests);
  setLanguage('en',{persist:false});await h.submit();const post=h.calls.find(c=>c.route==='/jobs'&&c.method==='POST');assert.ok(post);
  assert.equal(post.body.title,'Sayı');assert.equal(post.body.description,'Metin');assert.equal(post.body.profile,PROOF_PROFILE);
